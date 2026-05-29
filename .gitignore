@@ -1,0 +1,60 @@
+# ---- Next.js ----
+.next/
+out/
+build/
+
+# ---- Node ----
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---- Environment secrets ----
+.env
+.env.local
+.env.*.local
+.env.production
+
+# ---- Prisma generated ----
+prisma/*.db
+prisma/*.db-journal
+
+# ---- macOS ----
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# ---- Editor ----
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ---- OS / Home folder junk ----
+Library/
+Desktop/
+Downloads/
+Documents/
+Pictures/
+Movies/
+Music/
+Applications/
+Public/
+.Trash/
+.android/
+.cache/
+.cups/
+.npm/
+.nvm/
+.openshot_qt/
+.streamlit/
+.zsh_history
+.zsh_sessions/
+.gemini/
+.antigravity/
+lobby.osp
+lobby_assets/
+.vercel

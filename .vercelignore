@@ -1,0 +1,39 @@
+# macOS system folders
+.Trash
+Library
+Applications
+Desktop
+Downloads
+Documents
+Pictures
+Movies
+Music
+Public
+.android
+.cache
+.cups
+.npm
+.nvm
+.openshot_qt
+.streamlit
+.zsh_sessions
+.gemini
+.antigravity
+lobby_assets
+
+# Node / Next.js
+node_modules
+.next
+out
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+
+# Misc
+*.log
+lobby.osp

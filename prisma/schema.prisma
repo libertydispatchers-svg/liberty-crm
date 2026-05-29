@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  name          String?
+  generations   Generation[]
+  crates        Crate[]
+  playlists     Playlist[]
+  createdAt     DateTime     @default(now())
+}
+
+model Generation {
+  id          String   @id @default(cuid())
+  prompt      String
+  title       String?
+  vibe        String?
+  bpm         Int?
+  key         String?
+  beatUrl     String?
+  stemStatus  String   @default("none") // none, splitting, ready
+  status      String   @default("pending") // pending, ready, splitting
+  taskId      String?   // Sonauto task ID
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  crateId     String?
+  crate       Crate?   @relation(fields: [crateId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Crate {
+  id          String       @id @default(cuid())
+  name        String
+  userId      String?
+  user        User?        @relation(fields: [userId], references: [id])
+  generations Generation[]
+  createdAt   DateTime     @default(now())
+}
+
+model Playlist {
+  id        String   @id @default(cuid())
+  name      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Applicant {
+  id           String     @id @default(cuid())
+  name         String
+  phone        String
+  email        String
+  status       String     @default("NEW") // NEW, CONTACTED, ONBOARDING, ACTIVE, REJECTED
+  source       String     @default("EMAIL") // CALL, TEXT, EMAIL
+  availability String     @default("{}") // JSON string representing weekly availability hours
+  notes        Note[]
+  documents    Document[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Note {
+  id          String    @id @default(cuid())
+  content     String
+  createdAt   DateTime  @default(now())
+  applicantId String
+  applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id          String    @id @default(cuid())
+  name        String    // e.g. "Onboarding Material", "W-9", "Driver Contract"
+  status      String    @default("NOT_SENT") // NOT_SENT, SENT, SIGNED
+  sentAt      DateTime?
+  signedAt    DateTime?
+  fileUrl     String?   // e.g. URL to signed doc
+  esignData   String?   // JSON string containing signature/W-9 data
+  applicantId String
+  applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+}
