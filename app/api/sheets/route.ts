@@ -24,8 +24,8 @@ export async function GET(request: Request) {
       orderBy: { createdAt: 'desc' }
     });
   } catch (dbErr) {
-    console.warn('Prisma applicant fetch failed in sheets API, defaulting to mock data.', dbErr);
-    applicants = MOCK_APPLICANTS;
+    console.error('Prisma applicant fetch failed in sheets API.', dbErr);
+    return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
   }
 
   try {
@@ -51,16 +51,11 @@ export async function GET(request: Request) {
     };
 
     if (!hasCreds) {
-      // Return offline simulation data
       return NextResponse.json({
         connected: false,
-        spreadsheetId: '1T8rQ_S9U02Dk-X7y_p4zYxX474Y0q1m3oK0qW1-Mock',
-        spreadsheetName: 'Libertydispatchers Delivery Drivers (Simulation)',
-        sheetName: 'Applicants_Feed',
-        lastSynced: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-        headers: ['Row #', 'Applicant ID', 'Full Name', 'Phone', 'Email', 'Status', 'Source', 'Availability Hours', 'Applied Date'],
-        rows: formatRows(applicants)
-      });
+        error: 'Google API Credentials missing. Please add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN, and GOOGLE_SHEET_ID to environment variables.',
+        rows: []
+      }, { status: 400 });
     }
 
     // Connect to live Google Sheets and read spreadsheet info
@@ -106,16 +101,12 @@ export async function GET(request: Request) {
     });
 
   } catch (error: any) {
-    console.warn('Error fetching live Sheets data, returning fallback representation:', error);
+    console.error('Error fetching live Sheets data:', error);
     return NextResponse.json({
       connected: false,
       error: error.message || 'Failed to sync with live Google Sheet',
-      spreadsheetId: process.env.GOOGLE_SHEET_ID || '1T8rQ_S9U02Dk-X7y_p4zYxX474Y0q1m3oK0qW1-Mock',
-      spreadsheetName: 'Libertydispatchers Delivery Drivers (Error Fallback)',
-      sheetName: 'Applicants_Feed',
-      headers: ['Row #', 'Applicant ID', 'Full Name', 'Phone', 'Email', 'Status', 'Source', 'Availability Hours', 'Applied Date'],
-      rows: formatRows(applicants)
-    });
+      rows: []
+    }, { status: 500 });
   }
 }
 
@@ -126,8 +117,8 @@ export async function POST(request: Request) {
       orderBy: { createdAt: 'asc' }
     });
   } catch (dbErr) {
-    console.warn('Prisma applicant fetch failed in sheets POST, defaulting to mock data.', dbErr);
-    applicants = MOCK_APPLICANTS;
+    console.error('Prisma applicant fetch failed in sheets POST.', dbErr);
+    return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
   }
 
   try {

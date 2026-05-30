@@ -4,55 +4,7 @@ import { getGmailClient } from '../../../lib/google';
 export const dynamic = 'force-dynamic';
 
 // Fallback Mock Data if environment variables are not configured yet
-const mockEmails = [
-  {
-    id: 'msg-1',
-    from: 'voice-noreply@google.com',
-    fromName: 'Google Voice Voicemail',
-    to: 'recruit@libertydispatchers.com',
-    subject: 'New voicemail from (240) 555-0199',
-    body: 'New voicemail from Alex Rivera (240) 555-0199:\n\n"Hey this is Alex Rivera, calling about the driver position. I wanted to see what the hours are and what the pay is. Give me a call back at 240-555-0199. Thanks!"',
-    date: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-    isGoogleVoice: true,
-    type: 'voicemail',
-    senderNumber: '240-555-0199'
-  },
-  {
-    id: 'msg-2',
-    from: '14106354001.12405550199.abc@txt.voice.google.com',
-    fromName: 'Alex Rivera (via SMS)',
-    to: 'recruit@libertydispatchers.com',
-    subject: 'SMS from (240) 555-0199',
-    body: 'Hey, saw the ad for drivers, are you guys still hiring?',
-    date: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-    isGoogleVoice: true,
-    type: 'sms',
-    senderNumber: '240-555-0199'
-  },
-  {
-    id: 'msg-3',
-    from: 'taylorsmith.delivery@gmail.com',
-    fromName: 'Taylor Smith',
-    to: 'recruit@libertydispatchers.com',
-    subject: 'Driver Application: Taylor Smith (Clean Record & Experience)',
-    body: 'Hi, I saw your ad on Craigslist for delivery drivers for the flower and smoke delivery platform. I have attached my resume. I have 2 years of delivery experience with UberEats and a clean driving record in Maryland. I am available mostly weekday afternoons and evenings. I look forward to hearing from you!\n\nBest,\nTaylor Smith\nPhone: 410-555-0187',
-    date: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-    isGoogleVoice: false,
-    type: 'email'
-  },
-  {
-    id: 'msg-4',
-    from: 'voice-noreply@google.com',
-    fromName: 'Google Voice Call Alert',
-    to: 'recruit@libertydispatchers.com',
-    subject: 'Missed call from (301) 555-0142 at 10:15 AM',
-    body: 'Google Voice missed call notification:\n\nCaller: (301) 555-0142 (Jordan Vance)\nTime: May 28, 2026 at 10:15 AM EDT\nNo voicemail was left.',
-    date: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    isGoogleVoice: true,
-    type: 'missed_call',
-    senderNumber: '301-555-0142'
-  }
-];
+
 
 export async function GET(request: Request) {
   try {
@@ -66,18 +18,11 @@ export async function GET(request: Request) {
       process.env.GOOGLE_REFRESH_TOKEN;
 
     if (!hasCreds) {
-      // Return simulated mock data if credentials are not configured
-      let emails = [...mockEmails];
-      if (filter === 'email') {
-        emails = emails.filter(e => !e.isGoogleVoice);
-      } else if (filter === 'voice') {
-        emails = emails.filter(e => e.isGoogleVoice);
-      }
       return NextResponse.json({
         connected: false,
-        emailAddress: 'recruit@libertydispatchers.com (Simulation Mode)',
-        emails
-      });
+        error: 'Google API Credentials missing. Please add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REFRESH_TOKEN to environment variables.',
+        emails: []
+      }, { status: 400 });
     }
 
     // Connect to live Gmail API
@@ -173,8 +118,8 @@ export async function GET(request: Request) {
     console.error('Error fetching live Gmail data:', error);
     return NextResponse.json({ 
       error: error.message || 'Failed to fetch live Gmail data',
-      emails: mockEmails, // Fallback to mock on connection error
+      emails: [],
       connected: false
-    });
+    }, { status: 500 });
   }
 }

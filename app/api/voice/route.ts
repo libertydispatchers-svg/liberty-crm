@@ -6,32 +6,14 @@ import { MOCK_APPLICANTS } from '../../../lib/mockApplicants';
 export const dynamic = 'force-dynamic';
 
 // Seeded SMS conversations for fallback
-const mockSmsThreads = [
-  {
-    phone: '240-555-0199',
-    applicantName: 'Alex Rivera',
-    messages: [
-      { sender: 'applicant', text: 'Hey, saw the ad for drivers, are you guys still hiring?', timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString() }
-    ]
-  },
-  {
-    phone: '410-555-0187',
-    applicantName: 'Taylor Smith',
-    messages: [
-      { sender: 'applicant', text: 'Hi, I sent my application email over, did you get it?', timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() },
-      { sender: 'crm', text: 'Yes Taylor, we received it! Let me review it and I will get back to you shortly.', timestamp: new Date(Date.now() - 3.8 * 60 * 60 * 1000).toISOString() },
-      { sender: 'crm', text: 'Hey Taylor, you look like a great fit. Here is the link to complete our digital onboarding (W-9 and Contract): http://localhost:3000/esign/', timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() }
-    ]
-  }
-];
 
 export async function GET(request: Request) {
   let dbApplicants: any[] = [];
   try {
     dbApplicants = await prisma.applicant.findMany();
   } catch (dbError) {
-    console.warn('Prisma applicant fetch failed in voice API, defaulting to mock data.', dbError);
-    dbApplicants = MOCK_APPLICANTS;
+    console.error('Prisma applicant fetch failed in voice API.', dbError);
+    return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
   }
 
   try {
@@ -41,27 +23,13 @@ export async function GET(request: Request) {
       process.env.GOOGLE_REFRESH_TOKEN;
 
     if (!hasCreds) {
-      // Mock Fallback
-      const formatted = mockSmsThreads.map(thread => {
-        const app = dbApplicants.find(a => a.phone === thread.phone || a.name === thread.applicantName);
-        if (app) {
-          return {
-            ...thread,
-            applicantId: app.id,
-            messages: thread.messages.map(m => m.text.includes('/esign/') ? { ...m, text: `Hey Taylor, you look like a great fit. Here is the link to complete our digital onboarding: http://localhost:3000/esign/${app.id}` } : m)
-          };
-        }
-        return thread;
-      });
-
       return NextResponse.json({
-        googleVoiceNumber: '(410) 635-4001 (Simulation)',
+        googleVoiceNumber: process.env.DISPATCHER_PHONE_NUMBER || 'Unconfigured',
         connected: false,
-        smsThreads: formatted,
-        callLogs: [
-          { id: 'call-1', applicantName: 'Alex Rivera', phone: '240-555-0199', type: 'missed', timestamp: new Date(Date.now() - 40 * 60 * 1000).toISOString(), duration: '0:00', voicemailText: 'Hey this is Alex Rivera, calling about the driver position. I wanted to see what the hours are and what the pay is. Give me a call back at 240-555-0199. Thanks!' }
-        ]
-      });
+        error: 'Google API Credentials missing. Please add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REFRESH_TOKEN to environment variables.',
+        smsThreads: [],
+        callLogs: []
+      }, { status: 400 });
     }
 
     // Connect to Gmail and search for SMS/call logs
@@ -144,27 +112,14 @@ export async function GET(request: Request) {
     });
 
   } catch (error: any) {
-    console.warn('Error fetching live Google Voice SMS threads, returning mock threads:', error);
-    const formatted = mockSmsThreads.map(thread => {
-      const app = dbApplicants.find(a => a.phone === thread.phone || a.name === thread.applicantName);
-      if (app) {
-        return {
-          ...thread,
-          applicantId: app.id,
-          messages: thread.messages.map(m => m.text.includes('/esign/') ? { ...m, text: `Hey Taylor, you look like a great fit. Here is the link to complete our digital onboarding: http://localhost:3000/esign/${app.id}` } : m)
-        };
-      }
-      return thread;
-    });
-
+    console.error('Error fetching live Google Voice SMS threads:', error);
     return NextResponse.json({
-      googleVoiceNumber: '(410) 635-4001 (Simulation)',
+      googleVoiceNumber: process.env.DISPATCHER_PHONE_NUMBER || 'Unconfigured',
       connected: false,
-      smsThreads: formatted,
-      callLogs: [
-        { id: 'call-1', applicantName: 'Alex Rivera', phone: '240-555-0199', type: 'missed', timestamp: new Date(Date.now() - 40 * 60 * 1000).toISOString(), duration: '0:00', voicemailText: 'Hey this is Alex Rivera, calling about the driver position. I wanted to see what the hours are and what the pay is. Give me a call back at 240-555-0199. Thanks!' }
-      ]
-    });
+      error: error.message || 'Failed to fetch live SMS threads',
+      smsThreads: [],
+      callLogs: []
+    }, { status: 500 });
   }
 }
 

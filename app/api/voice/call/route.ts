@@ -37,8 +37,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // Always indicate the front‑end should use the native tel: protocol
-    return NextResponse.json({ success: true, useFaceTime: true, connected: false });
+    // Always indicate success for the front-end to trigger Google Voice web dialer
+    return NextResponse.json({ success: true, connected: false });
   } catch (error: any) {
     console.error('Error initiating native call:', error);
     return NextResponse.json({ error: error.message || 'Failed to process call' }, { status: 500 });

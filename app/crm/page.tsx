@@ -283,18 +283,14 @@ export default function CrmDashboard() {
       });
       
       if (res.ok) {
-        const data = await res.json();
-        if (data.useFaceTime) {
-          // Trigger native dialing via FaceTime protocol
-          window.location.href = `tel:${num}`;
-          alert(`Opening FaceTime/Phone App to dial applicant at: ${num}`);
-        } else if (data.connected) {
-          alert(`Twilio Click-to-Call Dialing! Twilio is calling your dispatcher line (${process.env.DISPATCHER_PHONE_NUMBER || 'your phone'}) first. Pick up to connect with candidate.`);
-        }
+        // Trigger Google Voice Web Dialer in new tab
+        const cleanNum = num.replace(/\D/g, '');
+        window.open(`https://voice.google.com/u/0/calls?a=nc,%2B1${cleanNum}`, '_blank');
         fetchData(); // refresh note logs
       } else {
         // Direct browser dialer link fallback
-        window.location.href = `tel:${num}`;
+        const cleanNum = num.replace(/\D/g, '');
+        window.open(`https://voice.google.com/u/0/calls?a=nc,%2B1${cleanNum}`, '_blank');
       }
     } catch (e) {
       console.error('Call dialer error:', e);
@@ -933,8 +929,8 @@ export default function CrmDashboard() {
                     {/* Connection indicator */}
                     <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                       <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Connection State:</span>
-                      <span className={`status-tag ${voiceData.connected ? 'active' : 'contacted'}`} style={{ scale: '0.85', transformOrigin: 'right' }}>
-                        {voiceData.connected ? 'Twilio Live' : 'FaceTime Mode'}
+                      <span style={{ fontSize: '0.75rem', padding: '2px 8px', background: 'rgba(255,255,255,0.1)', borderRadius: '10px' }}>
+                        {voiceData.connected ? 'Live API' : 'Direct Dial'}
                       </span>
                     </div>
 
