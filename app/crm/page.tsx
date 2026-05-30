@@ -108,6 +108,11 @@ export default function CrmDashboard() {
 
   useEffect(() => {
     fetchData();
+    // Auto-refresh data every 30 seconds to keep services live
+    const interval = setInterval(() => {
+      fetchData();
+    }, 30000);
+    return () => clearInterval(interval);
   }, [searchQuery, statusFilter, sourceFilter]);
 
   // Scroll to bottom of chat
@@ -390,16 +395,17 @@ export default function CrmDashboard() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ 
-            background: 'linear-gradient(135deg, #ff8f00 0%, #ff6d00 100%)', 
-            width: '40px', 
-            height: '40px', 
-            borderRadius: '10px',
+            width: '44px', 
+            height: '44px', 
+            borderRadius: '50%',
+            overflow: 'hidden',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 0 15px rgba(255,109,0,0.4)'
+            background: 'rgba(255, 255, 255, 0.9)',
+            boxShadow: '0 0 15px rgba(215, 181, 95, 0.4)'
           }}>
-            <Database size={20} color="white" />
+            <img src="/logo.png" alt="Liberty Dispatchers" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div>
             <h1 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.5px' }}>Liberty Dispatchers CRM</h1>

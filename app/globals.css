@@ -1,24 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap');
 
 :root {
-  --bg-color: #0b0f17;
-  --bg-gradient: radial-gradient(circle at 50% 0%, #152238 0%, #0b0f17 100%);
-  --panel-bg: rgba(17, 24, 39, 0.7);
-  --panel-bg-solid: #111827;
+  --bg-color: #0b131e; /* Deep Navy background */
+  --bg-gradient: radial-gradient(circle at 50% 0%, #1b3a5c 0%, #0b131e 100%);
+  --panel-bg: rgba(27, 58, 92, 0.5);
+  --panel-bg-solid: #1b3a5c;
   --glass-bg: rgba(255, 255, 255, 0.03);
   --glass-bg-hover: rgba(255, 255, 255, 0.06);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-active: rgba(255, 255, 255, 0.2);
+  --glass-border-active: rgba(215, 181, 95, 0.4); /* Gold border */
   
   --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
   
   /* Harmonious Tailwind-like colors */
-  --accent-color: #ff6d00;
-  --accent-glow: rgba(255, 109, 0, 0.35);
-  --accent-cyan: #06b6d4;
-  --accent-cyan-glow: rgba(6, 182, 212, 0.35);
+  --accent-color: #d7b55f; /* Gold */
+  --accent-glow: rgba(215, 181, 95, 0.35);
+  --accent-cyan: #a8262a; /* Red */
+  --accent-cyan-glow: rgba(168, 38, 42, 0.35);
   
   --status-new: #3b82f6; /* Blue */
   --status-contacted: #eab308; /* Yellow */
@@ -27,15 +27,15 @@
   --status-rejected: #ef4444; /* Red */
   
   --border-color: rgba(255, 255, 255, 0.06);
-  --control-bg: rgba(15, 23, 42, 0.6);
+  --control-bg: rgba(11, 19, 30, 0.6);
   --control-border: rgba(255, 255, 255, 0.1);
-  --control-focus: #ff6d00;
+  --control-focus: #d7b55f; /* Gold focus */
   
   --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Roboto Mono', monospace;
   
   --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-  --shadow-glow: 0 0 20px rgba(255, 109, 0, 0.15);
+  --shadow-glow: 0 0 20px rgba(215, 181, 95, 0.15); /* Gold glow */
 }
 
 * {
@@ -133,16 +133,16 @@ a {
 }
 
 .button.highlight {
-  background: linear-gradient(135deg, #ff8f00 0%, #ff6d00 100%);
+  background: linear-gradient(135deg, #d7b55f 0%, #a8262a 100%);
   color: #fff;
   border: none;
   font-weight: 600;
-  box-shadow: 0 4px 10px rgba(255, 109, 0, 0.25);
+  box-shadow: 0 4px 10px rgba(215, 181, 95, 0.25);
 }
 
 .button.highlight:hover:not(:disabled) {
-  background: linear-gradient(135deg, #ffa040 0%, #ff7d1a 100%);
-  box-shadow: 0 6px 15px rgba(255, 109, 0, 0.4);
+  background: linear-gradient(135deg, #e2c16f 0%, #b83438 100%);
+  box-shadow: 0 6px 15px rgba(215, 181, 95, 0.4);
 }
 
 .button:disabled {
