@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../lib/prisma';
 import { getSheetsClient } from '../../../lib/google';
+import { MOCK_APPLICANTS } from '../../../lib/mockApplicants';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,11 +18,17 @@ function getAvailabilityString(availabilityJson: string) {
 }
 
 export async function GET(request: Request) {
+  let applicants: any[] = [];
   try {
-    const applicants = await prisma.applicant.findMany({
+    applicants = await prisma.applicant.findMany({
       orderBy: { createdAt: 'desc' }
     });
+  } catch (dbErr) {
+    console.warn('Prisma applicant fetch failed in sheets API, defaulting to mock data.', dbErr);
+    applicants = MOCK_APPLICANTS;
+  }
 
+  try {
     const hasCreds = 
       process.env.GOOGLE_CLIENT_ID && 
       process.env.GOOGLE_CLIENT_SECRET && 
@@ -99,9 +106,7 @@ export async function GET(request: Request) {
     });
 
   } catch (error: any) {
-    console.error('Error fetching live Sheets data:', error);
-    // Graceful fallback to database rows if sheets fail
-    const dbApplicants = await prisma.applicant.findMany({ orderBy: { createdAt: 'desc' } });
+    console.warn('Error fetching live Sheets data, returning fallback representation:', error);
     return NextResponse.json({
       connected: false,
       error: error.message || 'Failed to sync with live Google Sheet',
@@ -109,27 +114,23 @@ export async function GET(request: Request) {
       spreadsheetName: 'Libertydispatchers Delivery Drivers (Error Fallback)',
       sheetName: 'Applicants_Feed',
       headers: ['Row #', 'Applicant ID', 'Full Name', 'Phone', 'Email', 'Status', 'Source', 'Availability Hours', 'Applied Date'],
-      rows: dbApplicants.map((app, index) => ({
-        rowNumber: index + 2,
-        id: app.id,
-        name: app.name,
-        phone: app.phone,
-        email: app.email,
-        status: app.status,
-        source: app.source,
-        availability: getAvailabilityString(app.availability),
-        appliedDate: new Date(app.createdAt).toLocaleDateString()
-      }))
+      rows: formatRows(applicants)
     });
   }
 }
 
 export async function POST(request: Request) {
+  let applicants: any[] = [];
   try {
-    const applicants = await prisma.applicant.findMany({
+    applicants = await prisma.applicant.findMany({
       orderBy: { createdAt: 'asc' }
     });
+  } catch (dbErr) {
+    console.warn('Prisma applicant fetch failed in sheets POST, defaulting to mock data.', dbErr);
+    applicants = MOCK_APPLICANTS;
+  }
 
+  try {
     const hasCreds = 
       process.env.GOOGLE_CLIENT_ID && 
       process.env.GOOGLE_CLIENT_SECRET && 
@@ -175,12 +176,16 @@ export async function POST(request: Request) {
 
     // Write synchronization event log notes to DB for all synced candidates
     for (const app of applicants) {
-      await prisma.note.create({
-        data: {
-          content: `Synced applicant data to Google Sheets spreadsheet ${hasCreds ? '(Live Sheets updated)' : '(Mock simulation synced)'}`,
-          applicantId: app.id
-        }
-      });
+      try {
+        await prisma.note.create({
+          data: {
+            content: `Synced applicant data to Google Sheets spreadsheet ${hasCreds ? '(Live Sheets updated)' : '(Mock simulation synced)'}`,
+            applicantId: app.id
+          }
+        });
+      } catch (dbErr) {
+        console.warn('Failed to write sheet sync note to database.', dbErr);
+      }
     }
 
     return NextResponse.json({

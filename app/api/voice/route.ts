@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../lib/prisma';
 import { getGmailClient } from '../../../lib/google';
+import { MOCK_APPLICANTS } from '../../../lib/mockApplicants';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,13 +26,19 @@ const mockSmsThreads = [
 ];
 
 export async function GET(request: Request) {
+  let dbApplicants: any[] = [];
+  try {
+    dbApplicants = await prisma.applicant.findMany();
+  } catch (dbError) {
+    console.warn('Prisma applicant fetch failed in voice API, defaulting to mock data.', dbError);
+    dbApplicants = MOCK_APPLICANTS;
+  }
+
   try {
     const hasCreds = 
       process.env.GOOGLE_CLIENT_ID && 
       process.env.GOOGLE_CLIENT_SECRET && 
       process.env.GOOGLE_REFRESH_TOKEN;
-
-    const dbApplicants = await prisma.applicant.findMany();
 
     if (!hasCreds) {
       // Mock Fallback
@@ -137,8 +144,27 @@ export async function GET(request: Request) {
     });
 
   } catch (error: any) {
-    console.error('Error fetching live Google Voice SMS threads:', error);
-    return NextResponse.json({ error: error.message || 'Failed to fetch live Voice threads' }, { status: 500 });
+    console.warn('Error fetching live Google Voice SMS threads, returning mock threads:', error);
+    const formatted = mockSmsThreads.map(thread => {
+      const app = dbApplicants.find(a => a.phone === thread.phone || a.name === thread.applicantName);
+      if (app) {
+        return {
+          ...thread,
+          applicantId: app.id,
+          messages: thread.messages.map(m => m.text.includes('/esign/') ? { ...m, text: `Hey Taylor, you look like a great fit. Here is the link to complete our digital onboarding: http://localhost:3000/esign/${app.id}` } : m)
+        };
+      }
+      return thread;
+    });
+
+    return NextResponse.json({
+      googleVoiceNumber: '(410) 635-4001 (Simulation)',
+      connected: false,
+      smsThreads: formatted,
+      callLogs: [
+        { id: 'call-1', applicantName: 'Alex Rivera', phone: '240-555-0199', type: 'missed', timestamp: new Date(Date.now() - 40 * 60 * 1000).toISOString(), duration: '0:00', voicemailText: 'Hey this is Alex Rivera, calling about the driver position. I wanted to see what the hours are and what the pay is. Give me a call back at 240-555-0199. Thanks!' }
+      ]
+    });
   }
 }
 
@@ -153,13 +179,17 @@ export async function POST(request: Request) {
 
     // Find applicant
     let applicant = null;
-    if (applicantId) {
-      applicant = await prisma.applicant.findUnique({ where: { id: applicantId } });
-    } else {
-      const cleanPhone = phone.replace(/\D/g, '');
-      applicant = await prisma.applicant.findFirst({ 
-        where: { phone: { contains: cleanPhone } } 
-      });
+    try {
+      if (applicantId) {
+        applicant = await prisma.applicant.findUnique({ where: { id: applicantId } });
+      } else {
+        const cleanPhone = phone.replace(/\D/g, '');
+        applicant = await prisma.applicant.findFirst({ 
+          where: { phone: { contains: cleanPhone } } 
+        });
+      }
+    } catch (dbErr) {
+      console.warn('Prisma find failed in voice send, running in fallback mode.', dbErr);
     }
 
     const hasCreds = 
@@ -208,25 +238,29 @@ export async function POST(request: Request) {
 
     // Log the interaction Note in Database
     if (applicant) {
-      await prisma.note.create({
-        data: {
-          content: `Sent SMS to ${phone}: "${text}" ${emailSent ? '(delivered via Google Voice API)' : '(mock simulation logged)'}`,
-          applicantId: applicant.id,
-        }
-      });
-      
-      // Bump status from NEW to CONTACTED
-      if (applicant.status === 'NEW') {
-        await prisma.applicant.update({
-          where: { id: applicant.id },
-          data: { status: 'CONTACTED' }
-        });
+      try {
         await prisma.note.create({
           data: {
-            content: `Status updated to CONTACTED (SMS sent)`,
+            content: `Sent SMS to ${phone}: "${text}" ${emailSent ? '(delivered via Google Voice API)' : '(mock simulation logged)'}`,
             applicantId: applicant.id,
           }
         });
+        
+        // Bump status from NEW to CONTACTED
+        if (applicant.status === 'NEW') {
+          await prisma.applicant.update({
+            where: { id: applicant.id },
+            data: { status: 'CONTACTED' }
+          });
+          await prisma.note.create({
+            data: {
+              content: `Status updated to CONTACTED (SMS sent)`,
+              applicantId: applicant.id,
+            }
+          });
+        }
+      } catch (dbErr) {
+        console.warn('Failed to log voice message note to database.', dbErr);
       }
     }
 
