@@ -59,6 +59,9 @@ export default function CrmDashboard() {
   });
   const [isSyncing, setIsSyncing] = useState(false);
 
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editProfileForm, setEditProfileForm] = useState({ name: '', phone: '', email: '' });
+
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch initial data
@@ -181,6 +184,25 @@ export default function CrmDashboard() {
         alert('Failed to trash voice log.');
       }
     } catch (e) { console.error(e); }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!selectedApplicant) return;
+    try {
+      const res = await fetch(`/api/applicants/${selectedApplicant.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editProfileForm)
+      });
+      if (res.ok) {
+        setIsEditingProfile(false);
+        const updated = await res.json();
+        setSelectedApplicant(updated);
+        fetchData();
+      }
+    } catch (e) {
+      console.error('Failed to save profile', e);
+    }
   };
 
   useEffect(() => {
@@ -616,8 +638,9 @@ export default function CrmDashboard() {
                 return (
                   <div 
                     key={app.id} 
-                    onClick={() => {
-                      setSelectedApplicant(app);
+                    onClick={async () => {
+                      const refreshed = await fetch(`/api/applicants/${app.id}`).then(res => res.json());
+                      setSelectedApplicant(refreshed);
                       // Auto switch SMS thread if phone matches
                       const matchedThread = voiceData.smsThreads?.find((t: any) => t.phone === app.phone);
                       if (matchedThread) setSelectedSmsThread(matchedThread);
@@ -676,7 +699,27 @@ export default function CrmDashboard() {
                 <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                     <div>
-                      <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>{selectedApplicant.name}</h2>
+                      {isEditingProfile ? (
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                          <input className="input-field" value={editProfileForm.name} onChange={e => setEditProfileForm({...editProfileForm, name: e.target.value})} style={{ fontSize: '1.25rem', fontWeight: 800, padding: '4px 8px', height: '36px' }} />
+                          <button onClick={handleSaveProfile} className="button highlight" style={{ height: '36px', padding: '0 12px' }}>Save</button>
+                          <button onClick={() => setIsEditingProfile(false)} className="button" style={{ height: '36px', padding: '0 12px' }}>Cancel</button>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>{selectedApplicant.name}</h2>
+                          <button 
+                            onClick={() => {
+                              setEditProfileForm({ name: selectedApplicant.name, phone: selectedApplicant.phone, email: selectedApplicant.email });
+                              setIsEditingProfile(true);
+                            }}
+                            className="button"
+                            style={{ height: '24px', padding: '0 8px', fontSize: '0.7rem' }}
+                          >
+                            Edit Details
+                          </button>
+                        </div>
+                      )}
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>ID: {selectedApplicant.id}</span>
                     </div>
                     
@@ -706,11 +749,19 @@ export default function CrmDashboard() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', fontSize: '0.8rem', marginTop: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Phone size={12} style={{ color: 'var(--text-muted)' }} />
-                      <span>{selectedApplicant.phone}</span>
+                      {isEditingProfile ? (
+                        <input className="input-field" value={editProfileForm.phone} onChange={e => setEditProfileForm({...editProfileForm, phone: e.target.value})} style={{ fontSize: '0.8rem', padding: '2px 6px', height: '24px', flex: 1 }} />
+                      ) : (
+                        <span>{selectedApplicant.phone}</span>
+                      )}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Mail size={12} style={{ color: 'var(--text-muted)' }} />
-                      <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{selectedApplicant.email}</span>
+                      {isEditingProfile ? (
+                        <input className="input-field" value={editProfileForm.email} onChange={e => setEditProfileForm({...editProfileForm, email: e.target.value})} style={{ fontSize: '0.8rem', padding: '2px 6px', height: '24px', flex: 1 }} />
+                      ) : (
+                        <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{selectedApplicant.email}</span>
+                      )}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Calendar size={12} style={{ color: 'var(--text-muted)' }} />
