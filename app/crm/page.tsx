@@ -690,13 +690,27 @@ export default function CrmDashboard() {
                           ) : doc.status === 'SENT' ? (
                             <span style={{ fontSize: '0.7rem', color: 'var(--status-contacted)', fontStyle: 'italic' }}>Pending sign</span>
                           ) : (
+                          <div style={{ display: 'flex', gap: '4px' }}>
                             <button 
                               onClick={() => handleSendDocument(doc.name)} 
-                              className="button" 
+                              className="button highlight" 
                               style={{ padding: '4px 8px', fontSize: '0.7rem', height: '24px' }}
                             >
-                              Send Link
+                              Email
                             </button>
+                            <button 
+                              onClick={() => {
+                                const cleanNum = selectedApplicant.phone.replace(/\D/g, '');
+                                const msg = encodeURIComponent(`Hi ${selectedApplicant.name}, please review and sign your ${doc.name} here: https://liberty-crm-736433125033.europe-west1.run.app/esign/${selectedApplicant.id}`);
+                                window.open(`https://voice.google.com/u/0/messages?a=nc,%2B1${cleanNum}&text=${msg}`, '_blank');
+                                handleSendDocument(doc.name);
+                              }} 
+                              className="button" 
+                              style={{ padding: '4px 8px', fontSize: '0.7rem', height: '24px', background: 'rgba(255,255,255,0.1)' }}
+                            >
+                              Text
+                            </button>
+                          </div>
                           )}
                         </div>
                       </div>
@@ -1462,6 +1476,39 @@ export default function CrmDashboard() {
                                     <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.6rem' }}>
                                       {doc.id.toUpperCase()}-E-VERIFY-SECURE
                                     </span>
+                                  </div>
+                                  
+                                  <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
+                                    <button 
+                                      onClick={async () => {
+                                        try {
+                                          const res = await fetch('/api/drive', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                              applicantName: selectedApplicant.name,
+                                              docName: doc.name,
+                                              esignData: doc.esignData,
+                                              signedAt: doc.signedAt
+                                            })
+                                          });
+                                          const data = await res.json();
+                                          if (data.success) {
+                                            alert(`Successfully saved to Google Drive!\nLink: ${data.webViewLink}`);
+                                            window.open(data.webViewLink, '_blank');
+                                          } else {
+                                            alert(`Error saving to Drive: ${data.error}`);
+                                          }
+                                        } catch (e) {
+                                          alert('Failed to connect to Google Drive API');
+                                        }
+                                      }}
+                                      className="button"
+                                      style={{ padding: '6px 12px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.1)' }}
+                                    >
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="m8 17 4 4 4-4"></path></svg>
+                                      Save to Google Drive
+                                    </button>
                                   </div>
                                 </div>
                               ) : (

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
+import { getGmailClient } from '../../../../lib/google';
 import { MOCK_APPLICANTS } from '../../../../lib/mockApplicants';
 
 export async function GET(
@@ -84,8 +85,52 @@ export async function PUT(
               }
             });
             notesToCreate.push({
-              content: `Sent e-sign request for: ${docName}`
+              content: `Sent e-sign request email for: ${docName}`
             });
+
+            // Dispatch HTML Email with Gmail API
+            if (existing.email) {
+              const htmlBody = `
+              <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b131e; color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #d7b55f;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                  <!-- Use placeholder or public logo URL for emails -->
+                  <h1 style="color: #ffffff; margin: 0;">Liberty Dispatchers</h1>
+                </div>
+                <h2 style="color: #d7b55f; text-align: center;">Onboarding Document Request</h2>
+                <p>Hi ${existing.name || 'there'},</p>
+                <p>We are requesting your signature on the following document: <strong>${docName}</strong>.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="https://liberty-crm-736433125033.europe-west1.run.app/esign/${existing.id}" style="background: linear-gradient(135deg, #d7b55f 0%, #a8262a 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Review and Sign Document</a>
+                </div>
+                <p style="color: #94a3b8; font-size: 12px; text-align: center;">If you have any questions, please reply to this email.</p>
+              </div>
+              `;
+
+              try {
+                const gmail = getGmailClient();
+                const emailLines = [
+                  `To: ${existing.email}`,
+                  `Subject: Action Required: Sign your ${docName}`,
+                  `Content-Type: text/html; charset=utf-8`,
+                  `MIME-Version: 1.0`,
+                  ``,
+                  htmlBody
+                ];
+                
+                const rawEmail = Buffer.from(emailLines.join('\r\n'))
+                  .toString('base64')
+                  .replace(/\+/g, '-')
+                  .replace(/\//g, '_')
+                  .replace(/=+$/, '');
+                  
+                await gmail.users.messages.send({
+                  userId: 'me',
+                  requestBody: { raw: rawEmail }
+                });
+              } catch (emailErr) {
+                console.error('Failed to send HTML email via Gmail API', emailErr);
+              }
+            }
           }
         }
       }

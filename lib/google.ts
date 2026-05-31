@@ -31,3 +31,8 @@ export function getSheetsClient() {
   const auth = getGoogleAuth();
   return google.sheets({ version: 'v4', auth });
 }
+
+export function getDriveClient() {
+  const auth = getGoogleAuth();
+  return google.drive({ version: 'v3', auth });
+}
