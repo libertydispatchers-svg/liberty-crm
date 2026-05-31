@@ -105,6 +105,7 @@ export async function GET(request: Request) {
       }
 
       threadsMap.get(phone).messages.push({
+        id: msg.id,
         sender,
         text: messageType === 'SMS' ? body : `[${messageType}] ${subjectHeader}`,
         timestamp: new Date(dateHeader).toISOString()

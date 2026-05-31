@@ -141,6 +141,48 @@ export default function CrmDashboard() {
     setIsSyncing(false);
   };
 
+  const handleDeleteApplicant = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to permanently delete this applicant?')) return;
+    try {
+      const res = await fetch(`/api/applicants/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        if (selectedApplicant?.id === id) setSelectedApplicant(null);
+        fetchData();
+      } else {
+        alert('Failed to delete applicant.');
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const handleTrashGmail = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Trash this email in your real Gmail inbox?')) return;
+    try {
+      const res = await fetch(`/api/gmail?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        if (selectedEmail?.id === id) setSelectedEmail(null);
+        fetchData();
+      } else {
+        alert('Failed to trash email.');
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const handleTrashVoice = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Trash this voice log/thread in your real Gmail inbox?')) return;
+    try {
+      const res = await fetch(`/api/gmail?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        if (selectedSmsThread?.messages.some((m: any) => m.id === id)) setSelectedSmsThread(null);
+        fetchData();
+      } else {
+        alert('Failed to trash voice log.');
+      }
+    } catch (e) { console.error(e); }
+  };
+
   useEffect(() => {
     fetchData();
     // Auto-refresh data every 30 seconds to keep services live
@@ -592,9 +634,16 @@ export default function CrmDashboard() {
                   >
                     <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                       <h4 style={{ fontSize: '0.9rem', fontWeight: 600 }}>{app.name}</h4>
-                      <span className={`status-tag ${app.status.toLowerCase()}`} style={{ scale: '0.85', transformOrigin: 'right' }}>
-                        {app.status}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Trash2 
+                          size={14} 
+                          style={{ color: 'var(--text-muted)', cursor: 'pointer' }}
+                          onClick={(e) => handleDeleteApplicant(app.id, e)}
+                        />
+                        <span className={`status-tag ${app.status.toLowerCase()}`} style={{ scale: '0.85', transformOrigin: 'right' }}>
+                          {app.status}
+                        </span>
+                      </div>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
@@ -1077,7 +1126,16 @@ export default function CrmDashboard() {
                                 fontSize: '0.75rem'
                               }}
                             >
-                              <div style={{ fontWeight: 600, color: '#fff', marginBottom: '2px' }}>{thread.applicantName}</div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                                <div style={{ fontWeight: 600, color: '#fff' }}>{thread.applicantName}</div>
+                                {lastMsg?.id && (
+                                  <Trash2 
+                                    size={12} 
+                                    style={{ color: 'var(--text-muted)', cursor: 'pointer' }}
+                                    onClick={(e) => handleTrashVoice(lastMsg.id, e)}
+                                  />
+                                )}
+                              </div>
                               <div style={{ color: 'var(--text-muted)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontSize: '0.65rem' }}>
                                 {lastMsg ? lastMsg.text : 'No messages'}
                               </div>
@@ -1244,9 +1302,16 @@ export default function CrmDashboard() {
                               <b style={{ color: '#fff', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '120px' }}>
                                 {mail.fromName}
                               </b>
-                              <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>
-                                {new Date(mail.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Trash2 
+                                  size={12} 
+                                  style={{ color: 'var(--text-muted)', cursor: 'pointer' }}
+                                  onClick={(e) => handleTrashGmail(mail.id, e)}
+                                />
+                                <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>
+                                  {new Date(mail.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
                             </div>
                             <div style={{ color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontSize: '0.65rem', marginBottom: '4px' }}>
                               {mail.subject}

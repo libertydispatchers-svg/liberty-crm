@@ -127,3 +127,22 @@ export async function GET(request: Request) {
     }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) return NextResponse.json({ error: 'Message ID required' }, { status: 400 });
+
+    const gmail = getGmailClient();
+    await gmail.users.messages.trash({
+      userId: 'me',
+      id: id
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Error trashing Gmail message:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
