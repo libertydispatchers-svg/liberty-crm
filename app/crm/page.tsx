@@ -51,6 +51,7 @@ export default function CrmDashboard() {
     email: '',
     source: 'EMAIL'
   });
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -104,6 +105,17 @@ export default function CrmDashboard() {
       console.error('Error loading CRM dashboard data:', error);
     }
     setLoading(false);
+  };
+
+  const handleSyncInbox = async () => {
+    setIsSyncing(true);
+    try {
+      await fetch('/api/sync', { method: 'POST' });
+      await fetchData(); // Refresh data to show new applicants
+    } catch (error) {
+      console.error('Error syncing inbox:', error);
+    }
+    setIsSyncing(false);
   };
 
   useEffect(() => {
@@ -467,13 +479,23 @@ export default function CrmDashboard() {
           <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', maxHeight: '720px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Applicants Feed</h2>
-              <button 
-                onClick={() => setShowAddModal(true)} 
-                className="button highlight" 
-                style={{ padding: '6px 10px', fontSize: '0.8rem', borderRadius: '6px' }}
-              >
-                <Plus size={14} /> Add New
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  onClick={handleSyncInbox} 
+                  disabled={isSyncing}
+                  className="button secondary" 
+                  style={{ padding: '6px 10px', fontSize: '0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <RefreshCw size={14} /> {isSyncing ? 'Syncing...' : 'Sync Inbox'}
+                </button>
+                <button 
+                  onClick={() => setShowAddModal(true)} 
+                  className="button highlight" 
+                  style={{ padding: '6px 10px', fontSize: '0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <Plus size={14} /> Add New
+                </button>
+              </div>
             </div>
 
             {/* Search Bar */}
