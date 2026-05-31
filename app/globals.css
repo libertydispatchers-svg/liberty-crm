@@ -1,41 +1,42 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap');
 
 :root {
-  --bg-color: #0b131e; /* Deep Navy background */
-  --bg-gradient: radial-gradient(circle at 50% 0%, #1b3a5c 0%, #0b131e 100%);
-  --panel-bg: rgba(27, 58, 92, 0.5);
-  --panel-bg-solid: #1b3a5c;
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-bg-hover: rgba(255, 255, 255, 0.06);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-active: rgba(215, 181, 95, 0.4); /* Gold border */
+  --bg-color: #f8fafc; /* Slate 50 */
+  --bg-gradient: none;
+  --panel-bg: #ffffff;
+  --panel-bg-solid: #ffffff;
+  --glass-bg: rgba(0, 0, 0, 0.03);
+  --glass-bg-hover: rgba(0, 0, 0, 0.06);
+  --glass-border: #e2e8f0; /* Slate 200 */
+  --glass-border-active: #cbd5e1; /* Slate 300 */
   
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
+  --text-primary: #0f172a; /* Slate 900 */
+  --text-secondary: #334155; /* Slate 700 */
+  --text-muted: #64748b; /* Slate 500 */
   
-  /* Harmonious Tailwind-like colors */
+  /* Liberty Dispatchers Colors */
   --accent-color: #d7b55f; /* Gold */
-  --accent-glow: rgba(215, 181, 95, 0.35);
-  --accent-cyan: #a8262a; /* Red */
-  --accent-cyan-glow: rgba(168, 38, 42, 0.35);
+  --accent-glow: rgba(215, 181, 95, 0.2);
+  --accent-cyan: #a8262a; /* Red, keep name for compatibility */
+  --accent-cyan-glow: rgba(168, 38, 42, 0.2);
+  --navy-blue: #0b2848;
   
-  --status-new: #3b82f6; /* Blue */
+  --status-new: #0b2848; /* Navy Blue */
   --status-contacted: #eab308; /* Yellow */
   --status-onboarding: #06b6d4; /* Cyan */
   --status-active: #10b981; /* Green */
   --status-rejected: #ef4444; /* Red */
   
-  --border-color: rgba(255, 255, 255, 0.06);
-  --control-bg: rgba(11, 19, 30, 0.6);
-  --control-border: rgba(255, 255, 255, 0.1);
-  --control-focus: #d7b55f; /* Gold focus */
+  --border-color: #e2e8f0;
+  --control-bg: #f1f5f9; /* Slate 100 */
+  --control-border: #cbd5e1;
+  --control-focus: #0b2848; /* Navy focus */
   
   --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Roboto Mono', monospace;
   
-  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-  --shadow-glow: 0 0 20px rgba(215, 181, 95, 0.15); /* Gold glow */
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 4px 10px rgba(0, 0, 0, 0.05); 
 }
 
 * {
@@ -58,7 +59,7 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   letter-spacing: -0.025em;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 a {
@@ -81,7 +82,37 @@ a {
 
 .glass-panel-hover:hover {
   border-color: var(--glass-border-active);
-  box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 109, 0, 0.05);
+  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive Grid Layouts */
+.funnel-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+@media (max-width: 1024px) {
+  .funnel-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 768px) {
+  .funnel-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .funnel-grid { grid-template-columns: 1fr; }
+}
+
+.crm-grid {
+  display: grid;
+  grid-template-columns: 320px 420px 1fr;
+  gap: 20px;
+  flex: 1;
+  min-height: 600px;
+}
+@media (max-width: 1200px) {
+  .crm-grid { grid-template-columns: 300px 1fr; }
+}
+@media (max-width: 900px) {
+  .crm-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; }
 }
 
 /* Premium Inputs */
@@ -100,18 +131,18 @@ a {
 .input-field:focus {
   outline: none;
   border-color: var(--control-focus);
-  box-shadow: 0 0 0 3px rgba(255, 109, 0, 0.2);
-  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 0 0 3px rgba(11, 40, 72, 0.15);
+  background: #ffffff;
 }
 
 /* Beautiful Button */
 .button {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  color: var(--text-primary);
-  border: 1px solid var(--control-border);
+  background: #ffffff;
+  color: var(--navy-blue);
+  border: 1px solid var(--border-color);
   padding: 10px 20px;
   border-radius: 8px;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
   display: inline-flex;
@@ -119,13 +150,13 @@ a {
   justify-content: center;
   gap: 8px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .button:hover:not(:disabled) {
-  border-color: var(--glass-border-active);
+  background: #f8fafc;
+  border-color: var(--navy-blue);
   transform: translateY(-1px);
-  background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
 }
 
 .button:active:not(:disabled) {
@@ -133,16 +164,15 @@ a {
 }
 
 .button.highlight {
-  background: linear-gradient(135deg, #d7b55f 0%, #a8262a 100%);
+  background: var(--navy-blue);
   color: #fff;
   border: none;
-  font-weight: 600;
-  box-shadow: 0 4px 10px rgba(215, 181, 95, 0.25);
+  box-shadow: 0 4px 10px rgba(11, 40, 72, 0.25);
 }
 
 .button.highlight:hover:not(:disabled) {
-  background: linear-gradient(135deg, #e2c16f 0%, #b83438 100%);
-  box-shadow: 0 6px 15px rgba(215, 181, 95, 0.4);
+  background: #0f3661;
+  box-shadow: 0 6px 15px rgba(11, 40, 72, 0.35);
 }
 
 .button:disabled {
@@ -209,7 +239,7 @@ a {
   top: 6px;
   bottom: 6px;
   width: 2px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--border-color);
 }
 
 .timeline-item {
@@ -224,11 +254,11 @@ a {
   height: 10px;
   border-radius: 50%;
   background: var(--accent-color);
-  border: 2px solid var(--bg-color);
+  border: 2px solid #ffffff;
 }
 
 .timeline-content {
-  background: rgba(255, 255, 255, 0.02);
+  background: #ffffff;
   border: 1px solid var(--glass-border);
   border-radius: 8px;
   padding: 12px;
@@ -266,7 +296,7 @@ a {
 }
 
 .availability-cell {
-  background: rgba(255, 255, 255, 0.02);
+  background: #ffffff;
   border: 1px solid var(--glass-border);
   border-radius: 6px;
   padding: 10px 4px;
@@ -277,8 +307,8 @@ a {
 }
 
 .availability-cell:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: #f8fafc;
+  border-color: var(--border-color);
 }
 
 .availability-cell.active {
@@ -295,7 +325,7 @@ a {
   height: 350px;
   overflow-y: auto;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.2);
+  background: #f8fafc;
   border-radius: 8px;
   border: 1px solid var(--glass-border);
 }
@@ -317,7 +347,7 @@ a {
 
 .chat-bubble.applicant {
   align-self: flex-start;
-  background: rgba(255, 255, 255, 0.05);
+  background: #ffffff;
   color: var(--text-primary);
   border-bottom-left-radius: 2px;
   border: 1px solid var(--glass-border);
@@ -335,7 +365,7 @@ a {
 .dialer-key {
   aspect-ratio: 1;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.03);
+  background: #ffffff;
   border: 1px solid var(--glass-border);
   display: flex;
   flex-direction: column;
@@ -346,20 +376,20 @@ a {
 }
 
 .dialer-key:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: #f8fafc;
+  border-color: var(--border-color);
 }
 
 .dialer-key:active {
   transform: scale(0.92);
-  background: rgba(255, 109, 0, 0.1);
+  background: #e2e8f0;
   border-color: var(--accent-color);
 }
 
 .dialer-digit {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .dialer-letters {

@@ -500,7 +500,7 @@ export default function CrmDashboard() {
             background: 'rgba(255, 255, 255, 0.9)',
             boxShadow: '0 0 15px rgba(215, 181, 95, 0.4)'
           }}>
-            <img src="/logo-small.png" alt="Liberty Dispatchers" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <img src="/logo.png" alt="Liberty Dispatchers" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div>
             <h1 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.5px' }}>Liberty Dispatchers CRM</h1>
@@ -521,7 +521,7 @@ export default function CrmDashboard() {
 
       <main style={{ padding: '24px', maxWidth: '1600px', width: '100%', margin: '0 auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* Top Funnel Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }}>
+        <div className="funnel-grid">
           <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Applicants</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
@@ -560,7 +560,7 @@ export default function CrmDashboard() {
         </div>
 
         {/* Master Split Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '320px 420px 1fr', gap: '20px', flex: 1, minHeight: '600px' }}>
+        <div className="crm-grid">
           
           {/* COLUMN 1: Applicants List */}
           <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', maxHeight: '720px' }}>
@@ -1121,7 +1121,7 @@ export default function CrmDashboard() {
                             fontSize: '0.7rem'
                           }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <b style={{ color: '#fff' }}>{log.applicantName}</b>
+                              <b style={{ color: 'var(--text-primary)' }}>{log.applicantName}</b>
                               <span style={{ 
                                 color: log.type === 'missed' ? 'var(--status-rejected)' : 
                                        log.type === 'inbound' ? 'var(--status-active)' : 'var(--status-contacted)',
@@ -1178,7 +1178,7 @@ export default function CrmDashboard() {
                               }}
                             >
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                                <div style={{ fontWeight: 600, color: '#fff' }}>{thread.applicantName}</div>
+                                <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{thread.applicantName}</div>
                                 {lastMsg?.id && (
                                   <Trash2 
                                     size={12} 
@@ -1350,7 +1350,7 @@ export default function CrmDashboard() {
                             }}
                           >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                              <b style={{ color: '#fff', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '120px' }}>
+                              <b style={{ color: 'var(--text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '120px' }}>
                                 {mail.fromName}
                               </b>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1379,7 +1379,7 @@ export default function CrmDashboard() {
                     {selectedEmail ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
-                          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', marginBottom: '6px' }}>{selectedEmail.subject}</h4>
+                          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>{selectedEmail.subject}</h4>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                             <p>From: <b>{selectedEmail.fromName}</b> &lt;{selectedEmail.from}&gt;</p>
                             <p>{new Date(selectedEmail.date).toLocaleString()}</p>
@@ -1541,7 +1541,7 @@ export default function CrmDashboard() {
                           <tr key={rowIdx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', background: rowIdx % 2 === 0 ? 'rgba(0,0,0,0.1)' : 'transparent' }}>
                             <td style={{ padding: '8px 12px', color: 'var(--text-muted)', borderRight: '1px solid rgba(255,255,255,0.03)' }}>{row.rowNumber}</td>
                             <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', borderRight: '1px solid rgba(255,255,255,0.03)' }}>{row.id}</td>
-                            <td style={{ padding: '8px 12px', fontWeight: 500, color: '#fff', borderRight: '1px solid rgba(255,255,255,0.03)' }}>{row.name}</td>
+                            <td style={{ padding: '8px 12px', fontWeight: 500, color: 'var(--text-primary)', borderRight: '1px solid rgba(255,255,255,0.03)' }}>{row.name}</td>
                             <td style={{ padding: '8px 12px', borderRight: '1px solid rgba(255,255,255,0.03)' }}>{row.phone}</td>
                             <td style={{ padding: '8px 12px', borderRight: '1px solid rgba(255,255,255,0.03)' }}>{row.email}</td>
                             <td style={{ padding: '8px 12px', borderRight: '1px solid rgba(255,255,255,0.03)' }}>
@@ -1612,7 +1612,7 @@ export default function CrmDashboard() {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)', borderTop: '1px dashed rgba(255,255,255,0.05)', paddingTop: '8px', marginTop: '4px' }}>
                                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                     <span>Signed Timestamp:</span>
-                                    <span style={{ color: '#fff' }}>{new Date(doc.signedAt).toLocaleString()}</span>
+                                    <span style={{ color: 'var(--text-primary)' }}>{new Date(doc.signedAt).toLocaleString()}</span>
                                   </div>
                                   
                                   {doc.name === 'W-9 Form' && esignObj && (
@@ -1623,11 +1623,11 @@ export default function CrmDashboard() {
                                       </div>
                                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <span>Tax Address:</span>
-                                        <span style={{ color: '#fff' }}>{esignObj.address}</span>
+                                        <span style={{ color: 'var(--text-primary)' }}>{esignObj.address}</span>
                                       </div>
                                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <span>Classification:</span>
-                                        <span style={{ color: '#fff' }}>{esignObj.classification}</span>
+                                        <span style={{ color: 'var(--text-primary)' }}>{esignObj.classification}</span>
                                       </div>
                                     </>
                                   )}
@@ -1737,7 +1737,7 @@ export default function CrmDashboard() {
                               className={`list-item ${isSelected ? 'selected' : ''}`}
                             >
                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                <span style={{ fontWeight: 600, fontSize: '0.85rem', color: '#fff' }}>
+                                <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)' }}>
                                   {chat.firstName} {chat.lastName}
                                 </span>
                                 <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
@@ -1765,7 +1765,7 @@ export default function CrmDashboard() {
                         {/* Header */}
                         <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
-                            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#fff' }}>
+                            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                               {selectedTelegramChat.firstName} {selectedTelegramChat.lastName}
                             </h3>
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -1783,7 +1783,7 @@ export default function CrmDashboard() {
                                 padding: '10px 14px',
                                 borderRadius: msg.sender === 'user' ? '12px 12px 12px 2px' : '12px 12px 2px 12px',
                                 fontSize: '0.85rem',
-                                color: '#fff',
+                                color: 'var(--text-primary)',
                                 border: msg.sender === 'user' ? '1px solid rgba(255,255,255,0.1)' : 'none',
                                 lineHeight: 1.4
                               }}>
