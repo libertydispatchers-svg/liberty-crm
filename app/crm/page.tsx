@@ -436,7 +436,7 @@ export default function CrmDashboard() {
             background: 'rgba(255, 255, 255, 0.9)',
             boxShadow: '0 0 15px rgba(215, 181, 95, 0.4)'
           }}>
-            <img src="/logo.png" alt="Liberty Dispatchers" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <img src="/logo-small.png" alt="Liberty Dispatchers" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div>
             <h1 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.5px' }}>Liberty Dispatchers CRM</h1>
