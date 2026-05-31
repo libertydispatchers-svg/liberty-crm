@@ -43,23 +43,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json(applicants);
   } catch (error: any) {
-    console.warn('Prisma database connection failed. Falling back to simulation mode candidates.', error);
-    let list = MOCK_APPLICANTS;
-    if (status) {
-      list = list.filter(a => a.status === status);
-    }
-    if (source) {
-      list = list.filter(a => a.source === source);
-    }
-    if (search) {
-      const s = search.toLowerCase();
-      list = list.filter(a => 
-        a.name.toLowerCase().includes(s) || 
-        a.email.toLowerCase().includes(s) || 
-        a.phone.toLowerCase().includes(s)
-      );
-    }
-    return NextResponse.json(list);
+    console.error('Prisma database connection failed in applicants API:', error);
+    return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
   }
 }
 
@@ -108,29 +93,8 @@ export async function POST(request: Request) {
 
       return NextResponse.json(applicant);
     } catch (error: any) {
-      console.warn('Prisma database connection failed. Returning simulated new applicant.', error);
-      const simulatedApplicant = {
-        id: `sim-${Math.random().toString(36).substring(2, 11)}`,
-        name,
-        phone,
-        email,
-        source: source || 'EMAIL',
-        status: 'NEW',
-        availability: JSON.stringify({
-          monday: [], tuesday: [], wednesday: [], thursday: [], friday: [], saturday: [], sunday: []
-        }),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        notes: [
-          { id: `sim-note-${Math.random().toString(36).substring(2, 11)}`, content: `Applicant profile created (Simulation Mode). Source: ${source || 'EMAIL'}`, createdAt: new Date().toISOString() }
-        ],
-        documents: [
-          { id: `sim-doc-1`, name: 'Onboarding Material', status: 'NOT_SENT', sentAt: null, signedAt: null, fileUrl: null, esignData: null },
-          { id: `sim-doc-2`, name: 'W-9 Form', status: 'NOT_SENT', sentAt: null, signedAt: null, fileUrl: null, esignData: null },
-          { id: `sim-doc-3`, name: 'Driver Contract', status: 'NOT_SENT', sentAt: null, signedAt: null, fileUrl: null, esignData: null }
-        ]
-      };
-      return NextResponse.json(simulatedApplicant);
+      console.error('Prisma database connection failed during POST:', error);
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
     }
   } catch (error: any) {
     console.error('Error handling POST applicant request:', error);
