@@ -101,7 +101,11 @@ export async function GET(request: Request) {
       });
     }
 
-    let filteredEmails = [...emails];
+    const spamFilters = ['temu', 'github', 'marketing', 'support@', 'creativefabrica', 'newsletter', 'updates'];
+    let filteredEmails = [...emails].filter(e => {
+      if (e.isGoogleVoice) return true;
+      return !spamFilters.some(f => e.from.toLowerCase().includes(f));
+    });
     if (filter === 'email') {
       filteredEmails = filteredEmails.filter(e => !e.isGoogleVoice);
     } else if (filter === 'voice') {

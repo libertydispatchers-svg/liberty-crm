@@ -39,6 +39,7 @@ export async function POST(request: Request) {
       const headers = detail.data.payload?.headers || [];
       const fromHeader = headers.find(h => h.name?.toLowerCase() === 'from')?.value || '';
       const subjectHeader = headers.find(h => h.name?.toLowerCase() === 'subject')?.value || '';
+      const snippet = detail.data.snippet || '';
 
       let fromName = fromHeader;
       let fromEmail = fromHeader;
@@ -77,8 +78,9 @@ export async function POST(request: Request) {
           }
         });
       } else if (!isGoogleVoice && fromEmail) {
-        // Ignore automated google emails
-        if (fromEmail.includes('google.com') || fromEmail.includes('noreply')) continue;
+        // Ignore automated google emails and spam marketing
+        const spamFilters = ['google.com', 'noreply', 'temu', 'github', 'marketing', 'support@', 'creativefabrica', 'newsletter', 'updates'];
+        if (spamFilters.some(f => fromEmail.toLowerCase().includes(f))) continue;
 
         // Search by email
         existingApplicant = await prisma.applicant.findFirst({
@@ -115,6 +117,15 @@ export async function POST(request: Request) {
               }
             }
           });
+        });
+        syncedCount++;
+      } else if (isGoogleVoice) {
+        // Log the message as a note for the existing applicant
+        await prisma.note.create({
+          data: {
+            content: type === 'TEXT' ? `Received Text: ${snippet || '(No body)'}` : `Call Log: ${subjectHeader}`,
+            applicantId: existingApplicant.id
+          }
         });
         syncedCount++;
       }

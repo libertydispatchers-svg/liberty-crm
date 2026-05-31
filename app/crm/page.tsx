@@ -1282,7 +1282,9 @@ export default function CrmDashboard() {
                           overflowY: 'auto', 
                           whiteSpace: 'pre-line',
                           maxHeight: '240px',
-                          color: 'var(--text-primary)'
+                          color: 'var(--text-primary)',
+                          wordBreak: 'break-word',
+                          overflowWrap: 'anywhere'
                         }}>
                           {selectedEmail.body}
                         </div>
