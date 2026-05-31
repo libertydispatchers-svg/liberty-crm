@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     const listRes = await gmail.users.messages.list({
       userId: 'me',
       q: 'label:INBOX',
-      maxResults: 15
+      maxResults: 100
     });
 
     const messages = listRes.data.messages || [];

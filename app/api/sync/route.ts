@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const listRes = await gmail.users.messages.list({
       userId: 'me',
       q: 'label:INBOX',
-      maxResults: 20
+      maxResults: 100
     });
 
     const messages = listRes.data.messages || [];

@@ -35,10 +35,11 @@ export async function GET(request: Request) {
     // Connect to Gmail and search for SMS/call logs
     const gmail = getGmailClient();
     
-    // Search Gmail for SMS emails
+    // Search Gmail for SMS emails and voicemails
     const searchRes = await gmail.users.messages.list({
       userId: 'me',
-      q: 'from:txt.voice.google.com OR subject:"SMS from"'
+      q: 'from:txt.voice.google.com OR from:voice-noreply@google.com',
+      maxResults: 100
     });
 
     const messages = searchRes.data.messages || [];
@@ -63,15 +64,26 @@ export async function GET(request: Request) {
       const match = fromHeader.match(emailRegex);
       const fromEmail = match ? match[1] : fromHeader;
 
-      // Extract phone number from email local part (e.g. 12405550199.14106354001.abc@txt.voice.google.com)
-      const phoneParts = fromEmail.split('@')[0].split('.');
-      let applicantPhoneRaw = phoneParts[0] || '';
-      if (applicantPhoneRaw.startsWith('1') && applicantPhoneRaw.length === 11) {
-        applicantPhoneRaw = applicantPhoneRaw.substring(1); // remove country code
-      }
+      // Extract phone number depending on sender type
+      let applicantPhoneRaw = '';
+      let phone = 'Unknown';
+      let messageType = 'SMS';
 
-      // Format standard format e.g. 240-555-0199
-      const phone = applicantPhoneRaw.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3') || 'Unknown';
+      if (fromEmail.endsWith('txt.voice.google.com')) {
+        const phoneParts = fromEmail.split('@')[0].split('.');
+        applicantPhoneRaw = phoneParts[0] || '';
+        if (applicantPhoneRaw.startsWith('1') && applicantPhoneRaw.length === 11) {
+          applicantPhoneRaw = applicantPhoneRaw.substring(1); // remove country code
+        }
+        phone = applicantPhoneRaw.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3') || 'Unknown';
+      } else if (fromEmail === 'voice-noreply@google.com') {
+        const phoneMatch = subjectHeader.match(/\d{9,}/) || subjectHeader.match(/\(\d{3}\)\s*\d{3}-\d{4}/);
+        if (phoneMatch) {
+          phone = phoneMatch[0].replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+          applicantPhoneRaw = phone.replace(/\D/g, '');
+        }
+        messageType = subjectHeader.toLowerCase().includes('voicemail') ? 'Voicemail' : 'Missed Call';
+      }
 
       // Find matching applicant in DB
       const app = dbApplicants.find(a => a.phone.replace(/\D/g, '').endsWith(applicantPhoneRaw));
@@ -94,7 +106,7 @@ export async function GET(request: Request) {
 
       threadsMap.get(phone).messages.push({
         sender,
-        text: body,
+        text: messageType === 'SMS' ? body : `[${messageType}] ${subjectHeader}`,
         timestamp: new Date(dateHeader).toISOString()
       });
     }
