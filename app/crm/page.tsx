@@ -15,8 +15,8 @@ export default function CrmDashboard() {
   const [statusFilter, setStatusFilter] = useState('');
   const [sourceFilter, setSourceFilter] = useState('');
   
-  // Workspace tabs: 'voice', 'gmail', 'sheets', 'docs'
-  const [activeTab, setActiveTab] = useState<'voice' | 'gmail' | 'sheets' | 'docs'>('voice');
+  // Workspace tabs: 'voice', 'gmail', 'sheets', 'docs', 'telegram'
+  const [activeTab, setActiveTab] = useState<'voice' | 'gmail' | 'sheets' | 'docs' | 'telegram'>('voice');
   
   // API statuses
   const [loading, setLoading] = useState(true);
@@ -39,6 +39,12 @@ export default function CrmDashboard() {
 
   // Gmail states
   const [selectedEmail, setSelectedEmail] = useState<any | null>(null);
+  
+  // Telegram states
+  const [telegramData, setTelegramData] = useState<any>({ connected: false, chats: [] });
+  const [selectedTelegramChat, setSelectedTelegramChat] = useState<any | null>(null);
+  const [telegramInput, setTelegramInput] = useState('');
+  const [sendingTelegram, setSendingTelegram] = useState(false);
   
   // Add Note state
   const [noteInput, setNoteInput] = useState('');
@@ -100,6 +106,23 @@ export default function CrmDashboard() {
       const sheetsRes = await fetch('/api/sheets');
       const sData = await sheetsRes.json();
       setSheetsData(sData);
+
+      // 5. Fetch Telegram data
+      try {
+        const telegramRes = await fetch('/api/telegram');
+        const tData = await telegramRes.json();
+        setTelegramData(tData);
+        if (tData.chats && tData.chats.length > 0) {
+          if (selectedTelegramChat) {
+            const refreshedChat = tData.chats.find((c: any) => c.chatId === selectedTelegramChat.chatId);
+            if (refreshedChat) setSelectedTelegramChat(refreshedChat);
+          } else {
+            setSelectedTelegramChat(tData.chats[0]);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch telegram data');
+      }
 
     } catch (error) {
       console.error('Error loading CRM dashboard data:', error);
@@ -950,6 +973,19 @@ export default function CrmDashboard() {
                 <FileText size={14} style={{ color: activeTab === 'docs' ? 'var(--status-onboarding)' : 'inherit' }} />
                 Docs Center
               </button>
+              
+              <button 
+                onClick={() => setActiveTab('telegram')}
+                className="tab-button"
+                style={{ 
+                  background: activeTab === 'telegram' ? 'var(--panel-bg-solid)' : 'transparent',
+                  borderColor: activeTab === 'telegram' ? 'var(--border-color)' : 'transparent',
+                  color: activeTab === 'telegram' ? '#fff' : 'var(--text-secondary)'
+                }}
+              >
+                <MessageSquare size={14} style={{ color: activeTab === 'telegram' ? '#2AABEE' : 'inherit' }} />
+                Telegram Bot
+              </button>
             </div>
 
             {/* TAB CONTENTS */}
@@ -1557,6 +1593,148 @@ export default function CrmDashboard() {
                     </div>
                   )}
 
+                </div>
+              )}
+
+              {activeTab === 'telegram' && (
+                <div style={{ display: 'flex', height: '100%' }}>
+                  {/* TELEGRAM LIST */}
+                  <div style={{ width: '280px', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h3 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <MessageSquare size={14} /> Telegram Chats
+                      </h3>
+                      <div className={`status-indicator ${telegramData.connected ? 'active' : 'offline'}`} />
+                    </div>
+                    
+                    <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
+                      {telegramData.chats && telegramData.chats.length > 0 ? (
+                        telegramData.chats.map((chat: any) => {
+                          const isSelected = selectedTelegramChat?.chatId === chat.chatId;
+                          const lastMsg = chat.messages[chat.messages.length - 1];
+                          return (
+                            <div 
+                              key={chat.chatId}
+                              onClick={() => setSelectedTelegramChat(chat)}
+                              className={`list-item ${isSelected ? 'selected' : ''}`}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                <span style={{ fontWeight: 600, fontSize: '0.85rem', color: '#fff' }}>
+                                  {chat.firstName} {chat.lastName}
+                                </span>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                                  {new Date(lastMsg.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {lastMsg.text}
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                          No Telegram chats found.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* TELEGRAM DETAIL */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'rgba(0,0,0,0.15)' }}>
+                    {selectedTelegramChat ? (
+                      <>
+                        {/* Header */}
+                        <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#fff' }}>
+                              {selectedTelegramChat.firstName} {selectedTelegramChat.lastName}
+                            </h3>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              @{selectedTelegramChat.username || selectedTelegramChat.chatId}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Thread */}
+                        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }} className="custom-scrollbar">
+                          {selectedTelegramChat.messages.map((msg: any) => (
+                            <div key={msg.messageId} style={{ alignSelf: msg.sender === 'user' ? 'flex-start' : 'flex-end', maxWidth: '80%' }}>
+                              <div style={{ 
+                                background: msg.sender === 'user' ? 'rgba(255,255,255,0.05)' : '#2AABEE',
+                                padding: '10px 14px',
+                                borderRadius: msg.sender === 'user' ? '12px 12px 12px 2px' : '12px 12px 2px 12px',
+                                fontSize: '0.85rem',
+                                color: '#fff',
+                                border: msg.sender === 'user' ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                                lineHeight: 1.4
+                              }}>
+                                {msg.text}
+                              </div>
+                              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px', textAlign: msg.sender === 'user' ? 'left' : 'right' }}>
+                                {new Date(msg.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Reply Input */}
+                        <div style={{ padding: '16px', borderTop: '1px solid var(--border-color)', background: 'var(--panel-bg-solid)' }}>
+                          <form 
+                            onSubmit={async (e) => {
+                              e.preventDefault();
+                              if (!telegramInput.trim() || sendingTelegram) return;
+                              
+                              setSendingTelegram(true);
+                              try {
+                                const res = await fetch('/api/telegram', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    chatId: selectedTelegramChat.chatId,
+                                    text: telegramInput
+                                  })
+                                });
+                                
+                                if (res.ok) {
+                                  setTelegramInput('');
+                                  fetchData(); // Refresh to see sent message via API or just locally
+                                } else {
+                                  alert('Failed to send Telegram message');
+                                }
+                              } catch (e) {
+                                console.error(e);
+                              }
+                              setSendingTelegram(false);
+                            }}
+                            style={{ display: 'flex', gap: '12px' }}
+                          >
+                            <input 
+                              type="text" 
+                              className="input-field" 
+                              placeholder="Type a message to send via Telegram..." 
+                              value={telegramInput}
+                              onChange={(e) => setTelegramInput(e.target.value)}
+                              disabled={sendingTelegram}
+                            />
+                            <button 
+                              type="submit" 
+                              className="button highlight" 
+                              disabled={!telegramInput.trim() || sendingTelegram}
+                              style={{ padding: '0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                            >
+                              <Send size={14} /> Send
+                            </button>
+                          </form>
+                        </div>
+                      </>
+                    ) : (
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                        <MessageSquare size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />
+                        <p>Select a Telegram chat to reply</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
