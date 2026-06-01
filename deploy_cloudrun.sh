@@ -38,6 +38,12 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --role="roles/secretmanager.secretAccessor" \
   --quiet 2>/dev/null || true
 
+echo "Clearing conflicting environment variables on Cloud Run..."
+gcloud run services update "$SERVICE_NAME" \
+  --remove-env-vars GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GOOGLE_REFRESH_TOKEN \
+  --region="$REGION" \
+  --quiet 2>/dev/null || true
+
 echo "Deploying to Cloud Run..."
 gcloud run deploy "$SERVICE_NAME" \
   --image "$IMAGE_TAG" \
