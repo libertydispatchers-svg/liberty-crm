@@ -3,7 +3,7 @@ set -e
 
 # Configuration
 SERVICE_NAME="liberty-crm"
-REGION="us-central1"
+REGION="europe-west1"
 
 # Step 1: Ensure gcloud is configured
 PROJECT_ID=$(gcloud config get-value project)
