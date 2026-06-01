@@ -1,13 +1,20 @@
 steps:
-  # Step 1: Build the container image
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/liberty-crm:$COMMIT_SHA', '.']
+  # Step 1: Ensure Artifact Registry Docker repository exists (pre-step)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'gcloud artifacts repositories create crm-repo --repository-format=docker --location=europe-west1 --description="CRM Docker repository" --quiet 2>/dev/null || true'
 
-  # Step 2: Push the container image to Container Registry
+  # Step 2: Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/liberty-crm:$COMMIT_SHA']
+    args: ['build', '-t', 'europe-west1-docker.pkg.dev/$PROJECT_ID/crm-repo/liberty-crm:$COMMIT_SHA', '.']
 
-  # Step 3: Deploy container image to Cloud Run
+  # Step 3: Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'europe-west1-docker.pkg.dev/$PROJECT_ID/crm-repo/liberty-crm:$COMMIT_SHA']
+
+  # Step 4: Deploy container image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
@@ -15,7 +22,7 @@ steps:
       - 'deploy'
       - 'liberty-crm'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/liberty-crm:$COMMIT_SHA'
+      - 'europe-west1-docker.pkg.dev/$PROJECT_ID/crm-repo/liberty-crm:$COMMIT_SHA'
       - '--region'
       - 'europe-west1'
       - '--platform'
@@ -25,4 +32,4 @@ steps:
       - '8080'
 
 images:
-  - 'gcr.io/$PROJECT_ID/liberty-crm:$COMMIT_SHA'
+  - 'europe-west1-docker.pkg.dev/$PROJECT_ID/crm-repo/liberty-crm:$COMMIT_SHA'

@@ -17,12 +17,21 @@ echo "Project ID: $PROJECT_ID"
 echo "Service Name: $SERVICE_NAME"
 echo "Region: $REGION"
 
-# Step 2: Build container image using Cloud Build
-IMAGE_TAG="gcr.io/$PROJECT_ID/$SERVICE_NAME:latest"
+# Step 2: Ensure Artifact Registry Docker repository exists
+REPO_NAME="crm-repo"
+echo "Ensuring Artifact Registry repository '$REPO_NAME' exists in '$REGION'..."
+gcloud artifacts repositories create "$REPO_NAME" \
+  --repository-format=docker \
+  --location="$REGION" \
+  --description="CRM Docker repository" \
+  --quiet 2>/dev/null || true
+
+# Step 3: Build container image using Cloud Build (Artifact Registry)
+IMAGE_TAG="$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$SERVICE_NAME:latest"
 echo "Building image $IMAGE_TAG via Cloud Build..."
 gcloud builds submit --tag "$IMAGE_TAG" .
 
-# Step 3: Deploy to Cloud Run
+# Step 4: Deploy to Cloud Run
 echo "Deploying to Cloud Run..."
 gcloud run deploy "$SERVICE_NAME" \
   --image "$IMAGE_TAG" \
