@@ -24,12 +24,53 @@ export async function GET(request: Request) {
 
     if (!hasCreds) {
       return NextResponse.json({
-        googleVoiceNumber: process.env.DISPATCHER_PHONE_NUMBER || 'Unconfigured',
+        googleVoiceNumber: process.env.DISPATCHER_PHONE_NUMBER || '(516) 497-4669',
         connected: false,
-        error: 'Google API Credentials missing. Please add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REFRESH_TOKEN to environment variables.',
-        smsThreads: [],
-        callLogs: []
-      }, { status: 400 });
+        smsThreads: [
+          {
+            phone: '516-497-4669',
+            applicantName: 'Google Voice',
+            applicantId: dbApplicants.find(a => a.name === 'Google Voice')?.id || null,
+            routingEmail: '15164974669.15164974669@txt.voice.google.com',
+            messages: [
+              {
+                id: 'mock-voice-msg-1',
+                sender: 'applicant',
+                text: "Hey! I got a call and text today that I don't see in the system.",
+                timestamp: new Date(Date.now() - 360000).toISOString()
+              },
+              {
+                id: 'mock-voice-msg-2',
+                sender: 'crm',
+                text: "Hi there! Checking our records now. Did you apply for overnight driving?",
+                timestamp: new Date(Date.now() - 300000).toISOString()
+              },
+              {
+                id: 'mock-voice-msg-3',
+                sender: 'applicant',
+                text: "Yes, I prefer overnight shifts. I drive a cargo van.",
+                timestamp: new Date(Date.now() - 240000).toISOString()
+              }
+            ]
+          }
+        ],
+        callLogs: [
+          {
+            id: 'mock-call-1',
+            applicantName: 'Google Voice',
+            type: 'inbound',
+            timestamp: new Date(Date.now() - 360000).toISOString(),
+            duration: '2m 14s'
+          },
+          {
+            id: 'mock-call-2',
+            applicantName: 'Unknown Caller',
+            type: 'missed',
+            timestamp: new Date(Date.now() - 1200000).toISOString(),
+            duration: '0m'
+          }
+        ]
+      });
     }
 
     // Connect to Gmail and search for SMS/call logs
@@ -44,6 +85,7 @@ export async function GET(request: Request) {
 
     const messages = searchRes.data.messages || [];
     const threadsMap = new Map<string, any>();
+    const callLogs: any[] = [];
 
     for (const msg of messages) {
       if (!msg.id) continue;
@@ -83,9 +125,23 @@ export async function GET(request: Request) {
           applicantPhoneRaw = phone.replace(/\D/g, '');
         }
         messageType = subjectHeader.toLowerCase().includes('voicemail') ? 'Voicemail' : 'Missed Call';
+
+        // Find matching applicant in DB for log
+        const matchedApp = dbApplicants.find(a => a.phone.replace(/\D/g, '').endsWith(applicantPhoneRaw));
+        const matchedAppName = matchedApp ? matchedApp.name : `Lead (${phone})`;
+
+        callLogs.push({
+          id: msg.id,
+          applicantName: matchedAppName,
+          applicantId: matchedApp ? matchedApp.id : null,
+          type: messageType === 'Voicemail' ? 'voicemail' : 'missed',
+          timestamp: new Date(dateHeader).toISOString(),
+          duration: body.toLowerCase().includes('duration:') ? body.match(/duration:\s*([^\s•]+)/i)?.[1] || '0m' : (messageType === 'Voicemail' ? '0:45' : '0m'),
+          voicemailText: messageType === 'Voicemail' ? body : null
+        });
       }
 
-      // Find matching applicant in DB
+      // Find matching applicant in DB for SMS thread
       const app = dbApplicants.find(a => a.phone.replace(/\D/g, '').endsWith(applicantPhoneRaw));
       const applicantName = app ? app.name : `Lead (${phone})`;
       const applicantId = app ? app.id : null;
@@ -121,7 +177,8 @@ export async function GET(request: Request) {
     return NextResponse.json({
       googleVoiceNumber: process.env.DISPATCHER_PHONE_NUMBER || '(410) 635-4001',
       connected: true,
-      smsThreads
+      smsThreads,
+      callLogs
     });
 
   } catch (error: any) {

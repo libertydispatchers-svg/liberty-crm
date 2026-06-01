@@ -273,8 +273,8 @@ export default function EsignPage({ params }: { params: { id: string } }) {
         {/* Portal Header */}
         <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '50px', height: '50px', borderRadius: '50%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
-              <img src="/logo.png" alt="Liberty Dispatchers" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <div style={{ height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
+              <img src="/logo.png" alt="Liberty Dispatchers" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
             </div>
             <div>
               <span style={{ fontSize: '0.75rem', color: 'var(--accent-color)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Driver Onboarding</span>

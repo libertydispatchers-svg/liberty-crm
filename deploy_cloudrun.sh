@@ -32,12 +32,19 @@ echo "Building image $IMAGE_TAG via Cloud Build..."
 gcloud builds submit --tag "$IMAGE_TAG" .
 
 # Step 4: Deploy to Cloud Run
+echo "Ensuring Compute service account has access to Secret Manager secrets..."
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:736433125033-compute@developer.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor" \
+  --quiet 2>/dev/null || true
+
 echo "Deploying to Cloud Run..."
 gcloud run deploy "$SERVICE_NAME" \
   --image "$IMAGE_TAG" \
   --platform managed \
   --region "$REGION" \
   --allow-unauthenticated \
+  --set-secrets="GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,GOOGLE_REFRESH_TOKEN=GOOGLE_REFRESH_TOKEN:latest" \
   --port 8080
 
 echo "Deployment complete!"

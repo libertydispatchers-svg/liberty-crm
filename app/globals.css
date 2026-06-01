@@ -1,14 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap');
 
 :root {
-  --bg-color: #f8fafc; /* Slate 50 */
+  --bg-color: #ffffff; /* Clean white background */
   --bg-gradient: none;
-  --panel-bg: #ffffff;
-  --panel-bg-solid: #ffffff;
-  --glass-bg: rgba(0, 0, 0, 0.03);
-  --glass-bg-hover: rgba(0, 0, 0, 0.06);
-  --glass-border: #e2e8f0; /* Slate 200 */
-  --glass-border-active: #cbd5e1; /* Slate 300 */
+  --panel-bg: #f1f5f9; /* Slate 100 (light gray) card background */
+  --panel-bg-solid: #f1f5f9;
+  --glass-bg: rgba(0, 0, 0, 0.02);
+  --glass-bg-hover: rgba(0, 0, 0, 0.04);
+  --glass-border: #cbd5e1; /* Slate 300 */
+  --glass-border-active: #94a3b8; /* Slate 400 */
   
   --text-primary: #0f172a; /* Slate 900 */
   --text-secondary: #334155; /* Slate 700 */
@@ -27,16 +27,16 @@
   --status-active: #10b981; /* Green */
   --status-rejected: #ef4444; /* Red */
   
-  --border-color: #e2e8f0;
-  --control-bg: #f1f5f9; /* Slate 100 */
+  --border-color: #cbd5e1;
+  --control-bg: #ffffff; /* White input background to contrast with light gray cards */
   --control-border: #cbd5e1;
   --control-focus: #0b2848; /* Navy focus */
   
   --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Roboto Mono', monospace;
   
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-glow: 0 4px 10px rgba(0, 0, 0, 0.05); 
+  --shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-glow: 0 2px 8px rgba(0, 0, 0, 0.02); 
 }
 
 * {

@@ -15,8 +15,8 @@ export default function CrmDashboard() {
   const [statusFilter, setStatusFilter] = useState('');
   const [sourceFilter, setSourceFilter] = useState('');
   
-  // Workspace tabs: 'voice', 'gmail', 'sheets', 'docs', 'telegram'
-  const [activeTab, setActiveTab] = useState<'voice' | 'gmail' | 'sheets' | 'docs' | 'telegram'>('voice');
+  // Workspace tabs: 'voice', 'gmail', 'sheets', 'docs', 'whatsapp'
+  const [activeTab, setActiveTab] = useState<'voice' | 'gmail' | 'sheets' | 'docs' | 'whatsapp'>('voice');
   
   // API statuses
   const [loading, setLoading] = useState(true);
@@ -40,11 +40,11 @@ export default function CrmDashboard() {
   // Gmail states
   const [selectedEmail, setSelectedEmail] = useState<any | null>(null);
   
-  // Telegram states
-  const [telegramData, setTelegramData] = useState<any>({ connected: false, chats: [] });
-  const [selectedTelegramChat, setSelectedTelegramChat] = useState<any | null>(null);
-  const [telegramInput, setTelegramInput] = useState('');
-  const [sendingTelegram, setSendingTelegram] = useState(false);
+  // WhatsApp states
+  const [whatsappData, setWhatsappData] = useState<any>({ connected: false, chats: [] });
+  const [selectedWhatsappChat, setSelectedWhatsappChat] = useState<any | null>(null);
+  const [whatsappInput, setWhatsappInput] = useState('');
+  const [sendingWhatsapp, setSendingWhatsapp] = useState(false);
   
   // Add Note state
   const [noteInput, setNoteInput] = useState('');
@@ -80,12 +80,12 @@ export default function CrmDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [appRes, gmailRes, voiceRes, sheetsRes, telegramRes] = await Promise.allSettled([
+      const [appRes, gmailRes, voiceRes, sheetsRes, whatsappRes] = await Promise.allSettled([
         fetch(`/api/applicants?search=${searchQuery}&status=${statusFilter}&source=${sourceFilter}`).then(r => r.json()),
         fetch('/api/gmail').then(r => r.json()),
         fetch('/api/voice').then(r => r.json()),
         fetch('/api/sheets').then(r => r.json()),
-        fetch('/api/telegram').then(r => r.json()).catch(() => null)
+        fetch('/api/whatsapp').then(r => r.json()).catch(() => null)
       ]);
 
       if (appRes.status === 'fulfilled' && appRes.value) {
@@ -124,10 +124,12 @@ export default function CrmDashboard() {
         setSheetsData(sheetsRes.value);
       }
 
-      if (telegramRes.status === 'fulfilled' && telegramRes.value) {
-        const tData = telegramRes.value;
-        setTelegramData(tData);
-        // Add telegram ref logic if needed, skipping for brevity
+      if (whatsappRes.status === 'fulfilled' && whatsappRes.value) {
+        const wData = whatsappRes.value;
+        setWhatsappData(wData);
+        if (wData.chats?.length > 0 && !selectedWhatsappChat) {
+          setSelectedWhatsappChat(wData.chats[0]);
+        }
       }
 
     } catch (error) {
@@ -520,16 +522,13 @@ export default function CrmDashboard() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ 
-            width: '44px', 
             height: '44px', 
-            borderRadius: '50%',
-            overflow: 'hidden',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             background: 'transparent'
           }}>
-            <img src="/logo.png" alt="Liberty Dispatchers" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <img src="/logo.png" alt="Liberty Dispatchers" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
           </div>
           <div>
             <h1 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--navy-blue)' }}>Liberty Dispatchers CRM</h1>
@@ -1175,16 +1174,16 @@ export default function CrmDashboard() {
               </button>
               
               <button 
-                onClick={() => setActiveTab('telegram')}
-                className={`tab-button ${activeTab === 'telegram' ? 'active' : ''}`}
+                onClick={() => setActiveTab('whatsapp')}
+                className={`tab-button ${activeTab === 'whatsapp' ? 'active' : ''}`}
                 style={{ 
-                  background: activeTab === 'telegram' ? 'var(--panel-bg-solid)' : 'transparent',
-                  borderColor: activeTab === 'telegram' ? 'var(--border-color)' : 'transparent',
-                  color: activeTab === 'telegram' ? 'var(--text-primary)' : 'var(--text-secondary)'
+                  background: activeTab === 'whatsapp' ? 'var(--panel-bg-solid)' : 'transparent',
+                  borderColor: activeTab === 'whatsapp' ? 'var(--border-color)' : 'transparent',
+                  color: activeTab === 'whatsapp' ? 'var(--text-primary)' : 'var(--text-secondary)'
                 }}
               >
-                <MessageSquare size={14} style={{ color: activeTab === 'telegram' ? '#2AABEE' : 'inherit' }} />
-                Telegram Bot
+                <MessageSquare size={14} style={{ color: activeTab === 'whatsapp' ? '#25D366' : 'inherit' }} />
+                WhatsApp Sync
               </button>
             </div>
 
@@ -1926,83 +1925,83 @@ export default function CrmDashboard() {
                 </div>
               )}
 
-              {activeTab === 'telegram' && (
+              {activeTab === 'whatsapp' && (
                 <div style={{ display: 'flex', height: '100%' }}>
-                  {/* TELEGRAM LIST */}
+                  {/* WHATSAPP LIST */}
                   <div style={{ width: '280px', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
                     <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h3 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <MessageSquare size={14} /> Telegram Chats
+                        <MessageSquare size={14} style={{ color: '#25D366' }} /> WhatsApp Chats
                       </h3>
-                      <div className={`status-indicator ${telegramData.connected ? 'active' : 'offline'}`} />
+                      <div className={`status-indicator ${whatsappData.connected ? 'active' : 'offline'}`} />
                     </div>
                     
                     <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
-                      {telegramData.chats && telegramData.chats.length > 0 ? (
-                        telegramData.chats.map((chat: any) => {
-                          const isSelected = selectedTelegramChat?.chatId === chat.chatId;
+                      {whatsappData.chats && whatsappData.chats.length > 0 ? (
+                        whatsappData.chats.map((chat: any) => {
+                          const isSelected = selectedWhatsappChat?.phone === chat.phone;
                           const lastMsg = chat.messages[chat.messages.length - 1];
                           return (
                             <div 
-                              key={chat.chatId}
-                              onClick={() => setSelectedTelegramChat(chat)}
+                              key={chat.phone}
+                              onClick={() => setSelectedWhatsappChat(chat)}
                               className={`list-item ${isSelected ? 'selected' : ''}`}
                             >
                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                                 <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                                  {chat.firstName} {chat.lastName}
+                                  {chat.applicantName}
                                 </span>
                                 <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                                  {new Date(lastMsg.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  {lastMsg ? new Date(lastMsg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                                 </span>
                               </div>
                               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {lastMsg.text}
+                                {lastMsg ? lastMsg.text : 'No messages'}
                               </div>
                             </div>
                           );
                         })
                       ) : (
                         <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                          No Telegram chats found.
+                          No WhatsApp chats found.
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* TELEGRAM DETAIL */}
+                  {/* WHATSAPP DETAIL */}
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'rgba(0,0,0,0.15)' }}>
-                    {selectedTelegramChat ? (
+                    {selectedWhatsappChat ? (
                       <>
                         {/* Header */}
                         <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
                             <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                              {selectedTelegramChat.firstName} {selectedTelegramChat.lastName}
+                              {selectedWhatsappChat.applicantName}
                             </h3>
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                              @{selectedTelegramChat.username || selectedTelegramChat.chatId}
+                              {selectedWhatsappChat.phone}
                             </div>
                           </div>
                         </div>
 
                         {/* Thread */}
                         <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }} className="custom-scrollbar">
-                          {selectedTelegramChat.messages.map((msg: any) => (
-                            <div key={msg.messageId} style={{ alignSelf: msg.sender === 'user' ? 'flex-start' : 'flex-end', maxWidth: '80%' }}>
+                          {selectedWhatsappChat.messages?.map((msg: any) => (
+                            <div key={msg.id} style={{ alignSelf: msg.sender === 'applicant' ? 'flex-start' : 'flex-end', maxWidth: '80%' }}>
                               <div style={{ 
-                                background: msg.sender === 'user' ? 'rgba(255,255,255,0.05)' : '#2AABEE',
+                                background: msg.sender === 'applicant' ? 'rgba(255,255,255,0.05)' : '#128C7E',
                                 padding: '10px 14px',
-                                borderRadius: msg.sender === 'user' ? '12px 12px 12px 2px' : '12px 12px 2px 12px',
+                                borderRadius: msg.sender === 'applicant' ? '12px 12px 12px 2px' : '12px 12px 2px 12px',
                                 fontSize: '0.85rem',
-                                color: 'var(--text-primary)',
-                                border: msg.sender === 'user' ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                                color: '#ffffff',
+                                border: msg.sender === 'applicant' ? '1px solid rgba(255,255,255,0.1)' : 'none',
                                 lineHeight: 1.4
                               }}>
                                 {msg.text}
                               </div>
-                              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px', textAlign: msg.sender === 'user' ? 'left' : 'right' }}>
-                                {new Date(msg.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px', textAlign: msg.sender === 'applicant' ? 'left' : 'right' }}>
+                                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </div>
                             </div>
                           ))}
@@ -2013,44 +2012,54 @@ export default function CrmDashboard() {
                           <form 
                             onSubmit={async (e) => {
                               e.preventDefault();
-                              if (!telegramInput.trim() || sendingTelegram) return;
+                              if (!whatsappInput.trim() || sendingWhatsapp) return;
                               
-                              setSendingTelegram(true);
+                              setSendingWhatsapp(true);
                               try {
-                                const res = await fetch('/api/telegram', {
+                                const res = await fetch('/api/whatsapp', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({
-                                    chatId: selectedTelegramChat.chatId,
-                                    text: telegramInput
+                                    phone: selectedWhatsappChat.phone,
+                                    applicantId: selectedWhatsappChat.applicantId,
+                                    text: whatsappInput
                                   })
                                 });
                                 
                                 if (res.ok) {
-                                  setTelegramInput('');
-                                  fetchData(); // Refresh to see sent message via API or just locally
+                                  const data = await res.json();
+                                  setWhatsappInput('');
+                                  // Update local message list for instant feedback
+                                  setSelectedWhatsappChat((prev: any) => {
+                                    if (!prev) return null;
+                                    return {
+                                      ...prev,
+                                      messages: [...(prev.messages || []), data.sentMessage]
+                                    };
+                                  });
+                                  fetchData(); // Refresh all data in background
                                 } else {
-                                  alert('Failed to send Telegram message');
+                                  alert('Failed to send WhatsApp message');
                                 }
                               } catch (e) {
                                 console.error(e);
                               }
-                              setSendingTelegram(false);
+                              setSendingWhatsapp(false);
                             }}
                             style={{ display: 'flex', gap: '12px' }}
                           >
                             <input 
                               type="text" 
                               className="input-field" 
-                              placeholder="Type a message to send via Telegram..." 
-                              value={telegramInput}
-                              onChange={(e) => setTelegramInput(e.target.value)}
-                              disabled={sendingTelegram}
+                              placeholder="Type a message to send via WhatsApp..." 
+                              value={whatsappInput}
+                              onChange={(e) => setWhatsappInput(e.target.value)}
+                              disabled={sendingWhatsapp}
                             />
                             <button 
                               type="submit" 
                               className="button highlight" 
-                              disabled={!telegramInput.trim() || sendingTelegram}
+                              disabled={!whatsappInput.trim() || sendingWhatsapp}
                               style={{ padding: '0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
                             >
                               <Send size={14} /> Send
@@ -2061,7 +2070,7 @@ export default function CrmDashboard() {
                     ) : (
                       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
                         <MessageSquare size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />
-                        <p>Select a Telegram chat to reply</p>
+                        <p>Select a WhatsApp chat to reply</p>
                       </div>
                     )}
                   </div>
