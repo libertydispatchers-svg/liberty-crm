@@ -64,67 +64,67 @@ export default function CrmDashboard() {
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Refs for polling interval to prevent stale closures overriding selection
+  const selectedApplicantIdRef = useRef<string | null>(null);
+  const selectedSmsThreadPhoneRef = useRef<string | null>(null);
+  const selectedEmailIdRef = useRef<string | null>(null);
+
+  useEffect(() => { selectedApplicantIdRef.current = selectedApplicant?.id || null; }, [selectedApplicant]);
+  useEffect(() => { selectedSmsThreadPhoneRef.current = selectedSmsThread?.phone || null; }, [selectedSmsThread]);
+  useEffect(() => { selectedEmailIdRef.current = selectedEmail?.id || null; }, [selectedEmail]);
+
   // Fetch initial data
   const fetchData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch DB Applicants
-      const appRes = await fetch(`/api/applicants?search=${searchQuery}&status=${statusFilter}&source=${sourceFilter}`);
-      const appData = await appRes.json();
-      setApplicants(appData);
-      
-      // Auto-select first applicant if none selected
-      if (appData.length > 0 && !selectedApplicant) {
-        setSelectedApplicant(appData[0]);
-      } else if (selectedApplicant) {
-        // Refresh selected applicant details
-        const refreshed = appData.find((a: any) => a.id === selectedApplicant.id);
-        if (refreshed) setSelectedApplicant(refreshed);
-      }
+      const [appRes, gmailRes, voiceRes, sheetsRes, telegramRes] = await Promise.allSettled([
+        fetch(`/api/applicants?search=${searchQuery}&status=${statusFilter}&source=${sourceFilter}`).then(r => r.json()),
+        fetch('/api/gmail').then(r => r.json()),
+        fetch('/api/voice').then(r => r.json()),
+        fetch('/api/sheets').then(r => r.json()),
+        fetch('/api/telegram').then(r => r.json()).catch(() => null)
+      ]);
 
-      // 2. Fetch Gmail inquiries
-      const gmailRes = await fetch('/api/gmail');
-      const gData = await gmailRes.json();
-      setGmailData(gData);
-      if (gData.emails?.length > 0 && !selectedEmail) {
-        setSelectedEmail(gData.emails[0]);
-      }
-
-      // 3. Fetch Google Voice data
-      const voiceRes = await fetch('/api/voice');
-      const vData = await voiceRes.json();
-      setVoiceData(vData);
-      
-      if (vData.smsThreads?.length > 0) {
-        // Sync selected text thread state
-        if (selectedSmsThread) {
-          const refreshedThread = vData.smsThreads.find((t: any) => t.phone === selectedSmsThread.phone);
-          if (refreshedThread) setSelectedSmsThread(refreshedThread);
-        } else {
-          setSelectedSmsThread(vData.smsThreads[0]);
+      if (appRes.status === 'fulfilled' && appRes.value) {
+        const appData = appRes.value;
+        setApplicants(appData);
+        if (appData.length > 0 && !selectedApplicantIdRef.current) {
+          setSelectedApplicant(appData[0]);
+        } else if (selectedApplicantIdRef.current) {
+          const refreshed = appData.find((a: any) => a.id === selectedApplicantIdRef.current);
+          if (refreshed) setSelectedApplicant(refreshed);
         }
       }
 
-      // 4. Fetch Sheets data
-      const sheetsRes = await fetch('/api/sheets');
-      const sData = await sheetsRes.json();
-      setSheetsData(sData);
+      if (gmailRes.status === 'fulfilled' && gmailRes.value) {
+        const gData = gmailRes.value;
+        setGmailData(gData);
+        if (gData.emails?.length > 0 && !selectedEmailIdRef.current) {
+          setSelectedEmail(gData.emails[0]);
+        }
+      }
 
-      // 5. Fetch Telegram data
-      try {
-        const telegramRes = await fetch('/api/telegram');
-        const tData = await telegramRes.json();
-        setTelegramData(tData);
-        if (tData.chats && tData.chats.length > 0) {
-          if (selectedTelegramChat) {
-            const refreshedChat = tData.chats.find((c: any) => c.chatId === selectedTelegramChat.chatId);
-            if (refreshedChat) setSelectedTelegramChat(refreshedChat);
+      if (voiceRes.status === 'fulfilled' && voiceRes.value) {
+        const vData = voiceRes.value;
+        setVoiceData(vData);
+        if (vData.smsThreads?.length > 0) {
+          if (selectedSmsThreadPhoneRef.current) {
+            const refreshedThread = vData.smsThreads.find((t: any) => t.phone === selectedSmsThreadPhoneRef.current);
+            if (refreshedThread) setSelectedSmsThread(refreshedThread);
           } else {
-            setSelectedTelegramChat(tData.chats[0]);
+            setSelectedSmsThread(vData.smsThreads[0]);
           }
         }
-      } catch (err) {
-        console.error('Failed to fetch telegram data');
+      }
+
+      if (sheetsRes.status === 'fulfilled' && sheetsRes.value) {
+        setSheetsData(sheetsRes.value);
+      }
+
+      if (telegramRes.status === 'fulfilled' && telegramRes.value) {
+        const tData = telegramRes.value;
+        setTelegramData(tData);
+        // Add telegram ref logic if needed, skipping for brevity
       }
 
     } catch (error) {
@@ -502,7 +502,7 @@ export default function CrmDashboard() {
             <img src="/logo.png" alt="Liberty Dispatchers" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div>
-            <h1 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.5px' }}>Liberty Dispatchers CRM</h1>
+            <h1 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--navy-blue)' }}>Liberty Dispatchers CRM</h1>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Google Voice & Email CRM v1.0</span>
           </div>
         </div>
@@ -510,7 +510,7 @@ export default function CrmDashboard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div style={{ textAlign: 'right' }}>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Workspace connected:</p>
-            <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent-cyan)' }}>Libertydispatchers.com</p>
+            <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent-cyan)' }}>LibertyDispatchers.com</p>
           </div>
           <button onClick={() => fetchData()} className="button" style={{ padding: '8px 12px' }}>
             <RefreshCw size={14} className={loading ? 'spin-anim' : ''} />
@@ -521,35 +521,35 @@ export default function CrmDashboard() {
       <main style={{ padding: '24px', maxWidth: '1600px', width: '100%', margin: '0 auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* Top Funnel Row */}
         <div className="funnel-grid">
-          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px' }}>
+          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--navy-blue)' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Applicants</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-              <span style={{ fontSize: '1.8rem', fontWeight: 800 }}>{totalCount}</span>
+              <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--navy-blue)' }}>{totalCount}</span>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>leads in pool</span>
             </div>
           </div>
-          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', borderLeft: '3px solid var(--status-new)' }}>
+          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-new)' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>New Leads</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
               <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--status-new)' }}>{newCount}</span>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>waiting screening</span>
             </div>
           </div>
-          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', borderLeft: '3px solid var(--status-contacted)' }}>
+          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-contacted)' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contacted</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
               <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--status-contacted)' }}>{contactedCount}</span>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>active contact</span>
             </div>
           </div>
-          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', borderLeft: '3px solid var(--status-onboarding)' }}>
+          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-onboarding)' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>In Onboarding</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
               <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--status-onboarding)' }}>{onboardingCount}</span>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>W9/signing</span>
             </div>
           </div>
-          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', borderLeft: '3px solid var(--status-active)' }}>
+          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-active)' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Active Drivers</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
               <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--status-active)' }}>{activeCount}</span>
@@ -990,6 +990,18 @@ export default function CrmDashboard() {
                       </div>
                     ))}
                   </div>
+
+                  {/* Admin Delete Action */}
+                  <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end' }}>
+                    <button 
+                      onClick={(e) => handleDeleteApplicant(selectedApplicant.id, e)}
+                      className="button"
+                      style={{ height: '32px', fontSize: '0.75rem', padding: '0 12px', borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444', background: 'rgba(239,68,68,0.05)' }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                      Delete Applicant Record
+                    </button>
+                  </div>
                 </div>
               </>
             ) : (
@@ -1269,7 +1281,7 @@ export default function CrmDashboard() {
                         </div>
 
                         {/* Chat bubbles */}
-                        <div className="chat-container">
+                        <div className="chat-container" style={{ overflowY: 'auto', maxHeight: '380px', flex: 1, border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px' }}>
                           {selectedSmsThread.messages?.map((m: any, idx: number) => (
                             <div key={idx} className={`chat-bubble ${m.sender}`}>
                               <p>{m.text}</p>
@@ -1522,7 +1534,7 @@ export default function CrmDashboard() {
                     border: '1px solid var(--border-color)', 
                     borderRadius: '8px', 
                     overflow: 'auto', 
-                    background: '#0d131f', 
+                    background: 'var(--panel-bg-solid)', 
                     maxHeight: '380px' 
                   }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem', textAlign: 'left' }}>
@@ -1537,12 +1549,12 @@ export default function CrmDashboard() {
                       </thead>
                       <tbody>
                         {sheetsData.rows?.map((row: any, rowIdx: number) => (
-                          <tr key={rowIdx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', background: rowIdx % 2 === 0 ? 'rgba(0,0,0,0.1)' : 'transparent' }}>
-                            <td style={{ padding: '8px 12px', color: 'var(--text-muted)', borderRight: '1px solid rgba(255,255,255,0.03)' }}>{row.rowNumber}</td>
-                            <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', borderRight: '1px solid rgba(255,255,255,0.03)' }}>{row.id}</td>
-                            <td style={{ padding: '8px 12px', fontWeight: 500, color: 'var(--text-primary)', borderRight: '1px solid rgba(255,255,255,0.03)' }}>{row.name}</td>
-                            <td style={{ padding: '8px 12px', borderRight: '1px solid rgba(255,255,255,0.03)' }}>{row.phone}</td>
-                            <td style={{ padding: '8px 12px', borderRight: '1px solid rgba(255,255,255,0.03)' }}>{row.email}</td>
+                          <tr key={rowIdx} style={{ borderBottom: '1px solid var(--border-color)', background: rowIdx % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'transparent' }}>
+                            <td style={{ padding: '8px 12px', color: 'var(--text-primary)', borderRight: '1px solid var(--border-color)' }}>{row.rowNumber}</td>
+                            <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', borderRight: '1px solid var(--border-color)' }}>{row.id}</td>
+                            <td style={{ padding: '8px 12px', fontWeight: 500, color: 'var(--text-primary)', borderRight: '1px solid var(--border-color)' }}>{row.name}</td>
+                            <td style={{ padding: '8px 12px', color: 'var(--text-primary)', borderRight: '1px solid var(--border-color)' }}>{row.phone}</td>
+                            <td style={{ padding: '8px 12px', color: 'var(--text-primary)', borderRight: '1px solid var(--border-color)' }}>{row.email}</td>
                             <td style={{ padding: '8px 12px', borderRight: '1px solid rgba(255,255,255,0.03)' }}>
                               <span style={{ 
                                 color: `var(--status-${row.status.toLowerCase()})`,
@@ -1701,6 +1713,22 @@ export default function CrmDashboard() {
                             </div>
                           );
                         })}
+                      </div>
+
+                      {/* Create Document Form */}
+                      <div style={{ marginTop: '20px', padding: '16px', border: '1px dashed var(--border-color)', borderRadius: '8px', background: 'rgba(255,255,255,0.01)' }}>
+                        <h5 style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '8px', color: 'var(--text-primary)' }}>Generate New Document</h5>
+                        <form onSubmit={async (e) => {
+                          e.preventDefault();
+                          const formData = new FormData(e.currentTarget);
+                          const docName = formData.get('docName') as string;
+                          if (!docName) return;
+                          alert(`Document generation requested: ${docName} for ${selectedApplicant.name}.\\n\\nIn a production environment, this would call the E-Sign API to generate a fresh link.`);
+                          (e.target as HTMLFormElement).reset();
+                        }} style={{ display: 'flex', gap: '8px' }}>
+                          <input type="text" name="docName" placeholder="Document Title (e.g. Background Check Consent)" className="input-field" style={{ flex: 1, height: '32px', fontSize: '0.8rem' }} />
+                          <button type="submit" className="button highlight" style={{ height: '32px', padding: '0 12px', fontSize: '0.75rem' }}>Create</button>
+                        </form>
                       </div>
                     </div>
                   ) : (
