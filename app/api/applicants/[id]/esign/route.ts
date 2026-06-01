@@ -7,7 +7,7 @@ export async function POST(
 ) {
   try {
     const body = await request.json();
-    const { w9Data, signature, availability } = body;
+    const { w9Data, signature, availability, intakeData } = body;
 
     if (!signature) {
       return NextResponse.json({ error: 'Signature is required to sign the contract' }, { status: 400 });
@@ -40,13 +40,14 @@ export async function POST(
       // 2. Mark documents as SIGNED and save metadata
       const now = new Date();
 
-      // Onboarding Material
+      // Onboarding Material (Questionnaire answers stored as JSON in esignData)
       await tx.document.updateMany({
         where: { applicantId: params.id, name: 'Onboarding Material' },
         data: {
           status: 'SIGNED',
           signedAt: now,
           fileUrl: '#/docs/onboarding',
+          esignData: intakeData ? JSON.stringify(intakeData) : null,
         },
       });
 
@@ -81,14 +82,34 @@ export async function POST(
         },
       });
 
+      // Format Intake Questionnaire note content for admin reference
+      let intakeNote = '';
+      if (intakeData) {
+        intakeNote = `\n\nIntake Questionnaire Answers:\n` +
+          `- Vehicle Type: ${intakeData.vehicleType}\n` +
+          `- Shift Preference: ${intakeData.shiftPreference}\n` +
+          `- Payout Method: ${intakeData.payoutMethod} (${intakeData.payoutDetails})\n` +
+          `- OK with Daily Payouts: ${intakeData.dailyPayoutsOk}\n` +
+          `- Current Apps: ${intakeData.currentApps}\n` +
+          `- Experience Notes: ${intakeData.experience || 'None'}`;
+      }
+
       // 3. Log a detailed interaction note
       await tx.note.create({
         data: {
-          content: `Onboarding completed! Driver signed Driver Contract and submitted W-9 form. Signature: "${signature}" from IP ${ipAddress}. Weekly availability hours have been updated.`,
+          content: `Onboarding completed! Driver signed Driver Contract and submitted W-9 form. Signature: "${signature}" from IP ${ipAddress}. Weekly availability hours have been updated.${intakeNote}`,
           applicantId: params.id,
         },
       });
     });
+
+    // Sync to Sheets
+    try {
+      const { syncToSheets } = require('../../../../../lib/sheets');
+      await syncToSheets();
+    } catch (err) {
+      console.error('Failed to sync to sheets in POST esign:', err);
+    }
 
     return NextResponse.json({ success: true, message: 'Onboarding completed successfully' });
   } catch (error: any) {

@@ -91,6 +91,13 @@ export async function POST(request: Request) {
         return appObj;
       });
 
+      try {
+        const { syncToSheets } = require('../../../lib/sheets');
+        await syncToSheets();
+      } catch (err) {
+        console.error('Failed to sync to sheets in POST applicant:', err);
+      }
+
       return NextResponse.json(applicant);
     } catch (error: any) {
       console.error('Prisma database connection failed during POST:', error);

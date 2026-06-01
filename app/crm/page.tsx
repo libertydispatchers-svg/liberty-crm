@@ -49,6 +49,9 @@ export default function CrmDashboard() {
   // Add Note state
   const [noteInput, setNoteInput] = useState('');
 
+  // Sheets inline editing state
+  const [editingCell, setEditingCell] = useState<{ rowIdx: number, field: 'name' | 'phone' | 'email', value: string } | null>(null);
+
   // New Applicant Modal state
   const [showAddModal, setShowAddModal] = useState(false);
   const [newApplicantForm, setNewApplicantForm] = useState({
@@ -346,6 +349,33 @@ export default function CrmDashboard() {
       console.error(e);
     }
     setSyncingSheets(false);
+  };
+
+  // Inline editing for Google Sheets rows in tab
+  const handleSaveSheetCell = async (id: string, field: 'name' | 'phone' | 'email', value: string) => {
+    if (!id || id === 'N/A') return;
+    try {
+      const res = await fetch(`/api/applicants/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value })
+      });
+      if (res.ok) {
+        setSheetsData((prev: any) => {
+          const updatedRows = prev.rows.map((row: any) => {
+            if (row.id === id) {
+              return { ...row, [field]: value };
+            }
+            return row;
+          });
+          return { ...prev, rows: updatedRows };
+        });
+        fetchData();
+      }
+    } catch (e) {
+      console.error('Failed to update sheets cell:', e);
+    }
+    setEditingCell(null);
   };
 
   // Generate onboarding docs and flag as SENT
@@ -898,6 +928,65 @@ export default function CrmDashboard() {
                       </div>
                     </div>
                   )}
+
+                  {/* Intake Questionnaire Answers Display */}
+                  {(() => {
+                    const onboardingDoc = selectedApplicant.documents?.find((d: any) => d.name === 'Onboarding Material' && d.status === 'SIGNED' && d.esignData);
+                    if (!onboardingDoc) return null;
+                    try {
+                      const intake = JSON.parse(onboardingDoc.esignData);
+                      return (
+                        <div style={{ 
+                          marginTop: '16px', 
+                          background: 'rgba(215,181,95,0.05)', 
+                          border: '1px solid rgba(215,181,95,0.15)',
+                          padding: '12px 16px',
+                          borderRadius: '8px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px'
+                        }}>
+                          <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-color)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <FileText size={14} /> Intake Questionnaire Responses
+                          </h4>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                            <div>
+                              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem' }}>Vehicle Type:</span>
+                              <b style={{ color: 'var(--text-primary)' }}>{intake.vehicleType || 'N/A'}</b>
+                            </div>
+                            <div>
+                              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem' }}>Hours Preference:</span>
+                              <b style={{ color: 'var(--text-primary)' }}>{intake.shiftPreference || 'N/A'}</b>
+                            </div>
+                            <div>
+                              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem' }}>Payout Method:</span>
+                              <b style={{ color: 'var(--text-primary)' }}>{intake.payoutMethod || 'N/A'}</b>
+                            </div>
+                            <div>
+                              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem' }}>Payout Details:</span>
+                              <b style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>{intake.payoutDetails || 'N/A'}</b>
+                            </div>
+                            <div>
+                              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem' }}>OK with Daily Payouts?</span>
+                              <b style={{ color: 'var(--text-primary)' }}>{intake.dailyPayoutsOk || 'N/A'}</b>
+                            </div>
+                            <div>
+                              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem' }}>Current Apps:</span>
+                              <b style={{ color: 'var(--text-primary)' }}>{intake.currentApps || 'N/A'}</b>
+                            </div>
+                            {intake.experience && (
+                              <div style={{ gridColumn: '1 / -1', marginTop: '4px', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '4px' }}>
+                                <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem' }}>Experience Notes:</span>
+                                <p style={{ color: 'var(--text-primary)', marginTop: '2px', lineHeight: '1.4' }}>{intake.experience}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    } catch (err) {
+                      return null;
+                    }
+                  })()}
                 </div>
 
                 {/* Driver Availability Visual Grid */}
@@ -1552,9 +1641,105 @@ export default function CrmDashboard() {
                           <tr key={rowIdx} style={{ borderBottom: '1px solid var(--border-color)', background: rowIdx % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'transparent' }}>
                             <td style={{ padding: '8px 12px', color: 'var(--text-primary)', borderRight: '1px solid var(--border-color)' }}>{row.rowNumber}</td>
                             <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', borderRight: '1px solid var(--border-color)' }}>{row.id}</td>
-                            <td style={{ padding: '8px 12px', fontWeight: 500, color: 'var(--text-primary)', borderRight: '1px solid var(--border-color)' }}>{row.name}</td>
-                            <td style={{ padding: '8px 12px', color: 'var(--text-primary)', borderRight: '1px solid var(--border-color)' }}>{row.phone}</td>
-                            <td style={{ padding: '8px 12px', color: 'var(--text-primary)', borderRight: '1px solid var(--border-color)' }}>{row.email}</td>
+                            {/* Name cell */}
+                            <td 
+                              onDoubleClick={() => {
+                                if (row.id !== 'N/A') {
+                                  setEditingCell({ rowIdx, field: 'name', value: row.name });
+                                }
+                              }}
+                              style={{ 
+                                padding: '8px 12px', 
+                                fontWeight: 500, 
+                                color: 'var(--text-primary)', 
+                                borderRight: '1px solid var(--border-color)',
+                                cursor: row.id !== 'N/A' ? 'pointer' : 'default'
+                              }}
+                            >
+                              {editingCell && editingCell.rowIdx === rowIdx && editingCell.field === 'name' ? (
+                                <input 
+                                  type="text" 
+                                  value={editingCell.value}
+                                  onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                                  onBlur={() => handleSaveSheetCell(row.id, 'name', editingCell.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSaveSheetCell(row.id, 'name', editingCell.value);
+                                    if (e.key === 'Escape') setEditingCell(null);
+                                  }}
+                                  autoFocus
+                                  style={{ background: 'var(--bg-color)', color: 'white', border: '1px solid var(--control-border)', borderRadius: '4px', padding: '2px 6px', fontSize: '0.75rem', width: '100%' }}
+                                />
+                              ) : (
+                                <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  {row.name}
+                                  {row.id !== 'N/A' && <span style={{ opacity: 0.3, fontSize: '0.65rem', fontStyle: 'italic', fontWeight: 400, color: 'var(--text-muted)' }}>(double-click)</span>}
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Phone cell */}
+                            <td 
+                              onDoubleClick={() => {
+                                if (row.id !== 'N/A') {
+                                  setEditingCell({ rowIdx, field: 'phone', value: row.phone });
+                                }
+                              }}
+                              style={{ 
+                                padding: '8px 12px', 
+                                color: 'var(--text-primary)', 
+                                borderRight: '1px solid var(--border-color)',
+                                cursor: row.id !== 'N/A' ? 'pointer' : 'default'
+                              }}
+                            >
+                              {editingCell && editingCell.rowIdx === rowIdx && editingCell.field === 'phone' ? (
+                                <input 
+                                  type="text" 
+                                  value={editingCell.value}
+                                  onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                                  onBlur={() => handleSaveSheetCell(row.id, 'phone', editingCell.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSaveSheetCell(row.id, 'phone', editingCell.value);
+                                    if (e.key === 'Escape') setEditingCell(null);
+                                  }}
+                                  autoFocus
+                                  style={{ background: 'var(--bg-color)', color: 'white', border: '1px solid var(--control-border)', borderRadius: '4px', padding: '2px 6px', fontSize: '0.75rem', width: '100%' }}
+                                />
+                              ) : (
+                                <span>{row.phone}</span>
+                              )}
+                            </td>
+
+                            {/* Email cell */}
+                            <td 
+                              onDoubleClick={() => {
+                                if (row.id !== 'N/A') {
+                                  setEditingCell({ rowIdx, field: 'email', value: row.email });
+                                }
+                              }}
+                              style={{ 
+                                padding: '8px 12px', 
+                                color: 'var(--text-primary)', 
+                                borderRight: '1px solid var(--border-color)',
+                                cursor: row.id !== 'N/A' ? 'pointer' : 'default'
+                              }}
+                            >
+                              {editingCell && editingCell.rowIdx === rowIdx && editingCell.field === 'email' ? (
+                                <input 
+                                  type="text" 
+                                  value={editingCell.value}
+                                  onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                                  onBlur={() => handleSaveSheetCell(row.id, 'email', editingCell.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSaveSheetCell(row.id, 'email', editingCell.value);
+                                    if (e.key === 'Escape') setEditingCell(null);
+                                  }}
+                                  autoFocus
+                                  style={{ background: 'var(--bg-color)', color: 'white', border: '1px solid var(--control-border)', borderRadius: '4px', padding: '2px 6px', fontSize: '0.75rem', width: '100%' }}
+                                />
+                              ) : (
+                                <span>{row.email}</span>
+                              )}
+                            </td>
                             <td style={{ padding: '8px 12px', borderRight: '1px solid rgba(255,255,255,0.03)' }}>
                               <span style={{ 
                                 color: `var(--status-${row.status.toLowerCase()})`,

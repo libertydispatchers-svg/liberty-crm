@@ -158,6 +158,13 @@ export async function PUT(
         });
       });
 
+      try {
+        const { syncToSheets } = require('../../../../lib/sheets');
+        await syncToSheets();
+      } catch (err) {
+        console.error('Failed to sync to sheets in PUT applicant:', err);
+      }
+
       return NextResponse.json(updatedApplicant);
     } catch (dbError: any) {
       console.warn('Prisma update failed, returning simulated updated applicant:', dbError);
@@ -187,6 +194,13 @@ export async function DELETE(
     await prisma.applicant.delete({
       where: { id: params.id }
     });
+
+    try {
+      const { syncToSheets } = require('../../../../lib/sheets');
+      await syncToSheets();
+    } catch (err) {
+      console.error('Failed to sync to sheets in DELETE applicant:', err);
+    }
 
     return NextResponse.json({ message: 'Applicant deleted successfully' });
   } catch (error: any) {

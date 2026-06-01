@@ -41,6 +41,17 @@ export default function EsignPage({ params }: { params: { id: string } }) {
     monday: [], tuesday: [], wednesday: [], thursday: [], friday: [], saturday: [], sunday: []
   });
 
+  // Step 1: Onboarding intake questionnaire
+  const [intakeForm, setIntakeForm] = useState({
+    vehicleType: 'Sedan',
+    experience: '',
+    shiftPreference: 'Night Hours (Overnight - higher rates)',
+    payoutMethod: 'CashApp',
+    payoutDetails: '',
+    dailyPayoutsOk: 'Yes',
+    currentApps: ''
+  });
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
 
@@ -155,7 +166,7 @@ export default function EsignPage({ params }: { params: { id: string } }) {
 
   // Check if current step is valid to proceed
   const isStepValid = () => {
-    if (step === 1) return readMaterial;
+    if (step === 1) return readMaterial && intakeForm.vehicleType && intakeForm.payoutDetails && intakeForm.shiftPreference;
     if (step === 2) return w9Form.fullName && w9Form.ssn.length >= 9 && w9Form.address && w9Form.cityStateZip && w9Form.certify;
     if (step === 3) return typedSignature.trim() && isCanvasSigned;
     return true; // availability shift count doesn't matter (can be empty if they want)
@@ -176,7 +187,8 @@ export default function EsignPage({ params }: { params: { id: string } }) {
             fullName: w9Form.fullName
           },
           signature: typedSignature,
-          availability: availability
+          availability: availability,
+          intakeData: intakeForm
         })
       });
       if (res.ok) {
@@ -260,9 +272,14 @@ export default function EsignPage({ params }: { params: { id: string } }) {
         
         {/* Portal Header */}
         <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--accent-color)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Driver Onboarding</span>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '2px' }}>Liberty Dispatchers</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '50px', height: '50px', borderRadius: '50%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
+              <img src="/logo.png" alt="Liberty Dispatchers" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
+            <div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--accent-color)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Driver Onboarding</span>
+              <h1 style={{ fontSize: '1.4rem', fontWeight: 800, marginTop: '2px' }}>Liberty Dispatchers</h1>
+            </div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Welcome,</span>
@@ -293,7 +310,7 @@ export default function EsignPage({ params }: { params: { id: string } }) {
               <Info size={18} color="var(--accent-cyan)" /> Driver Role & Dispatch Overview
             </h3>
 
-            <div style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', fontSize: '0.88rem', lineHeight: '1.6', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '300px', overflowY: 'auto' }}>
+            <div style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', fontSize: '0.88rem', lineHeight: '1.6', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '180px', overflowY: 'auto' }}>
               <p>Welcome to <b>Liberty Dispatchers</b>, the official delivery platform for our network of local flower and smoke shop storefronts.</p>
               
               <b style={{ color: '#fff' }}>1. How Delivery Operations Work:</b>
@@ -309,6 +326,102 @@ export default function EsignPage({ params }: { params: { id: string } }) {
                 <li>Verify age (21+) via government ID on deliveries containing restricted products.</li>
                 <li>Maintain a polite, helpful attitude with storefront staff and customers.</li>
               </ul>
+            </div>
+
+            {/* Questionnaire fields */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)', marginTop: '8px' }}>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#fff', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px', marginBottom: '8px' }}>Driver Intake Questionnaire</h4>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Type of Vehicle</label>
+                <select 
+                  className="input-field"
+                  value={intakeForm.vehicleType}
+                  onChange={(e) => setIntakeForm({ ...intakeForm, vehicleType: e.target.value })}
+                >
+                  <option value="Sedan">Sedan</option>
+                  <option value="SUV">SUV</option>
+                  <option value="Coupe">Coupe</option>
+                  <option value="Truck">Truck</option>
+                  <option value="Motorcycle">Motorcycle</option>
+                  <option value="Bicycle">Bicycle</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Shift Preference (Note: Overnight pays more!)</label>
+                <select 
+                  className="input-field"
+                  value={intakeForm.shiftPreference}
+                  onChange={(e) => setIntakeForm({ ...intakeForm, shiftPreference: e.target.value })}
+                >
+                  <option value="Night Hours (Overnight - higher rates)">Night Hours (Overnight - higher rates)</option>
+                  <option value="Day Hours">Day Hours</option>
+                  <option value="Any Hours / Flexible">Any Hours / Flexible</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Payout Option</label>
+                <select 
+                  className="input-field"
+                  value={intakeForm.payoutMethod}
+                  onChange={(e) => setIntakeForm({ ...intakeForm, payoutMethod: e.target.value })}
+                >
+                  <option value="CashApp">CashApp</option>
+                  <option value="Zelle">Zelle</option>
+                  <option value="Chime">Chime</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Payout Account Info (username/phone/email)</label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  value={intakeForm.payoutDetails}
+                  onChange={(e) => setIntakeForm({ ...intakeForm, payoutDetails: e.target.value })}
+                  placeholder="e.g. $cashapptag or phone number"
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>OK with Daily Payouts?</label>
+                <select 
+                  className="input-field"
+                  value={intakeForm.dailyPayoutsOk}
+                  onChange={(e) => setIntakeForm({ ...intakeForm, dailyPayoutsOk: e.target.value })}
+                >
+                  <option value="Yes">Yes, prefer daily payouts</option>
+                  <option value="No">No, prefer weekly payouts</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Current Apps You Drive For</label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  value={intakeForm.currentApps}
+                  onChange={(e) => setIntakeForm({ ...intakeForm, currentApps: e.target.value })}
+                  placeholder="e.g. Uber, DoorDash, none"
+                />
+              </div>
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Driving History / Experience Notes</label>
+                <textarea 
+                  className="input-field" 
+                  rows={2}
+                  value={intakeForm.experience}
+                  onChange={(e) => setIntakeForm({ ...intakeForm, experience: e.target.value })}
+                  placeholder="Tell us briefly about your driving or delivery experience..."
+                  style={{ resize: 'vertical', minHeight: '40px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--control-border)', borderRadius: '6px', width: '100%', padding: '8px', color: '#fff', fontSize: '0.8rem' }}
+                />
+              </div>
             </div>
 
             <label style={{ 
