@@ -478,7 +478,7 @@ export default function CrmDashboard() {
       {/* Header Banner */}
       <header style={{ 
         borderBottom: '1px solid var(--border-color)', 
-        background: 'rgba(10, 15, 23, 0.7)', 
+        background: 'rgba(255, 255, 255, 0.9)', 
         backdropFilter: 'blur(10px)',
         padding: '16px 32px',
         display: 'flex',
@@ -497,8 +497,7 @@ export default function CrmDashboard() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(255, 255, 255, 0.9)',
-            boxShadow: '0 0 15px rgba(215, 181, 95, 0.4)'
+            background: 'transparent'
           }}>
             <img src="/logo.png" alt="Liberty Dispatchers" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
@@ -923,25 +922,25 @@ export default function CrmDashboard() {
 
                       return (
                         <div key={day} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 1fr', gap: '4px', textAlign: 'center', padding: '4px 0', alignItems: 'center' }}>
-                          <div style={{ textAlign: 'left', fontSize: '0.75rem', textTransform: 'capitalize', color: 'white' }}>{day.substring(0,3)}</div>
+                          <div style={{ textAlign: 'left', fontSize: '0.75rem', textTransform: 'capitalize', color: 'var(--text-primary)' }}>{day.substring(0,3)}</div>
                           <div style={{ 
-                            background: dayAvails.includes('morning') ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.01)',
-                            border: dayAvails.includes('morning') ? '1px solid var(--status-active)' : '1px solid rgba(255,255,255,0.03)',
-                            borderRadius: '4px', fontSize: '0.7rem', padding: '2px 0', color: dayAvails.includes('morning') ? '#fff' : 'var(--text-muted)'
+                            background: dayAvails.includes('morning') ? 'var(--status-active)' : 'transparent',
+                            border: '1px solid ' + (dayAvails.includes('morning') ? 'var(--status-active)' : 'var(--border-color)'),
+                            borderRadius: '4px', fontSize: '0.7rem', padding: '2px 0', color: dayAvails.includes('morning') ? 'white' : 'var(--text-muted)'
                           }}>
                             {dayAvails.includes('morning') ? 'Yes' : '-'}
                           </div>
                           <div style={{ 
-                            background: dayAvails.includes('afternoon') ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.01)',
-                            border: dayAvails.includes('afternoon') ? '1px solid var(--status-active)' : '1px solid rgba(255,255,255,0.03)',
-                            borderRadius: '4px', fontSize: '0.7rem', padding: '2px 0', color: dayAvails.includes('afternoon') ? '#fff' : 'var(--text-muted)'
+                            background: dayAvails.includes('afternoon') ? 'var(--status-contacted)' : 'transparent',
+                            border: '1px solid ' + (dayAvails.includes('afternoon') ? 'var(--status-contacted)' : 'var(--border-color)'),
+                            borderRadius: '4px', fontSize: '0.7rem', padding: '2px 0', color: dayAvails.includes('afternoon') ? 'white' : 'var(--text-muted)'
                           }}>
                             {dayAvails.includes('afternoon') ? 'Yes' : '-'}
                           </div>
                           <div style={{ 
-                            background: dayAvails.includes('evening') ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.01)',
-                            border: dayAvails.includes('evening') ? '1px solid var(--status-active)' : '1px solid rgba(255,255,255,0.03)',
-                            borderRadius: '4px', fontSize: '0.7rem', padding: '2px 0', color: dayAvails.includes('evening') ? '#fff' : 'var(--text-muted)'
+                            background: dayAvails.includes('evening') ? 'var(--navy-blue)' : 'transparent',
+                            border: '1px solid ' + (dayAvails.includes('evening') ? 'var(--navy-blue)' : 'var(--border-color)'),
+                            borderRadius: '4px', fontSize: '0.7rem', padding: '2px 0', color: dayAvails.includes('evening') ? 'white' : 'var(--text-muted)'
                           }}>
                             {dayAvails.includes('evening') ? 'Yes' : '-'}
                           </div>
@@ -1008,7 +1007,7 @@ export default function CrmDashboard() {
             <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', gap: '4px' }}>
               <button 
                 onClick={() => setActiveTab('voice')} 
-                className={`button`} 
+                className={`tab-button ${activeTab === 'voice' ? 'active' : ''}`}
                 style={{ 
                   flex: 1, 
                   borderBottom: 'none', 
@@ -1016,7 +1015,7 @@ export default function CrmDashboard() {
                   borderBottomRightRadius: 0, 
                   background: activeTab === 'voice' ? 'var(--panel-bg-solid)' : 'transparent',
                   borderColor: activeTab === 'voice' ? 'var(--border-color)' : 'transparent',
-                  color: activeTab === 'voice' ? '#fff' : 'var(--text-secondary)'
+                  color: activeTab === 'voice' ? 'var(--text-primary)' : 'var(--text-secondary)'
                 }}
               >
                 <Phone size={14} style={{ color: activeTab === 'voice' ? 'var(--status-contacted)' : 'inherit' }} />
@@ -1025,7 +1024,7 @@ export default function CrmDashboard() {
 
               <button 
                 onClick={() => setActiveTab('gmail')} 
-                className={`button`} 
+                className={`tab-button ${activeTab === 'gmail' ? 'active' : ''}`}
                 style={{ 
                   flex: 1, 
                   borderBottom: 'none', 
@@ -1033,7 +1032,7 @@ export default function CrmDashboard() {
                   borderBottomRightRadius: 0, 
                   background: activeTab === 'gmail' ? 'var(--panel-bg-solid)' : 'transparent',
                   borderColor: activeTab === 'gmail' ? 'var(--border-color)' : 'transparent',
-                  color: activeTab === 'gmail' ? '#fff' : 'var(--text-secondary)'
+                  color: activeTab === 'gmail' ? 'var(--text-primary)' : 'var(--text-secondary)'
                 }}
               >
                 <Mail size={14} style={{ color: activeTab === 'gmail' ? 'var(--status-new)' : 'inherit' }} />
@@ -1042,7 +1041,7 @@ export default function CrmDashboard() {
 
               <button 
                 onClick={() => setActiveTab('sheets')} 
-                className={`button`} 
+                className={`tab-button ${activeTab === 'sheets' ? 'active' : ''}`}
                 style={{ 
                   flex: 1, 
                   borderBottom: 'none', 
@@ -1050,7 +1049,7 @@ export default function CrmDashboard() {
                   borderBottomRightRadius: 0, 
                   background: activeTab === 'sheets' ? 'var(--panel-bg-solid)' : 'transparent',
                   borderColor: activeTab === 'sheets' ? 'var(--border-color)' : 'transparent',
-                  color: activeTab === 'sheets' ? '#fff' : 'var(--text-secondary)'
+                  color: activeTab === 'sheets' ? 'var(--text-primary)' : 'var(--text-secondary)'
                 }}
               >
                 <Database size={14} style={{ color: activeTab === 'sheets' ? 'var(--status-active)' : 'inherit' }} />
@@ -1059,7 +1058,7 @@ export default function CrmDashboard() {
 
               <button 
                 onClick={() => setActiveTab('docs')} 
-                className={`button`} 
+                className={`tab-button ${activeTab === 'docs' ? 'active' : ''}`}
                 style={{ 
                   flex: 1, 
                   borderBottom: 'none', 
@@ -1067,7 +1066,7 @@ export default function CrmDashboard() {
                   borderBottomRightRadius: 0, 
                   background: activeTab === 'docs' ? 'var(--panel-bg-solid)' : 'transparent',
                   borderColor: activeTab === 'docs' ? 'var(--border-color)' : 'transparent',
-                  color: activeTab === 'docs' ? '#fff' : 'var(--text-secondary)'
+                  color: activeTab === 'docs' ? 'var(--text-primary)' : 'var(--text-secondary)'
                 }}
               >
                 <FileText size={14} style={{ color: activeTab === 'docs' ? 'var(--status-onboarding)' : 'inherit' }} />
@@ -1076,11 +1075,11 @@ export default function CrmDashboard() {
               
               <button 
                 onClick={() => setActiveTab('telegram')}
-                className="tab-button"
+                className={`tab-button ${activeTab === 'telegram' ? 'active' : ''}`}
                 style={{ 
                   background: activeTab === 'telegram' ? 'var(--panel-bg-solid)' : 'transparent',
                   borderColor: activeTab === 'telegram' ? 'var(--border-color)' : 'transparent',
-                  color: activeTab === 'telegram' ? '#fff' : 'var(--text-secondary)'
+                  color: activeTab === 'telegram' ? 'var(--text-primary)' : 'var(--text-secondary)'
                 }}
               >
                 <MessageSquare size={14} style={{ color: activeTab === 'telegram' ? '#2AABEE' : 'inherit' }} />
@@ -1093,10 +1092,10 @@ export default function CrmDashboard() {
               
               {/* TAB 1: GOOGLE VOICE */}
               {activeTab === 'voice' && (
-                <div style={{ display: 'flex', gap: '16px', height: '100%', minHeight: '500px' }}>
+                <div className="tab-layout">
                   
                   {/* Left sub-column: threads and calls log */}
-                  <div style={{ width: '220px', display: 'flex', flexDirection: 'column', gap: '16px', borderRight: '1px solid var(--border-color)', paddingRight: '16px' }}>
+                  <div className="tab-sidebar" style={{ width: '220px', display: 'flex', flexDirection: 'column', gap: '16px', borderRight: '1px solid var(--border-color)', paddingRight: '16px' }}>
                     
                     {/* Connection indicator */}
                     <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
@@ -1331,9 +1330,9 @@ export default function CrmDashboard() {
                     </span>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: '16px', flex: 1 }}>
+                  <div className="tab-layout">
                     {/* Mail list */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '420px', borderRight: '1px solid var(--border-color)', paddingRight: '16px' }}>
+                    <div className="tab-sidebar" style={{ width: '280px', display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '420px', borderRight: '1px solid var(--border-color)', paddingRight: '16px' }}>
                       {gmailData.emails?.map((mail: any) => {
                         const isSel = selectedEmail && selectedEmail.id === mail.id;
                         return (
