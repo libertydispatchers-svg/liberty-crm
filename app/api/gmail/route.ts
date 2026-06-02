@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getGmailClient } from '../../../lib/google';
+import { prisma } from '../../../lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,6 +62,18 @@ export async function GET(request: Request) {
     const messages = listRes.data.messages || [];
     const emails: any[] = [];
 
+    let blacklistedEmails: string[] = [];
+    try {
+      const blacklistSetting = await prisma.setting.findUnique({
+        where: { key: 'BLACKLISTED_EMAILS' }
+      });
+      if (blacklistSetting?.value) {
+        blacklistedEmails = blacklistSetting.value.split(',').map(s => s.trim().toLowerCase());
+      }
+    } catch (e) {
+      console.warn('Failed to load blacklisted emails:', e);
+    }
+
     for (const msg of messages) {
       if (!msg.id) continue;
 
@@ -84,6 +97,11 @@ export async function GET(request: Request) {
       if (match) {
         fromEmail = match[1];
         fromName = fromHeader.split('<')[0].trim().replace(/"/g, '');
+      }
+
+      // Check if email is in the blacklist
+      if (blacklistedEmails.includes(fromEmail.toLowerCase())) {
+        continue;
       }
 
       // Read snippet/body

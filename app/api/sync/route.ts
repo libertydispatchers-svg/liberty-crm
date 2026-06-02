@@ -27,6 +27,18 @@ export async function POST(request: Request) {
     const messages = listRes.data.messages || [];
     let syncedCount = 0;
 
+    let blacklistedEmails: string[] = [];
+    try {
+      const blacklistSetting = await prisma.setting.findUnique({
+        where: { key: 'BLACKLISTED_EMAILS' }
+      });
+      if (blacklistSetting?.value) {
+        blacklistedEmails = blacklistSetting.value.split(',').map(s => s.trim().toLowerCase());
+      }
+    } catch (e) {
+      console.warn('Failed to load blacklisted emails for sync:', e);
+    }
+
     for (const msg of messages) {
       if (!msg.id) continue;
 
@@ -48,6 +60,11 @@ export async function POST(request: Request) {
       if (match) {
         fromEmail = match[1];
         fromName = fromHeader.split('<')[0].trim().replace(/"/g, '');
+      }
+
+      // Skip blacklisted email senders
+      if (blacklistedEmails.includes(fromEmail.toLowerCase())) {
+        continue;
       }
 
       // Determine Google Voice type

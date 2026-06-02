@@ -65,7 +65,7 @@ export default function CrmDashboard() {
 
   // Settings & Integrations Modal state
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [settingsForm, setSettingsForm] = useState({ WHATSAPP_NUMBER: '', DISPATCHER_PHONE_NUMBER: '', GOOGLE_SHEET_ID: '' });
+  const [settingsForm, setSettingsForm] = useState({ WHATSAPP_NUMBER: '', DISPATCHER_PHONE_NUMBER: '', GOOGLE_SHEET_ID: '', BLACKLISTED_EMAILS: '' });
   const [savingSettings, setSavingSettings] = useState(false);
 
   // Load settings on mount
@@ -81,7 +81,8 @@ export default function CrmDashboard() {
         setSettingsForm({
           WHATSAPP_NUMBER: data.settings.WHATSAPP_NUMBER || '',
           DISPATCHER_PHONE_NUMBER: data.settings.DISPATCHER_PHONE_NUMBER || '',
-          GOOGLE_SHEET_ID: data.settings.GOOGLE_SHEET_ID || ''
+          GOOGLE_SHEET_ID: data.settings.GOOGLE_SHEET_ID || '',
+          BLACKLISTED_EMAILS: data.settings.BLACKLISTED_EMAILS || ''
         });
       }
     } catch (err) {
@@ -223,6 +224,41 @@ export default function CrmDashboard() {
       alert('Network error while saving settings');
     }
     setSavingSettings(false);
+  };
+
+  const handleBlacklistEmail = async (email: string) => {
+    if (!email) return;
+    if (!confirm(`Are you sure you want to mark "${email}" as a non-applicant? This will hide their emails from the inbox and ignore them in future sheet syncs.`)) return;
+
+    const currentList = settingsForm.BLACKLISTED_EMAILS ? settingsForm.BLACKLISTED_EMAILS.split(',').map(s => s.trim().toLowerCase()) : [];
+    if (!currentList.includes(email.toLowerCase())) {
+      currentList.push(email.toLowerCase());
+    }
+    const updatedBlacklist = currentList.join(',');
+
+    try {
+      const updatedSettings = {
+        ...settingsForm,
+        BLACKLISTED_EMAILS: updatedBlacklist
+      };
+      
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings: updatedSettings })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Email marked as non-applicant and ignored successfully!');
+        fetchSettings(); // Refresh settings state
+        fetchData(); // Refresh UI/Gmail inbox
+      } else {
+        alert(`Failed to save settings: ${data.error}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error while blacklisting email');
+    }
   };
 
   const handleTrashGmail = async (id: string, e: React.MouseEvent) => {
@@ -588,7 +624,9 @@ export default function CrmDashboard() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'transparent'
+            background: 'var(--navy-blue)',
+            padding: '6px',
+            borderRadius: '6px'
           }}>
             <img src="/logo.png" alt="Liberty Dispatchers" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
           </div>
@@ -1275,10 +1313,10 @@ export default function CrmDashboard() {
               
               {/* TAB 1: GOOGLE VOICE */}
               {activeTab === 'voice' && (
-                <div className="tab-layout">
+                <div className="tab-layout" style={{ height: '520px' }}>
                   
                   {/* Left sub-column: threads and calls log */}
-                  <div className="tab-sidebar" style={{ width: '220px', display: 'flex', flexDirection: 'column', gap: '16px', borderRight: '1px solid var(--border-color)', paddingRight: '16px' }}>
+                  <div className="tab-sidebar" style={{ width: '240px', display: 'flex', flexDirection: 'column', gap: '16px', borderRight: '1px solid var(--border-color)', paddingRight: '16px', overflowY: 'auto', height: '100%' }}>
                     
                     {/* Connection indicator */}
                     <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
@@ -1379,8 +1417,7 @@ export default function CrmDashboard() {
                     </div>
                   </div>
 
-                  {/* Right sub-column: Active chat and dialer */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
                     
                     {/* Dialer / active call widget */}
                     <div style={{ 
@@ -1452,7 +1489,7 @@ export default function CrmDashboard() {
                         </div>
 
                         {/* Chat bubbles */}
-                        <div className="chat-container" style={{ overflowY: 'auto', maxHeight: '380px', flex: 1, border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px' }}>
+                        <div className="chat-container" style={{ overflowY: 'auto', flex: 1, border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px' }}>
                           {selectedSmsThread.messages?.map((m: any, idx: number) => (
                             <div key={idx} className={`chat-bubble ${m.sender}`}>
                               <p>{m.text}</p>
@@ -1562,9 +1599,18 @@ export default function CrmDashboard() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
                           <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>{selectedEmail.subject}</h4>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                             <p>From: <b>{selectedEmail.fromName}</b> &lt;{selectedEmail.from}&gt;</p>
-                            <p>{new Date(selectedEmail.date).toLocaleString()}</p>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <button 
+                                onClick={() => handleBlacklistEmail(selectedEmail.from)}
+                                className="button" 
+                                style={{ fontSize: '0.65rem', padding: '2px 8px', height: '24px', borderColor: 'var(--status-rejected)', color: 'var(--status-rejected)' }}
+                              >
+                                Not an Applicant
+                              </button>
+                              <p>{new Date(selectedEmail.date).toLocaleString()}</p>
+                            </div>
                           </div>
                         </div>
 
@@ -2342,6 +2388,21 @@ export default function CrmDashboard() {
                 />
                 <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
                   The spreadsheet ID used to synchronize candidate tables live.
+                </span>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px', fontWeight: 600 }}>
+                  Ignored Email Senders (Blacklist)
+                </label>
+                <textarea 
+                  className="input-field" 
+                  style={{ minHeight: '60px', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}
+                  value={settingsForm.BLACKLISTED_EMAILS}
+                  onChange={(e) => setSettingsForm({...settingsForm, BLACKLISTED_EMAILS: e.target.value})}
+                  placeholder="e.g. news@mg.resume-now.com, mailer-daemon@googlemail.com"
+                />
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
+                  Comma-separated list of email addresses to exclude from the applicant feed and sync logs.
                 </span>
               </div>
 

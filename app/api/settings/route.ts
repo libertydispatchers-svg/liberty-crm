@@ -18,7 +18,8 @@ export async function GET() {
       settings: {
         WHATSAPP_NUMBER: settingsMap['WHATSAPP_NUMBER'] || process.env.WHATSAPP_NUMBER || '+1 (516) 497-4669',
         DISPATCHER_PHONE_NUMBER: settingsMap['DISPATCHER_PHONE_NUMBER'] || process.env.DISPATCHER_PHONE_NUMBER || '+14106354001',
-        GOOGLE_SHEET_ID: settingsMap['GOOGLE_SHEET_ID'] || process.env.GOOGLE_SHEET_ID || '15vJCu-X-0oeYXT7O-iJKpPPT2pv94smM-AFnN5HlT4s'
+        GOOGLE_SHEET_ID: settingsMap['GOOGLE_SHEET_ID'] || process.env.GOOGLE_SHEET_ID || '15vJCu-X-0oeYXT7O-iJKpPPT2pv94smM-AFnN5HlT4s',
+        BLACKLISTED_EMAILS: settingsMap['BLACKLISTED_EMAILS'] || ''
       }
     });
   } catch (error: any) {
@@ -30,7 +31,8 @@ export async function GET() {
       settings: {
         WHATSAPP_NUMBER: process.env.WHATSAPP_NUMBER || '+1 (516) 497-4669',
         DISPATCHER_PHONE_NUMBER: process.env.DISPATCHER_PHONE_NUMBER || '+14106354001',
-        GOOGLE_SHEET_ID: process.env.GOOGLE_SHEET_ID || '15vJCu-X-0oeYXT7O-iJKpPPT2pv94smM-AFnN5HlT4s'
+        GOOGLE_SHEET_ID: process.env.GOOGLE_SHEET_ID || '15vJCu-X-0oeYXT7O-iJKpPPT2pv94smM-AFnN5HlT4s',
+        BLACKLISTED_EMAILS: ''
       }
     });
   }
