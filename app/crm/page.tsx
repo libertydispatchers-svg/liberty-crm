@@ -10,6 +10,7 @@ import {
 export default function CrmDashboard() {
   // DB Applicants state
   const [applicants, setApplicants] = useState<any[]>([]);
+  const [dbError, setDbError] = useState<string | null>(null);
   const [selectedApplicant, setSelectedApplicant] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -90,13 +91,23 @@ export default function CrmDashboard() {
 
       if (appRes.status === 'fulfilled' && appRes.value) {
         const appData = appRes.value;
-        setApplicants(appData);
-        if (appData.length > 0 && !selectedApplicantIdRef.current) {
-          setSelectedApplicant(appData[0]);
-        } else if (selectedApplicantIdRef.current) {
-          const refreshed = appData.find((a: any) => a.id === selectedApplicantIdRef.current);
-          if (refreshed) setSelectedApplicant(refreshed);
+        if (Array.isArray(appData)) {
+          setApplicants(appData);
+          setDbError(null);
+          if (appData.length > 0 && !selectedApplicantIdRef.current) {
+            setSelectedApplicant(appData[0]);
+          } else if (selectedApplicantIdRef.current) {
+            const refreshed = appData.find((a: any) => a.id === selectedApplicantIdRef.current);
+            if (refreshed) setSelectedApplicant(refreshed);
+          }
+        } else {
+          setApplicants([]);
+          setDbError(appData.error || 'Failed to load applicants from database. Check if your DATABASE_URL in Vercel settings is correct.');
+          console.error('Applicants fetch error:', appData);
         }
+      } else {
+        setApplicants([]);
+        setDbError('Database connection error. Verify that the Supabase server is accessible and DATABASE_URL is set in Vercel settings.');
       }
 
       if (gmailRes.status === 'fulfilled' && gmailRes.value) {
@@ -546,6 +557,24 @@ export default function CrmDashboard() {
           </button>
         </div>
       </header>
+
+      {dbError && (
+        <div style={{
+          background: '#fee2e2',
+          borderBottom: '1px solid #fca5a5',
+          color: '#991b1b',
+          padding: '12px 32px',
+          fontSize: '0.875rem',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          zIndex: 49,
+        }}>
+          <AlertCircle size={16} />
+          <span>{dbError}</span>
+        </div>
+      )}
 
       <main style={{ padding: '24px', maxWidth: '1600px', width: '100%', margin: '0 auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* Top Funnel Row */}
