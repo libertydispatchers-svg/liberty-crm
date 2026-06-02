@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, Plus, Phone, MessageSquare, Mail, Database, FileText, 
   CheckCircle2, AlertCircle, Trash2, Send, Clock, User, 
-  ShieldCheck, RefreshCw, X, PhoneCall, Check, Calendar, ExternalLink
+  ShieldCheck, RefreshCw, X, PhoneCall, Check, Calendar, ExternalLink, Settings
 } from 'lucide-react';
 
 export default function CrmDashboard() {
@@ -62,6 +62,32 @@ export default function CrmDashboard() {
     source: 'EMAIL'
   });
   const [isSyncing, setIsSyncing] = useState(false);
+
+  // Settings & Integrations Modal state
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settingsForm, setSettingsForm] = useState({ WHATSAPP_NUMBER: '', DISPATCHER_PHONE_NUMBER: '', GOOGLE_SHEET_ID: '' });
+  const [savingSettings, setSavingSettings] = useState(false);
+
+  // Load settings on mount
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch('/api/settings');
+      const data = await res.json();
+      if (data.success && data.settings) {
+        setSettingsForm({
+          WHATSAPP_NUMBER: data.settings.WHATSAPP_NUMBER || '',
+          DISPATCHER_PHONE_NUMBER: data.settings.DISPATCHER_PHONE_NUMBER || '',
+          GOOGLE_SHEET_ID: data.settings.GOOGLE_SHEET_ID || ''
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching settings:', err);
+    }
+  };
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editProfileForm, setEditProfileForm] = useState({ name: '', phone: '', email: '' });
@@ -172,6 +198,31 @@ export default function CrmDashboard() {
         alert('Failed to delete applicant.');
       }
     } catch (e) { console.error(e); }
+  };
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingSettings(true);
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings: settingsForm })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Settings saved successfully!');
+        setShowSettingsModal(false);
+        fetchSettings(); // Refresh settings state
+        fetchData(); // Refresh UI/integrations numbers
+      } else {
+        alert(`Failed to save settings: ${data.error}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error while saving settings');
+    }
+    setSavingSettings(false);
   };
 
   const handleTrashGmail = async (id: string, e: React.MouseEvent) => {
@@ -552,6 +603,9 @@ export default function CrmDashboard() {
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Workspace connected:</p>
             <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent-cyan)' }}>LibertyDispatchers.com</p>
           </div>
+          <button onClick={() => setShowSettingsModal(true)} className="button" style={{ padding: '8px 12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Settings size={14} /> Settings
+          </button>
           <button onClick={() => fetchData()} className="button" style={{ padding: '8px 12px' }}>
             <RefreshCw size={14} className={loading ? 'spin-anim' : ''} />
           </button>
@@ -2204,6 +2258,109 @@ export default function CrmDashboard() {
                   style={{ flex: 1 }}
                 >
                   Create Candidate
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: INTEGRATION SETTINGS */}
+      {showSettingsModal && (
+        <div style={{ 
+          position: 'fixed', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          background: 'rgba(0,0,0,0.8)', 
+          backdropFilter: 'blur(4px)',
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          zIndex: 100
+        }}>
+          <div className="glass-panel" style={{ width: '450px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+              <h3 style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Settings size={18} color="var(--accent-cyan)" /> CRM Integrations & Settings
+              </h3>
+              <button 
+                onClick={() => setShowSettingsModal(false)} 
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px', fontWeight: 600 }}>
+                  WhatsApp Sync Number
+                </label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  required
+                  value={settingsForm.WHATSAPP_NUMBER}
+                  onChange={(e) => setSettingsForm({...settingsForm, WHATSAPP_NUMBER: e.target.value})}
+                  placeholder="e.g. +1 (516) 497-4669"
+                />
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
+                  The number used to match database candidates and simulate WhatsApp chats.
+                </span>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px', fontWeight: 600 }}>
+                  Dispatcher / Google Voice Number
+                </label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  required
+                  value={settingsForm.DISPATCHER_PHONE_NUMBER}
+                  onChange={(e) => setSettingsForm({...settingsForm, DISPATCHER_PHONE_NUMBER: e.target.value})}
+                  placeholder="e.g. (410) 635-4001"
+                />
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
+                  The source phone number shown in the SMS & Call Log workspaces.
+                </span>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px', fontWeight: 600 }}>
+                  Google Sheets Spreadsheet ID
+                </label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  required
+                  value={settingsForm.GOOGLE_SHEET_ID}
+                  onChange={(e) => setSettingsForm({...settingsForm, GOOGLE_SHEET_ID: e.target.value})}
+                  placeholder="e.g. 15vJCu-X-0oeYXT7O-iJKpPPT2pv94smM-AFnN5HlT4s"
+                />
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
+                  The spreadsheet ID used to synchronize candidate tables live.
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setShowSettingsModal(false)} 
+                  className="button" 
+                  style={{ flex: 1 }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={savingSettings}
+                  className="button highlight" 
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                >
+                  {savingSettings ? 'Saving...' : 'Save Settings'}
                 </button>
               </div>
             </form>

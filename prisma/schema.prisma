@@ -9,48 +9,48 @@ datasource db {
 }
 
 model User {
-  id            String       @id @default(cuid())
-  email         String       @unique
-  name          String?
-  generations   Generation[]
-  crates        Crate[]
-  playlists     Playlist[]
-  createdAt     DateTime     @default(now())
+  id          String       @id @default(cuid())
+  email       String       @unique
+  name        String?
+  createdAt   DateTime     @default(now())
+  crates      Crate[]
+  generations Generation[]
+  playlists   Playlist[]
 }
 
 model Generation {
-  id          String   @id @default(cuid())
-  prompt      String
-  title       String?
-  vibe        String?
-  bpm         Int?
-  key         String?
-  beatUrl     String?
-  stemStatus  String   @default("none") // none, splitting, ready
-  status      String   @default("pending") // pending, ready, splitting
-  taskId      String?   // Sonauto task ID
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id])
-  crateId     String?
-  crate       Crate?   @relation(fields: [crateId], references: [id])
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  prompt     String
+  title      String?
+  vibe       String?
+  bpm        Int?
+  key        String?
+  beatUrl    String?
+  stemStatus String   @default("none")
+  status     String   @default("pending")
+  taskId     String?
+  userId     String?
+  crateId    String?
+  createdAt  DateTime @default(now())
+  crate      Crate?   @relation(fields: [crateId], references: [id])
+  user       User?    @relation(fields: [userId], references: [id])
 }
 
 model Crate {
   id          String       @id @default(cuid())
   name        String
   userId      String?
+  createdAt   DateTime     @default(now())
   user        User?        @relation(fields: [userId], references: [id])
   generations Generation[]
-  createdAt   DateTime     @default(now())
 }
 
 model Playlist {
   id        String   @id @default(cuid())
   name      String
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Applicant {
@@ -58,13 +58,13 @@ model Applicant {
   name         String
   phone        String
   email        String
-  status       String     @default("NEW") // NEW, CONTACTED, ONBOARDING, ACTIVE, REJECTED
-  source       String     @default("EMAIL") // CALL, TEXT, EMAIL
-  availability String     @default("{}") // JSON string representing weekly availability hours
-  notes        Note[]
-  documents    Document[]
+  status       String     @default("NEW")
+  source       String     @default("EMAIL")
+  availability String     @default("{}")
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+  documents    Document[]
+  notes        Note[]
 }
 
 model Note {
@@ -77,12 +77,18 @@ model Note {
 
 model Document {
   id          String    @id @default(cuid())
-  name        String    // e.g. "Onboarding Material", "W-9", "Driver Contract"
-  status      String    @default("NOT_SENT") // NOT_SENT, SENT, SIGNED
+  name        String
+  status      String    @default("NOT_SENT")
   sentAt      DateTime?
   signedAt    DateTime?
-  fileUrl     String?   // e.g. URL to signed doc
-  esignData   String?   // JSON string containing signature/W-9 data
+  fileUrl     String?
+  esignData   String?
   applicantId String
   applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

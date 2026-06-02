@@ -53,9 +53,21 @@ export async function GET() {
       };
     });
 
+    let whatsappNumber = process.env.WHATSAPP_NUMBER || '+1 (516) 497-4669';
+    try {
+      const dbSetting = await prisma.setting.findUnique({
+        where: { key: 'WHATSAPP_NUMBER' }
+      });
+      if (dbSetting?.value) {
+        whatsappNumber = dbSetting.value;
+      }
+    } catch (e) {
+      console.warn('Prisma failed to load WhatsApp number setting, using fallback:', e);
+    }
+
     return NextResponse.json({
       connected: true,
-      whatsappNumber: process.env.WHATSAPP_NUMBER || '+1 (516) 497-4669',
+      whatsappNumber,
       chats
     });
   } catch (error: any) {

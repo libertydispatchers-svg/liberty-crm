@@ -1,5 +1,5 @@
 import React from 'react';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../../lib/prisma';
 import BeatContainer from '../components/BeatContainer';
 import CreateCrateButton from '../components/CreateCrateButton';
 
