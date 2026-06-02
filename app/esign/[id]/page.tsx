@@ -441,7 +441,16 @@ export default function EsignPage({ params }: { params: { id: string } }) {
                 onChange={(e) => setReadMaterial(e.target.checked)}
                 style={{ width: '16px', height: '16px', accentColor: 'var(--accent-color)' }}
               />
-              <span>I have read the onboarding overview and confirm I meet the requirements.</span>
+              <span>
+                I have read the onboarding overview, agree to the{' '}
+                <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-color)', textDecoration: 'underline' }}>
+                  Terms &amp; Conditions
+                </a>{' '}
+                and confirm I meet the requirements as outlined in the{' '}
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-color)', textDecoration: 'underline' }}>
+                  Privacy Policy
+                </a>.
+              </span>
             </label>
           </div>
         )}
