@@ -37,8 +37,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // Always indicate success for the front-end to trigger Google Voice web dialer
-    return NextResponse.json({ success: true, connected: false });
+    // Always indicate success for the front-end to trigger Google Voice/FaceTime web dialer fallback
+    return NextResponse.json({ success: true, connected: false, useFaceTime: true });
   } catch (error: any) {
     console.error('Error initiating native call:', error);
     return NextResponse.json({ error: error.message || 'Failed to process call' }, { status: 500 });

@@ -438,7 +438,7 @@ export default function CrmDashboard() {
     let emailContent = '';
     let statusText = '';
     
-    const esignLink = `http://localhost:3000/esign/${applicant.id}`;
+    const esignLink = `${typeof window !== 'undefined' ? window.location.origin : 'https://libertydispatchers.xyz'}/esign/${applicant.id}`;
 
     if (templateType === 'ONBOARDING') {
       emailContent = `Hi ${applicant.name},\n\nThanks for speaking with us. We are excited to onboard you as a delivery driver! Please click this link to review the onboarding material, fill out your W-9 tax details, sign the Driver Contract, and set your weekly availability hours: ${esignLink}\n\nLet us know if you have any questions.\n\nBest,\nLiberty Dispatchers CRM`;
@@ -905,7 +905,7 @@ export default function CrmDashboard() {
                         <input 
                           type="text" 
                           readOnly 
-                          value={`http://localhost:3000/esign/${selectedApplicant.id}`}
+                          value={`${typeof window !== 'undefined' ? window.location.origin : 'https://libertydispatchers.xyz'}/esign/${selectedApplicant.id}`}
                           style={{ 
                             background: 'rgba(0,0,0,0.3)',
                             border: '1px solid rgba(255,255,255,0.05)',
