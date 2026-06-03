@@ -22,15 +22,7 @@ export default function EsignPage({ params }: { params: { id: string } }) {
   // Step 1: Read material checkbox
   const [readMaterial, setReadMaterial] = useState(false);
 
-  // Step 2: W9 Form
-  const [w9Form, setW9Form] = useState({
-    fullName: '',
-    ssn: '',
-    address: '',
-    cityStateZip: '',
-    classification: 'Individual/Sole Proprietor',
-    certify: false
-  });
+
 
   // Step 3: Contract Signature
   const [typedSignature, setTypedSignature] = useState('');
@@ -49,7 +41,11 @@ export default function EsignPage({ params }: { params: { id: string } }) {
     payoutMethod: 'CashApp',
     payoutDetails: '',
     dailyPayoutsOk: 'Yes',
-    currentApps: ''
+    currentApps: '',
+    coverageArea: '',
+    desiredDistance: '',
+    chargingStationsHelp: 'Yes',
+    chargingStationsWorth: ''
   });
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -63,7 +59,6 @@ export default function EsignPage({ params }: { params: { id: string } }) {
         if (res.ok) {
           const data = await res.json();
           setApplicant(data);
-          setW9Form(prev => ({ ...prev, fullName: data.name }));
           
           // If applicant is already active, show they already completed onboarding
           if (data.status === 'ACTIVE') {
@@ -166,9 +161,8 @@ export default function EsignPage({ params }: { params: { id: string } }) {
 
   // Check if current step is valid to proceed
   const isStepValid = () => {
-    if (step === 1) return readMaterial && intakeForm.vehicleType && intakeForm.payoutDetails && intakeForm.shiftPreference;
-    if (step === 2) return w9Form.fullName && w9Form.ssn.length >= 9 && w9Form.address && w9Form.cityStateZip && w9Form.certify;
-    if (step === 3) return typedSignature.trim() && isCanvasSigned;
+    if (step === 1) return readMaterial && intakeForm.vehicleType && intakeForm.payoutDetails && intakeForm.shiftPreference && intakeForm.coverageArea && intakeForm.desiredDistance;
+    if (step === 2) return typedSignature.trim() && isCanvasSigned;
     return true; // availability shift count doesn't matter (can be empty if they want)
   };
 
@@ -180,12 +174,6 @@ export default function EsignPage({ params }: { params: { id: string } }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          w9Data: {
-            ssn: w9Form.ssn,
-            address: `${w9Form.address}, ${w9Form.cityStateZip}`,
-            classification: w9Form.classification,
-            fullName: w9Form.fullName
-          },
           signature: typedSignature,
           availability: availability,
           intakeData: intakeForm
@@ -254,7 +242,7 @@ export default function EsignPage({ params }: { params: { id: string } }) {
           </div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '10px' }}>Onboarding Complete!</h2>
           <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
-            Thank you, <b>{applicant?.name}</b>! Your W-9, signed Driver Agreement, and availability schedule have been submitted securely and filed under your dispatcher profile.
+            Thank you, <b>{applicant?.name}</b>! Your signed Driver Agreement and availability schedule have been submitted securely and filed under your dispatcher profile.
           </p>
           <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', padding: '12px', borderRadius: '8px', fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
             E-Sign ID: {applicant?.id?.toUpperCase()}-SECURE-VERIFIED
@@ -274,7 +262,7 @@ export default function EsignPage({ params }: { params: { id: string } }) {
         <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
-              <img src="/logo.png" alt="Liberty Dispatchers" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
+              <img src="/logo.png?v=1" alt="Liberty Dispatchers" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
             </div>
             <div>
               <span style={{ fontSize: '0.75rem', color: 'var(--accent-color)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Driver Onboarding</span>
@@ -288,18 +276,15 @@ export default function EsignPage({ params }: { params: { id: string } }) {
         </div>
 
         {/* Step Indicator */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600 }}>
           <div style={{ borderBottom: '3px solid', borderColor: step >= 1 ? 'var(--accent-color)' : 'var(--border-color)', paddingBottom: '6px', color: step >= 1 ? 'white' : 'var(--text-muted)' }}>
             1. Role Overview
           </div>
           <div style={{ borderBottom: '3px solid', borderColor: step >= 2 ? 'var(--accent-color)' : 'var(--border-color)', paddingBottom: '6px', color: step >= 2 ? 'white' : 'var(--text-muted)' }}>
-            2. W-9 Details
+            2. E-Sign Contract
           </div>
           <div style={{ borderBottom: '3px solid', borderColor: step >= 3 ? 'var(--accent-color)' : 'var(--border-color)', paddingBottom: '6px', color: step >= 3 ? 'white' : 'var(--text-muted)' }}>
-            3. E-Sign Contract
-          </div>
-          <div style={{ borderBottom: '3px solid', borderColor: step >= 4 ? 'var(--accent-color)' : 'var(--border-color)', paddingBottom: '6px', color: step >= 4 ? 'white' : 'var(--text-muted)' }}>
-            4. Availability
+            3. Availability
           </div>
         </div>
 
@@ -318,6 +303,7 @@ export default function EsignPage({ params }: { params: { id: string } }) {
               
               <b style={{ color: '#fff' }}>2. Pay Structure & Tips:</b>
               <p>Drivers earn a base delivery commission fee per order, plus 100% of customer tips. Payouts are compiled weekly and transferred via direct deposit.</p>
+              <p><i>Note for drivers applying for Canary: We only pay for delivery miles (not miles driven to pick up an order). Just delivery, so hanging around shops is advised.</i></p>
 
               <b style={{ color: '#fff' }}>3. Professional Requirements:</b>
               <ul>
@@ -411,6 +397,51 @@ export default function EsignPage({ params }: { params: { id: string } }) {
                 />
               </div>
 
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Desired Coverage Area</label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  value={intakeForm.coverageArea}
+                  onChange={(e) => setIntakeForm({ ...intakeForm, coverageArea: e.target.value })}
+                  placeholder="e.g. Downtown, specific ZIP codes"
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Desired Delivery Distance</label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  value={intakeForm.desiredDistance}
+                  onChange={(e) => setIntakeForm({ ...intakeForm, desiredDistance: e.target.value })}
+                  placeholder="e.g. 5 miles, 10 miles"
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Would charging stations help?</label>
+                <select 
+                  className="input-field"
+                  value={intakeForm.chargingStationsHelp}
+                  onChange={(e) => setIntakeForm({ ...intakeForm, chargingStationsHelp: e.target.value })}
+                >
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>If yes, what would it be worth to you?</label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  value={intakeForm.chargingStationsWorth}
+                  onChange={(e) => setIntakeForm({ ...intakeForm, chargingStationsWorth: e.target.value })}
+                  placeholder="e.g. $5/day, a lot, etc."
+                />
+              </div>
+
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Driving History / Experience Notes</label>
                 <textarea 
@@ -455,116 +486,8 @@ export default function EsignPage({ params }: { params: { id: string } }) {
           </div>
         )}
 
-        {/* STEP 2: W-9 DETAILS */}
+        {/* STEP 2: CONTRACT E-SIGN */}
         {step === 2 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h3 style={{ fontSize: '1.1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FileText size={18} color="var(--accent-cyan)" /> W-9 Tax Classification Form
-            </h3>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                  Full Taxpayer Name (as shown on income tax return)
-                </label>
-                <input 
-                  type="text" 
-                  className="input-field" 
-                  value={w9Form.fullName}
-                  onChange={(e) => setW9Form({ ...w9Form, fullName: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                  Federal Tax Classification
-                </label>
-                <select 
-                  className="input-field"
-                  value={w9Form.classification}
-                  onChange={(e) => setW9Form({ ...w9Form, classification: e.target.value })}
-                >
-                  <option value="Individual/Sole Proprietor">Individual/Sole Proprietor or Single-member LLC</option>
-                  <option value="Partnership">Partnership</option>
-                  <option value="LLC-C Corp">Limited Liability Company (C Corp classification)</option>
-                  <option value="LLC-S Corp">Limited Liability Company (S Corp classification)</option>
-                  <option value="Corporation">Corporation (C or S Corp)</option>
-                </select>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                    Social Security Number (SSN) or EIN
-                  </label>
-                  <input 
-                    type="password" 
-                    className="input-field" 
-                    value={w9Form.ssn}
-                    onChange={(e) => setW9Form({ ...w9Form, ssn: e.target.value.replace(/\D/g, '') })}
-                    placeholder="Enter SSN without dashes"
-                    maxLength={9}
-                  />
-                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
-                    9-digit number. Encrypted and masked on submit.
-                  </span>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                    Street Address
-                  </label>
-                  <input 
-                    type="text" 
-                    className="input-field" 
-                    value={w9Form.address}
-                    onChange={(e) => setW9Form({ ...w9Form, address: e.target.value })}
-                    placeholder="123 Main St"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                  City, State, and ZIP Code
-                </label>
-                <input 
-                  type="text" 
-                  className="input-field" 
-                  value={w9Form.cityStateZip}
-                  onChange={(e) => setW9Form({ ...w9Form, cityStateZip: e.target.value })}
-                  placeholder="Baltimore, MD 21201"
-                />
-              </div>
-
-              <label style={{ 
-                display: 'flex', 
-                alignItems: 'flex-start', 
-                gap: '12px', 
-                background: 'rgba(255,255,255,0.01)', 
-                border: '1px solid var(--border-color)', 
-                padding: '12px', 
-                borderRadius: '8px', 
-                cursor: 'pointer',
-                fontSize: '0.8rem',
-                marginTop: '6px'
-              }}>
-                <input 
-                  type="checkbox" 
-                  checked={w9Form.certify} 
-                  onChange={(e) => setW9Form({ ...w9Form, certify: e.target.checked })}
-                  style={{ width: '16px', height: '16px', marginTop: '2px', accentColor: 'var(--accent-color)' }}
-                />
-                <span style={{ lineHeight: '1.4' }}>
-                  Under penalties of perjury, I certify that: (1) The number shown on this form is my correct taxpayer identification number, and (2) I am not subject to backup withholding.
-                </span>
-              </label>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: CONTRACT E-SIGN */}
-        {step === 3 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h3 style={{ fontSize: '1.1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <FileText size={18} color="var(--accent-cyan)" /> Independent Contractor Agreement
@@ -656,8 +579,8 @@ export default function EsignPage({ params }: { params: { id: string } }) {
           </div>
         )}
 
-        {/* STEP 4: AVAILABILITY HOURS */}
-        {step === 4 && (
+        {/* STEP 3: AVAILABILITY HOURS */}
+        {step === 3 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontSize: '1.1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -674,7 +597,7 @@ export default function EsignPage({ params }: { params: { id: string } }) {
             <div style={{ border: '1px solid var(--border-color)', borderRadius: '10px', padding: '16px', background: 'rgba(0,0,0,0.15)' }}>
               
               {/* Table headers */}
-              <div style={{ 
+              <div className="esign-schedule-header" style={{ 
                 display: 'grid', 
                 gridTemplateColumns: '90px 1fr 1fr 1fr', 
                 gap: '8px', 
@@ -686,7 +609,7 @@ export default function EsignPage({ params }: { params: { id: string } }) {
                 paddingBottom: '8px', 
                 marginBottom: '12px' 
               }}>
-                <div style={{ textAlign: 'left' }}>Day of Week</div>
+                <div className="esign-schedule-header-day" style={{ textAlign: 'left' }}>Day of Week</div>
                 <div>Morning<br /><span style={{ fontSize: '0.6rem', fontWeight: 400, opacity: 0.7 }}>9am - 1pm</span></div>
                 <div>Afternoon<br /><span style={{ fontSize: '0.6rem', fontWeight: 400, opacity: 0.7 }}>1pm - 5pm</span></div>
                 <div>Evening<br /><span style={{ fontSize: '0.6rem', fontWeight: 400, opacity: 0.7 }}>5pm - 9pm</span></div>
@@ -696,14 +619,14 @@ export default function EsignPage({ params }: { params: { id: string } }) {
               {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
                 const dayShifts = availability[day] || [];
                 return (
-                  <div key={day} style={{ 
+                  <div key={day} className="esign-schedule-row" style={{ 
                     display: 'grid', 
                     gridTemplateColumns: '90px 1fr 1fr 1fr', 
                     gap: '8px', 
                     padding: '6px 0', 
                     alignItems: 'center' 
                   }}>
-                    <div style={{ textAlign: 'left', fontSize: '0.8rem', fontWeight: 500, textTransform: 'capitalize', color: 'white' }}>
+                    <div className="esign-schedule-day" style={{ textAlign: 'left', fontSize: '0.8rem', fontWeight: 500, textTransform: 'capitalize', color: 'white' }}>
                       {day}
                     </div>
                     
@@ -778,7 +701,7 @@ export default function EsignPage({ params }: { params: { id: string } }) {
             <div />
           )}
 
-          {step < 4 ? (
+          {step < 3 ? (
             <button 
               onClick={() => setStep(step + 1)} 
               disabled={!isStepValid()}
@@ -803,6 +726,21 @@ export default function EsignPage({ params }: { params: { id: string } }) {
         </div>
 
       </div>
+
+      {/* Footer links at bottom of page */}
+      <footer style={{
+        marginTop: '24px',
+        textAlign: 'center',
+        fontSize: '0.8rem',
+        color: 'var(--text-muted)',
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '16px'
+      }}>
+        <span>© {new Date().getFullYear()} Liberty Dispatchers</span>
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-color)', textDecoration: 'underline' }}>Privacy Policy</a>
+        <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-color)', textDecoration: 'underline' }}>Terms &amp; Conditions</a>
+      </footer>
     </div>
   );
 }

@@ -8,7 +8,7 @@ Documents
 Pictures
 Movies
 Music
-Public
+# Public (commented out to avoid ignoring the public/ directory on case-insensitive macOS filesystems)
 .android
 .cache
 .cups

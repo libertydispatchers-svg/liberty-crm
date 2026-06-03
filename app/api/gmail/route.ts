@@ -21,31 +21,8 @@ export async function GET(request: Request) {
     if (!hasCreds) {
       return NextResponse.json({
         connected: false,
-        emailAddress: 'recruit@libertydispatchers.com (Simulation Mode)',
-        emails: [
-          {
-            id: 'mock-mail-1',
-            from: 'dave.miller@gmail.com',
-            fromName: 'Dave Miller',
-            to: 'recruit@libertydispatchers.com',
-            subject: 'Re: Driver application for overnight shifts',
-            body: 'Hi, I saw the job posting. I am looking for overnight driving positions. I have a clean record and a cargo van. Let me know if you are hiring.',
-            date: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-            isGoogleVoice: false,
-            type: 'email'
-          },
-          {
-            id: 'mock-mail-2',
-            from: 'alex.jones@gmail.com',
-            fromName: 'Alex Jones',
-            to: 'recruit@libertydispatchers.com',
-            subject: 'Onboarding link request',
-            body: 'Hey, I wanted to follow up on our phone call. Can you send me the link to complete my onboarding and W-9?',
-            date: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-            isGoogleVoice: false,
-            type: 'email'
-          }
-        ]
+        emailAddress: process.env.SUPPORT_EMAIL || 'recruit@libertydispatchers.com',
+        emails: []
       });
     }
 

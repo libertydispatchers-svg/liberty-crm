@@ -165,7 +165,8 @@ export default function TermsAndConditions() {
           </p>
           <p style={{ marginTop: '0.5rem', fontWeight: 600 }}>
             Liberty Dispatchers Support<br />
-            Email: <a href="mailto:libertydispatchers@gmail.com" style={{ color: '#2563eb', textDecoration: 'none' }}>libertydispatchers@gmail.com</a>
+            Email: <a href="mailto:apply@libertydispatch.xyz" style={{ color: '#2563eb', textDecoration: 'none' }}>apply@libertydispatch.xyz</a><br />
+            Alternate: <a href="mailto:libertydispatchers@gmail.com" style={{ color: '#2563eb', textDecoration: 'none' }}>libertydispatchers@gmail.com</a>
           </p>
         </section>
       </main>

@@ -6,8 +6,30 @@ import {
   CheckCircle2, AlertCircle, Trash2, Send, Clock, User, 
   ShieldCheck, RefreshCw, X, PhoneCall, Check, Calendar, ExternalLink, Settings
 } from 'lucide-react';
+import { IS_PRODUCTION, BASE_URL } from '../../lib/config';
+import dynamic from 'next/dynamic';
+
+const DriverMap = dynamic(() => import('./DriverMap'), { ssr: false });
+
+const getCookie = (name: string) => {
+  if (typeof document === 'undefined') return '';
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || '';
+  return '';
+};
 
 export default function CrmDashboard() {
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (getCookie('liberty_gate') !== '6492') {
+      window.location.href = `/gate?redirect=${encodeURIComponent(window.location.pathname)}`;
+    } else {
+      setAuthorized(true);
+    }
+  }, []);
+
   // DB Applicants state
   const [applicants, setApplicants] = useState<any[]>([]);
   const [dbError, setDbError] = useState<string | null>(null);
@@ -16,8 +38,8 @@ export default function CrmDashboard() {
   const [statusFilter, setStatusFilter] = useState('');
   const [sourceFilter, setSourceFilter] = useState('');
   
-  // Workspace tabs: 'voice', 'gmail', 'sheets', 'docs', 'whatsapp'
-  const [activeTab, setActiveTab] = useState<'voice' | 'gmail' | 'sheets' | 'docs' | 'whatsapp'>('voice');
+  // Workspace tabs: 'voice', 'gmail', 'sheets', 'docs', 'whatsapp', 'map'
+  const [activeTab, setActiveTab] = useState<'voice' | 'gmail' | 'sheets' | 'docs' | 'whatsapp' | 'map'>('voice');
   
   // API statuses
   const [loading, setLoading] = useState(true);
@@ -74,6 +96,7 @@ export default function CrmDashboard() {
   }, []);
 
   const fetchSettings = async () => {
+    if (getCookie('liberty_gate') !== '6492') return;
     try {
       const res = await fetch('/api/settings');
       const data = await res.json();
@@ -106,6 +129,7 @@ export default function CrmDashboard() {
 
   // Fetch initial data
   const fetchData = async () => {
+    if (getCookie('liberty_gate') !== '6492') return;
     setLoading(true);
     try {
       const [appRes, gmailRes, voiceRes, sheetsRes, whatsappRes] = await Promise.allSettled([
@@ -407,8 +431,10 @@ export default function CrmDashboard() {
           text: smsInputText
         })
       });
+      
+      const data = await res.json();
+      
       if (res.ok) {
-        const data = await res.json();
         // Append sent message to local thread state
         const updatedThread = {
           ...selectedSmsThread,
@@ -427,9 +453,12 @@ export default function CrmDashboard() {
         }));
         setSmsInputText('');
         fetchData(); // reload timeline logs
+      } else {
+        alert(`Failed to send SMS: ${data.error || 'Unknown error'}`);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      alert(`Failed to send SMS due to a network error: ${e.message}`);
     }
     setSendingSms(false);
   };
@@ -501,8 +530,13 @@ export default function CrmDashboard() {
     setIsCalling(true);
     setActiveCall(num);
     
+    // Trigger Google Voice Web Dialer in new tab IMMEDIATELY to avoid pop-up blockers
+    const cleanNum = num.replace(/\D/g, '');
+    window.open(`https://voice.google.com/u/0/calls?a=nc,%2B1${cleanNum}`, '_blank');
+    
     try {
-      const res = await fetch('/api/voice/call', {
+      // Log the call in the background
+      await fetch('/api/voice/call', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -511,19 +545,10 @@ export default function CrmDashboard() {
         })
       });
       
-      if (res.ok) {
-        // Trigger Google Voice Web Dialer in new tab
-        const cleanNum = num.replace(/\D/g, '');
-        window.open(`https://voice.google.com/u/0/calls?a=nc,%2B1${cleanNum}`, '_blank');
-        fetchData(); // refresh note logs
-      } else {
-        // Direct browser dialer link fallback
-        const cleanNum = num.replace(/\D/g, '');
-        window.open(`https://voice.google.com/u/0/calls?a=nc,%2B1${cleanNum}`, '_blank');
-      }
+      fetchData(); // refresh note logs
     } catch (e) {
-      console.error('Call dialer error:', e);
-      window.location.href = `tel:${num}`;
+      console.error('Call dialer logging error:', e);
+      // Removed window.location.href = tel:${num} to prevent FaceTime from triggering automatically
     }
     
     setIsCalling(false);
@@ -603,6 +628,35 @@ export default function CrmDashboard() {
   const onboardingCount = applicants.filter(a => a.status === 'ONBOARDING').length;
   const activeCount = applicants.filter(a => a.status === 'ACTIVE').length;
 
+  if (authorized !== true) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #070f1e 0%, #0b2848 100%)'
+      }}>
+        <div className="spin-anim" style={{
+          width: '40px',
+          height: '40px',
+          border: '3px solid rgba(255,255,255,0.1)',
+          borderTopColor: '#3b82f6',
+          borderRadius: '50%'
+        }} />
+        <style jsx global>{`
+          .spin-anim {
+            animation: spin 1s linear infinite;
+          }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Header Banner */}
@@ -628,7 +682,7 @@ export default function CrmDashboard() {
             padding: '6px',
             borderRadius: '6px'
           }}>
-            <img src="/logo.png" alt="Liberty Dispatchers" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
+            <img src="/logo.png?v=1" alt="Liberty Dispatchers" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
           </div>
           <div>
             <h1 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--navy-blue)' }}>Liberty Dispatchers CRM</h1>
@@ -639,7 +693,7 @@ export default function CrmDashboard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div style={{ textAlign: 'right' }}>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Workspace connected:</p>
-            <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent-cyan)' }}>LibertyDispatchers.com</p>
+            <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent-cyan)' }}>{BASE_URL}</p>
           </div>
           <button onClick={() => setShowSettingsModal(true)} className="button" style={{ padding: '8px 12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             <Settings size={14} /> Settings
@@ -1075,6 +1129,22 @@ export default function CrmDashboard() {
                               <b style={{ color: 'var(--text-primary)' }}>{intake.vehicleType || 'N/A'}</b>
                             </div>
                             <div>
+                              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem' }}>Coverage Area:</span>
+                              <b style={{ color: 'var(--text-primary)' }}>{intake.coverageArea || 'N/A'}</b>
+                            </div>
+                            <div>
+                              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem' }}>Desired Distance:</span>
+                              <b style={{ color: 'var(--text-primary)' }}>{intake.desiredDistance || 'N/A'}</b>
+                            </div>
+                            <div>
+                              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem' }}>Charging Stations Help:</span>
+                              <b style={{ color: 'var(--text-primary)' }}>{intake.chargingStationsHelp || 'N/A'}</b>
+                            </div>
+                            <div>
+                              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem' }}>Charging Stations Worth:</span>
+                              <b style={{ color: 'var(--text-primary)' }}>{intake.chargingStationsWorth || 'N/A'}</b>
+                            </div>
+                            <div>
                               <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem' }}>Hours Preference:</span>
                               <b style={{ color: 'var(--text-primary)' }}>{intake.shiftPreference || 'N/A'}</b>
                             </div>
@@ -1305,6 +1375,19 @@ export default function CrmDashboard() {
               >
                 <MessageSquare size={14} style={{ color: activeTab === 'whatsapp' ? '#25D366' : 'inherit' }} />
                 WhatsApp Sync
+              </button>
+
+              <button 
+                onClick={() => setActiveTab('map')}
+                className={`tab-button ${activeTab === 'map' ? 'active' : ''}`}
+                style={{ 
+                  background: activeTab === 'map' ? 'var(--panel-bg-solid)' : 'transparent',
+                  borderColor: activeTab === 'map' ? 'var(--border-color)' : 'transparent',
+                  color: activeTab === 'map' ? 'var(--text-primary)' : 'var(--text-secondary)'
+                }}
+              >
+                <Search size={14} style={{ color: activeTab === 'map' ? 'var(--accent-color)' : 'inherit' }} />
+                Map
               </button>
             </div>
 
@@ -1546,7 +1629,7 @@ export default function CrmDashboard() {
                       <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{gmailData.emailAddress || 'recruit@libertydispatchers.com'}</p>
                     </div>
                     <span className={`status-tag ${gmailData.connected ? 'active' : 'contacted'}`} style={{ scale: '0.85' }}>
-                      {gmailData.connected ? 'Google Live' : 'Simulation Mode'}
+                      {gmailData.connected ? 'Google Live' : (IS_PRODUCTION ? 'Simulation Mode' : 'Simulation Mode')}
                     </span>
                   </div>
 
@@ -2055,9 +2138,9 @@ export default function CrmDashboard() {
               )}
 
               {activeTab === 'whatsapp' && (
-                <div style={{ display: 'flex', height: '100%' }}>
+                <div className="tab-layout" style={{ height: '520px' }}>
                   {/* WHATSAPP LIST */}
-                  <div style={{ width: '280px', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
+                  <div className="tab-sidebar" style={{ width: '280px', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
                     <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h3 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <MessageSquare size={14} style={{ color: '#25D366' }} /> WhatsApp Chats
@@ -2206,11 +2289,37 @@ export default function CrmDashboard() {
                 </div>
               )}
 
+              {/* MAP TAB */}
+              {activeTab === 'map' && (
+                <div style={{ padding: '16px' }}>
+                  <DriverMap activeDrivers={applicants.filter(a => a.status === 'ACTIVE')} />
+                </div>
+              )}
+
             </div>
           </div>
 
         </div>
       </main>
+
+      {/* Footer links at bottom of page */}
+      <footer style={{
+        borderTop: '1px solid var(--border-color)',
+        padding: '16px 24px',
+        textAlign: 'center',
+        fontSize: '0.8rem',
+        color: 'var(--text-muted)',
+        background: 'rgba(255, 255, 255, 0.01)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '20px',
+        marginTop: 'auto'
+      }}>
+        <span>© {new Date().getFullYear()} Liberty Dispatchers. All rights reserved.</span>
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--navy-blue)', textDecoration: 'underline' }}>Privacy Policy</a>
+        <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--navy-blue)', textDecoration: 'underline' }}>Terms &amp; Conditions</a>
+      </footer>
 
       {/* MODAL: ADD APPLICANT */}
       {showAddModal && (
@@ -2227,7 +2336,7 @@ export default function CrmDashboard() {
           justifyContent: 'center',
           zIndex: 100
         }}>
-          <div className="glass-panel" style={{ width: '400px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
               <h3 style={{ fontSize: '1.1rem' }}>Add New Driver Candidate</h3>
               <button 
@@ -2326,7 +2435,7 @@ export default function CrmDashboard() {
           justifyContent: 'center',
           zIndex: 100
         }}>
-          <div className="glass-panel" style={{ width: '450px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '450px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
               <h3 style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Settings size={18} color="var(--accent-cyan)" /> CRM Integrations & Settings

@@ -7,13 +7,10 @@ export async function POST(
 ) {
   try {
     const body = await request.json();
-    const { w9Data, signature, availability, intakeData } = body;
+    const { signature, availability, intakeData } = body;
 
     if (!signature) {
       return NextResponse.json({ error: 'Signature is required to sign the contract' }, { status: 400 });
-    }
-    if (!w9Data || !w9Data.ssn || !w9Data.address) {
-      return NextResponse.json({ error: 'Complete W-9 form details are required' }, { status: 400 });
     }
 
     const applicant = await prisma.applicant.findUnique({
@@ -51,21 +48,7 @@ export async function POST(
         },
       });
 
-      // W-9 Form
-      await tx.document.updateMany({
-        where: { applicantId: params.id, name: 'W-9 Form' },
-        data: {
-          status: 'SIGNED',
-          signedAt: now,
-          fileUrl: '#/docs/w9',
-          esignData: JSON.stringify({
-            ssn: w9Data.ssn.replace(/.(?=.{4})/g, '*'), // Mask SSN for security
-            address: w9Data.address,
-            classification: w9Data.classification || 'Individual/Sole Proprietor',
-            fullName: w9Data.fullName || applicant.name,
-          }),
-        },
-      });
+
 
       // Driver Contract
       await tx.document.updateMany({
@@ -87,7 +70,11 @@ export async function POST(
       if (intakeData) {
         intakeNote = `\n\nIntake Questionnaire Answers:\n` +
           `- Vehicle Type: ${intakeData.vehicleType}\n` +
+          `- Coverage Area: ${intakeData.coverageArea}\n` +
+          `- Desired Distance: ${intakeData.desiredDistance}\n` +
           `- Shift Preference: ${intakeData.shiftPreference}\n` +
+          `- Charging Stations Help: ${intakeData.chargingStationsHelp}\n` +
+          `- Charging Stations Worth: ${intakeData.chargingStationsWorth}\n` +
           `- Payout Method: ${intakeData.payoutMethod} (${intakeData.payoutDetails})\n` +
           `- OK with Daily Payouts: ${intakeData.dailyPayoutsOk}\n` +
           `- Current Apps: ${intakeData.currentApps}\n` +
@@ -97,7 +84,7 @@ export async function POST(
       // 3. Log a detailed interaction note
       await tx.note.create({
         data: {
-          content: `Onboarding completed! Driver signed Driver Contract and submitted W-9 form. Signature: "${signature}" from IP ${ipAddress}. Weekly availability hours have been updated.${intakeNote}`,
+          content: `Onboarding completed! Driver signed Driver Contract. Signature: "${signature}" from IP ${ipAddress}. Weekly availability hours have been updated.${intakeNote}`,
           applicantId: params.id,
         },
       });

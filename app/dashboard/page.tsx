@@ -1,4 +1,6 @@
 import React from 'react';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { PrismaClient } from '../../lib/prisma';
 import BeatContainer from '../components/BeatContainer';
 import CreateCrateButton from '../components/CreateCrateButton';
@@ -8,6 +10,12 @@ const prisma = new PrismaClient();
 export const dynamic = 'force-dynamic';
 
 export default async function Dashboard({ searchParams }: { searchParams: { crateId?: string } }) {
+  const cookieStore = cookies();
+  const isAuth = cookieStore.get('liberty_gate')?.value === '6492';
+  if (!isAuth) {
+    redirect(`/gate?redirect=${encodeURIComponent('/dashboard')}`);
+  }
+
   const pendingGenerations = await prisma.generation.findMany({ 
     where: { NOT: { status: { in: ['ready', 'SUCCESS', 'FAILURE', 'failed'] } } } 
   });
@@ -93,6 +101,22 @@ export default async function Dashboard({ searchParams }: { searchParams: { crat
           <BeatContainer generations={generations} crates={crates} />
         </section>
       </div>
+
+      <footer style={{
+        marginTop: '3rem',
+        borderTop: '1px solid var(--border-color)',
+        paddingTop: '1.5rem',
+        textAlign: 'center',
+        fontSize: '0.85rem',
+        color: 'var(--text-muted)',
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '24px'
+      }}>
+        <span>© {new Date().getFullYear()} Liberty Dispatchers. All rights reserved.</span>
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--navy-blue)', textDecoration: 'underline' }}>Privacy Policy</a>
+        <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--navy-blue)', textDecoration: 'underline' }}>Terms &amp; Conditions</a>
+      </footer>
     </main>
   );
 }

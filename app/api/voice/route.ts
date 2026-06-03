@@ -26,50 +26,8 @@ export async function GET(request: Request) {
       return NextResponse.json({
         googleVoiceNumber: process.env.DISPATCHER_PHONE_NUMBER || '(516) 497-4669',
         connected: false,
-        smsThreads: [
-          {
-            phone: '516-497-4669',
-            applicantName: 'Google Voice',
-            applicantId: dbApplicants.find(a => a.name === 'Google Voice')?.id || null,
-            routingEmail: '15164974669.15164974669@txt.voice.google.com',
-            messages: [
-              {
-                id: 'mock-voice-msg-1',
-                sender: 'applicant',
-                text: "Hey! I got a call and text today that I don't see in the system.",
-                timestamp: new Date(Date.now() - 360000).toISOString()
-              },
-              {
-                id: 'mock-voice-msg-2',
-                sender: 'crm',
-                text: "Hi there! Checking our records now. Did you apply for overnight driving?",
-                timestamp: new Date(Date.now() - 300000).toISOString()
-              },
-              {
-                id: 'mock-voice-msg-3',
-                sender: 'applicant',
-                text: "Yes, I prefer overnight shifts. I drive a cargo van.",
-                timestamp: new Date(Date.now() - 240000).toISOString()
-              }
-            ]
-          }
-        ],
-        callLogs: [
-          {
-            id: 'mock-call-1',
-            applicantName: 'Google Voice',
-            type: 'inbound',
-            timestamp: new Date(Date.now() - 360000).toISOString(),
-            duration: '2m 14s'
-          },
-          {
-            id: 'mock-call-2',
-            applicantName: 'Unknown Caller',
-            type: 'missed',
-            timestamp: new Date(Date.now() - 1200000).toISOString(),
-            duration: '0m'
-          }
-        ]
+        smsThreads: [],
+        callLogs: []
       });
     }
 

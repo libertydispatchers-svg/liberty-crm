@@ -22,9 +22,9 @@ export async function GET(request: Request) {
 
     if (search) {
       whereClause.OR = [
-        { name: { contains: search } },
-        { email: { contains: search } },
-        { phone: { contains: search } },
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
       ];
     }
 
@@ -78,7 +78,6 @@ export async function POST(request: Request) {
             documents: {
               create: [
                 { name: 'Onboarding Material', status: 'NOT_SENT' },
-                { name: 'W-9 Form', status: 'NOT_SENT' },
                 { name: 'Driver Contract', status: 'NOT_SENT' },
               ]
             }

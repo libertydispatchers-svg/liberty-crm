@@ -36,7 +36,7 @@ export const MOCK_APPLICANTS = [
       { id: "cmppsrrjz000m11dnneq1xfx7", content: "Completed background check. Onboarded and active. Ready for shifts!", createdAt: "2026-05-28T17:59:07.583Z" }
     ],
     documents: [
-      { id: "cmppsrrjz000n11dnkmfyw1zu", name: "Onboarding Material", status: "SIGNED", sentAt: "2026-05-25T17:59:07.582Z", signedAt: "2026-05-26T17:59:07.582Z", fileUrl: "#", esignData: null },
+      { id: "cmppsrrjz000n11dnkmfyw1zu", name: "Onboarding Material", status: "SIGNED", sentAt: "2026-05-25T17:59:07.582Z", signedAt: "2026-05-26T17:59:07.582Z", fileUrl: "#", esignData: JSON.stringify({ vehicleType: "Cargo Van", coverageArea: "Downtown Baltimore", desiredDistance: "10 miles", chargingStationsHelp: "Yes", chargingStationsWorth: "$10/day", shiftPreference: "Any Time", payoutMethod: "Zelle", payoutDetails: "casey.johnson.dispatch@gmail.com", dailyPayoutsOk: "Yes", currentApps: "Amazon Flex, DoorDash", experience: "2 years delivering with Flex." }) },
       { id: "cmppsrrjz000o11dn11u2h3ij", name: "W-9 Form", status: "SIGNED", sentAt: "2026-05-25T17:59:07.582Z", signedAt: "2026-05-26T17:59:07.582Z", fileUrl: "#", esignData: JSON.stringify({ ssn: "***-**-1234", address: "123 Main St, Baltimore MD 21201", classification: "Individual" }) },
       { id: "cmppsrrjz000p11dnbueb87hk", name: "Driver Contract", status: "SIGNED", sentAt: "2026-05-25T17:59:07.582Z", signedAt: "2026-05-26T17:59:07.582Z", fileUrl: "#", esignData: JSON.stringify({ signature: "Casey Johnson", ipAddress: "192.168.1.50" }) }
     ]
