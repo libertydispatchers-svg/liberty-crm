@@ -1629,7 +1629,7 @@ export default function CrmDashboard() {
                       <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{gmailData.emailAddress || 'recruit@libertydispatchers.com'}</p>
                     </div>
                     <span className={`status-tag ${gmailData.connected ? 'active' : 'contacted'}`} style={{ scale: '0.85' }}>
-                      {gmailData.connected ? 'Google Live' : (IS_PRODUCTION ? 'Simulation Mode' : 'Simulation Mode')}
+                      {gmailData.connected ? 'Google Live' : 'Disconnected'}
                     </span>
                   </div>
 
