@@ -790,6 +790,7 @@ export default function CrmDashboard() {
         </div>
 
         {/* Master Split Grid */}
+        {mainView === 'crm' && (
         <div className="crm-grid">
           
           {/* COLUMN 1: Applicants List */}
