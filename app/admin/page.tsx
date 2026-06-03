@@ -115,6 +115,7 @@ export default function CrmDashboard() {
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editProfileForm, setEditProfileForm] = useState({ name: '', phone: '', email: '' });
+  const [isSheetsExpanded, setIsSheetsExpanded] = useState(false);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -1817,7 +1818,14 @@ export default function CrmDashboard() {
 
               {/* TAB 3: GOOGLE SHEETS */}
               {activeTab === 'sheets' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', minHeight: '500px' }}>
+                <div style={{ 
+                  ...(isSheetsExpanded ? {
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, background: '#0f172a', padding: '24px'
+                  } : {
+                    height: '100%', minHeight: '500px'
+                  }),
+                  display: 'flex', flexDirection: 'column', gap: '16px' 
+                }}>
                   
                   {/* Sheets metadata banner */}
                   <div style={{ 
@@ -1837,21 +1845,36 @@ export default function CrmDashboard() {
                         Spreadsheet: <b>{sheetsData.spreadsheetName}</b> ({sheetsData.sheetName})
                       </p>
                     </div>
-                    <button 
-                      onClick={handleSheetsSync}
-                      disabled={syncingSheets}
-                      className="button highlight" 
-                      style={{ 
-                        background: sheetsData.connected ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)', 
-                        boxShadow: sheetsData.connected ? '0 4px 10px rgba(16,185,129,0.2)' : '0 4px 10px rgba(234,179,8,0.2)',
-                        height: '32px', 
-                        padding: '0 12px', 
-                        fontSize: '0.75rem' 
-                      }}
-                    >
-                      <RefreshCw size={12} className={syncingSheets ? 'spin-anim' : ''} style={{ marginRight: '4px' }} />
-                      Sync Database to Sheet
-                    </button>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <button 
+                        onClick={() => setIsSheetsExpanded(!isSheetsExpanded)}
+                        className="button"
+                        style={{ 
+                          height: '32px', 
+                          padding: '0 12px', 
+                          fontSize: '0.75rem',
+                          background: 'rgba(255,255,255,0.1)',
+                          border: '1px solid rgba(255,255,255,0.2)'
+                        }}
+                      >
+                        {isSheetsExpanded ? 'Exit Full Screen' : '⛶ Open Bigger View'}
+                      </button>
+                      <button 
+                        onClick={handleSheetsSync}
+                        disabled={syncingSheets}
+                        className="button highlight" 
+                        style={{ 
+                          background: sheetsData.connected ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)', 
+                          boxShadow: sheetsData.connected ? '0 4px 10px rgba(16,185,129,0.2)' : '0 4px 10px rgba(234,179,8,0.2)',
+                          height: '32px', 
+                          padding: '0 12px', 
+                          fontSize: '0.75rem' 
+                        }}
+                      >
+                        <RefreshCw size={12} className={syncingSheets ? 'spin-anim' : ''} style={{ marginRight: '4px' }} />
+                        Sync Database to Sheet
+                      </button>
+                    </div>
                   </div>
 
                   {/* Spreadsheet Grid Mock */}
