@@ -1443,13 +1443,20 @@ export default function CrmDashboard() {
                                 background: 'rgba(255, 109, 0, 0.05)', 
                                 border: '1px solid rgba(255, 109, 0, 0.1)',
                                 borderRadius: '4px',
-                                padding: '4px',
+                                padding: '8px',
                                 marginTop: '4px',
                                 fontStyle: 'italic',
                                 fontSize: '0.65rem',
                                 color: 'var(--text-secondary)'
                               }}>
-                                VM: "{log.voicemailText.substring(0, 50)}..."
+                                <div style={{ marginBottom: '6px' }}>VM: "{log.voicemailText.substring(0, 50)}..."</div>
+                                {log.attachmentId && (
+                                  <audio 
+                                    controls 
+                                    src={`/api/voice/audio?messageId=${log.id}&attachmentId=${log.attachmentId}`} 
+                                    style={{ width: '100%', height: '24px' }} 
+                                  />
+                                )}
                               </div>
                             )}
                           </div>

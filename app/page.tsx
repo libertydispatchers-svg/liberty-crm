@@ -20,13 +20,12 @@ export default function LandingPage() {
       textAlign: 'center',
       padding: '2rem',
     }}>
-      <div style={{
-        fontSize: '4rem',
-        fontWeight: 800,
-        letterSpacing: '-0.025em',
-        marginBottom: '1.5rem',
-      }}>
-        🦅 LIBERTY DISPATCHERS
+      <div style={{ marginBottom: '2rem' }}>
+        <img 
+          src="/logo.png" 
+          alt="Liberty Dispatchers Logo" 
+          style={{ maxWidth: '300px', height: 'auto', objectFit: 'contain' }} 
+        />
       </div>
       
       <p style={{
@@ -36,7 +35,10 @@ export default function LandingPage() {
         lineHeight: '1.6',
         marginBottom: '3rem',
       }}>
-        Bringing liberty to the delivery courier lifestyle. Not requiring a standard DL, offering flexible payment options, and providing access to unique markets.
+        Bringing true liberty to the courier lifestyle. Say goodbye to the rigid constraints of traditional delivery apps. 
+        We offer complete freedom, flexible payment structures, instant access to exclusive markets, and <b>no standard commercial DL requirements</b>. 
+        <br/><br/>
+        Join the dispatch revolution and take control of your route.
       </p>
 
       <a href="mailto:apply@libertydispatch.xyz" style={{

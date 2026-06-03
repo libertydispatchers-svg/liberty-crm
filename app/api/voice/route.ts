@@ -89,6 +89,21 @@ export async function GET(request: Request) {
         const matchedApp = dbApplicants.find(a => a.phone.replace(/\D/g, '').endsWith(applicantPhoneRaw));
         const matchedAppName = matchedApp ? matchedApp.name : `Lead (${phone})`;
 
+        let attachmentId = null;
+        if (messageType === 'Voicemail') {
+          const findAudio = (parts: any[]) => {
+            if (!parts) return;
+            for (const p of parts) {
+              if (p.mimeType?.startsWith('audio/') && p.body?.attachmentId) {
+                attachmentId = p.body.attachmentId;
+                break;
+              }
+              if (p.parts) findAudio(p.parts);
+            }
+          };
+          findAudio(detail.data.payload?.parts || []);
+        }
+
         callLogs.push({
           id: msg.id,
           applicantName: matchedAppName,
@@ -96,7 +111,8 @@ export async function GET(request: Request) {
           type: messageType === 'Voicemail' ? 'voicemail' : 'missed',
           timestamp: new Date(dateHeader).toISOString(),
           duration: body.toLowerCase().includes('duration:') ? body.match(/duration:\s*([^\s•]+)/i)?.[1] || '0m' : (messageType === 'Voicemail' ? '0:45' : '0m'),
-          voicemailText: messageType === 'Voicemail' ? body : null
+          voicemailText: messageType === 'Voicemail' ? body : null,
+          attachmentId
         });
       }
 
