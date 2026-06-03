@@ -1632,6 +1632,13 @@ export default function CrmDashboard() {
                       {gmailData.connected ? 'Google Live' : 'Disconnected'}
                     </span>
                   </div>
+                  {!gmailData.connected && gmailData.error && (
+                    <div style={{ padding: '12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.8rem', marginTop: '10px' }}>
+                      <strong>Sync Error:</strong> {gmailData.error}
+                    </div>
+                  )}
+                    </span>
+                  </div>
 
                   <div className="tab-layout">
                     {/* Mail list */}

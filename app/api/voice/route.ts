@@ -26,6 +26,7 @@ export async function GET(request: Request) {
       return NextResponse.json({
         googleVoiceNumber: process.env.DISPATCHER_PHONE_NUMBER || '(516) 497-4669',
         connected: false,
+        error: 'Google API Credentials missing. Please configure GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REFRESH_TOKEN in Vercel.',
         smsThreads: [],
         callLogs: []
       });

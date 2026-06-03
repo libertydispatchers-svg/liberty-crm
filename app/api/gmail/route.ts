@@ -22,6 +22,7 @@ export async function GET(request: Request) {
       return NextResponse.json({
         connected: false,
         emailAddress: process.env.SUPPORT_EMAIL || 'recruit@libertydispatchers.com',
+        error: 'Google API Credentials missing. Please configure GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REFRESH_TOKEN in Vercel.',
         emails: []
       });
     }

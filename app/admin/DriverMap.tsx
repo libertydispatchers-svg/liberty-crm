@@ -96,24 +96,68 @@ const darkMapStyle = [
 ];
 
 export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
-  const { isLoaded } = useJsApiLoader({
+  const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
   });
 
   const [selectedDriver, setSelectedDriver] = useState<any | null>(null);
+  const [areaFilter, setAreaFilter] = useState<string>('All');
+  const [vehicleFilter, setVehicleFilter] = useState<string>('All');
+
+  // Derive unique options from data
+  const areas = ['All', ...Array.from(new Set(activeDrivers.map(d => {
+    const docs = d.documents?.find((doc: any) => doc.name === 'Onboarding Material');
+    const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
+    return esignData.coverageArea || 'Not specified';
+  })))];
+
+  const vehicles = ['All', ...Array.from(new Set(activeDrivers.map(d => {
+    const docs = d.documents?.find((doc: any) => doc.name === 'Onboarding Material');
+    const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
+    return esignData.vehicleType || 'Unknown';
+  })))];
+
+  const filteredDrivers = activeDrivers.filter(driver => {
+    const docs = driver.documents?.find((d: any) => d.name === 'Onboarding Material');
+    const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
+    const coverage = esignData.coverageArea || 'Not specified';
+    const vehicle = esignData.vehicleType || 'Unknown';
+
+    if (areaFilter !== 'All' && coverage !== areaFilter) return false;
+    if (vehicleFilter !== 'All' && vehicle !== vehicleFilter) return false;
+    return true;
+  });
 
   return (
     <div style={{ height: '600px', width: '100%', display: 'flex', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
       
       {/* Sidebar for driver list */}
-      <div style={{ width: '300px', background: 'var(--panel-bg)', overflowY: 'auto', borderRight: '1px solid var(--border-color)' }}>
+      <div style={{ width: '300px', background: 'var(--panel-bg)', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border-color)' }}>
         <div style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--border-color)' }}>
           <h3 style={{ margin: 0, fontSize: '1rem', color: '#fff' }}>Active Drivers Coverage</h3>
-          <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Overview of driver regions</p>
+          <p style={{ margin: '4px 0 12px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Overview of driver regions</p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <select 
+              value={areaFilter}
+              onChange={(e) => setAreaFilter(e.target.value)}
+              style={{ padding: '6px', fontSize: '0.8rem', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '4px' }}
+            >
+              {areas.map(a => <option key={a} value={a}>{a} Area</option>)}
+            </select>
+            
+            <select 
+              value={vehicleFilter}
+              onChange={(e) => setVehicleFilter(e.target.value)}
+              style={{ padding: '6px', fontSize: '0.8rem', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '4px' }}
+            >
+              {vehicles.map(v => <option key={v} value={v}>{v} Vehicle</option>)}
+            </select>
+          </div>
         </div>
-        <div style={{ padding: '12px' }}>
-          {activeDrivers.map((driver, idx) => {
+        <div style={{ padding: '12px', overflowY: 'auto', flex: 1 }}>
+          {filteredDrivers.map((driver, idx) => {
             const docs = driver.documents?.find((d: any) => d.name === 'Onboarding Material');
             const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
             const coverage = esignData.coverageArea || 'Not specified';
@@ -137,15 +181,23 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
               </div>
             );
           })}
-          {activeDrivers.length === 0 && (
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '20px' }}>No active drivers yet.</p>
+          {filteredDrivers.length === 0 && (
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '20px' }}>No drivers match filters.</p>
           )}
         </div>
       </div>
 
       {/* The actual Map */}
       <div style={{ flex: 1, position: 'relative' }}>
-        {isLoaded ? (
+        {loadError ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#0f172a', padding: '20px', textAlign: 'center' }}>
+            <div style={{ color: '#ef4444', fontSize: '2rem', marginBottom: '10px' }}>⚠️</div>
+            <h3 style={{ color: 'white', marginBottom: '10px' }}>Google Maps Failed to Load</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: '400px' }}>
+              Please ensure your <code>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> is correctly set in your Vercel Environment Variables and that the key has the correct permissions.
+            </p>
+          </div>
+        ) : isLoaded ? (
           <GoogleMap
             mapContainerStyle={containerStyle}
             center={defaultPosition}
@@ -155,7 +207,7 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
               disableDefaultUI: false,
             }}
           >
-            {activeDrivers.map((driver, i) => {
+            {filteredDrivers.map((driver, i) => {
               // Scatter slightly based on index since we don't have real coordinates for "Downtown"
               const lat = defaultPosition.lat + (Math.sin(i * 1.5) * 0.05);
               const lng = defaultPosition.lng + (Math.cos(i * 1.5) * 0.05);
