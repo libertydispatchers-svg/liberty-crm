@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         where: { key: 'BLACKLISTED_EMAILS' }
       });
       if (blacklistSetting?.value) {
-        blacklistedEmails = blacklistSetting.value.split(',').map(s => s.trim().toLowerCase());
+        blacklistedEmails = blacklistSetting.value.split(',').map((s: any) => s.trim().toLowerCase());
       }
     } catch (e) {
       console.warn('Failed to load blacklisted emails for sync:', e);

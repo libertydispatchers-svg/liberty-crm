@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, Plus, Phone, MessageSquare, Mail, Database, FileText, 
   CheckCircle2, AlertCircle, Trash2, Send, Clock, User, 
-  ShieldCheck, RefreshCw, X, PhoneCall, Check, Calendar, ExternalLink, Settings
+  ShieldCheck, RefreshCw, X, PhoneCall, Check, Calendar, ExternalLink, Settings, Map
 } from 'lucide-react';
 import { IS_PRODUCTION, BASE_URL } from '../../lib/config';
 import dynamic from 'next/dynamic';
@@ -780,7 +780,7 @@ export default function CrmDashboard() {
 
           {/* New Map and Sheets Nav Cards */}
           <div className="glass-panel" onClick={() => setMainView('map')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'map' ? 'rgba(59,130,246,0.1)' : 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--accent-cyan)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
-            <MapIcon size={24} style={{ color: 'var(--accent-cyan)', marginBottom: '4px' }} />
+            <Map size={24} style={{ color: 'var(--accent-cyan)', marginBottom: '4px' }} />
             <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>Coverage Map</span>
           </div>
           <div className="glass-panel" onClick={() => setMainView('sheets')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'sheets' ? 'rgba(16,185,129,0.1)' : 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-active)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
@@ -1815,142 +1815,7 @@ export default function CrmDashboard() {
                 </div>
               )}
 
-                        <tr style={{ background: '#172033', borderBottom: '1px solid var(--border-color)' }}>
-                          {sheetsData.headers?.map((header: string, i: number) => (
-                            <th key={i} style={{ padding: '8px 12px', fontWeight: 600, color: 'var(--text-secondary)', borderRight: '1px solid var(--border-color)' }}>
-                              {header}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sheetsData.rows?.map((row: any, rowIdx: number) => (
-                          <tr key={rowIdx} style={{ borderBottom: '1px solid var(--border-color)', background: rowIdx % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'transparent' }}>
-                            <td style={{ padding: '8px 12px', color: 'var(--text-primary)', borderRight: '1px solid var(--border-color)' }}>{row.rowNumber}</td>
-                            <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', borderRight: '1px solid var(--border-color)' }}>{row.id}</td>
-                            {/* Name cell */}
-                            <td 
-                              onDoubleClick={() => {
-                                if (row.id !== 'N/A') {
-                                  setEditingCell({ rowIdx, field: 'name', value: row.name });
-                                }
-                              }}
-                              style={{ 
-                                padding: '8px 12px', 
-                                fontWeight: 500, 
-                                color: 'var(--text-primary)', 
-                                borderRight: '1px solid var(--border-color)',
-                                cursor: row.id !== 'N/A' ? 'pointer' : 'default'
-                              }}
-                            >
-                              {editingCell && editingCell.rowIdx === rowIdx && editingCell.field === 'name' ? (
-                                <input 
-                                  type="text" 
-                                  value={editingCell.value}
-                                  onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
-                                  onBlur={() => handleSaveSheetCell(row.id, 'name', editingCell.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleSaveSheetCell(row.id, 'name', editingCell.value);
-                                    if (e.key === 'Escape') setEditingCell(null);
-                                  }}
-                                  autoFocus
-                                  style={{ background: 'var(--bg-color)', color: 'white', border: '1px solid var(--control-border)', borderRadius: '4px', padding: '2px 6px', fontSize: '0.75rem', width: '100%' }}
-                                />
-                              ) : (
-                                <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  {row.name}
-                                  {row.id !== 'N/A' && <span style={{ opacity: 0.3, fontSize: '0.65rem', fontStyle: 'italic', fontWeight: 400, color: 'var(--text-muted)' }}>(double-click)</span>}
-                                </span>
-                              )}
-                            </td>
 
-                            {/* Phone cell */}
-                            <td 
-                              onDoubleClick={() => {
-                                if (row.id !== 'N/A') {
-                                  setEditingCell({ rowIdx, field: 'phone', value: row.phone });
-                                }
-                              }}
-                              style={{ 
-                                padding: '8px 12px', 
-                                color: 'var(--text-primary)', 
-                                borderRight: '1px solid var(--border-color)',
-                                cursor: row.id !== 'N/A' ? 'pointer' : 'default'
-                              }}
-                            >
-                              {editingCell && editingCell.rowIdx === rowIdx && editingCell.field === 'phone' ? (
-                                <input 
-                                  type="text" 
-                                  value={editingCell.value}
-                                  onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
-                                  onBlur={() => handleSaveSheetCell(row.id, 'phone', editingCell.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleSaveSheetCell(row.id, 'phone', editingCell.value);
-                                    if (e.key === 'Escape') setEditingCell(null);
-                                  }}
-                                  autoFocus
-                                  style={{ background: 'var(--bg-color)', color: 'white', border: '1px solid var(--control-border)', borderRadius: '4px', padding: '2px 6px', fontSize: '0.75rem', width: '100%' }}
-                                />
-                              ) : (
-                                <span>{row.phone}</span>
-                              )}
-                            </td>
-
-                            {/* Email cell */}
-                            <td 
-                              onDoubleClick={() => {
-                                if (row.id !== 'N/A') {
-                                  setEditingCell({ rowIdx, field: 'email', value: row.email });
-                                }
-                              }}
-                              style={{ 
-                                padding: '8px 12px', 
-                                color: 'var(--text-primary)', 
-                                borderRight: '1px solid var(--border-color)',
-                                cursor: row.id !== 'N/A' ? 'pointer' : 'default'
-                              }}
-                            >
-                              {editingCell && editingCell.rowIdx === rowIdx && editingCell.field === 'email' ? (
-                                <input 
-                                  type="text" 
-                                  value={editingCell.value}
-                                  onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
-                                  onBlur={() => handleSaveSheetCell(row.id, 'email', editingCell.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleSaveSheetCell(row.id, 'email', editingCell.value);
-                                    if (e.key === 'Escape') setEditingCell(null);
-                                  }}
-                                  autoFocus
-                                  style={{ background: 'var(--bg-color)', color: 'white', border: '1px solid var(--control-border)', borderRadius: '4px', padding: '2px 6px', fontSize: '0.75rem', width: '100%' }}
-                                />
-                              ) : (
-                                <span>{row.email}</span>
-                              )}
-                            </td>
-                            <td style={{ padding: '8px 12px', borderRight: '1px solid rgba(255,255,255,0.03)' }}>
-                              <span style={{ 
-                                color: `var(--status-${row.status.toLowerCase()})`,
-                                fontWeight: 600
-                              }}>
-                                {row.status}
-                              </span>
-                            </td>
-                            <td style={{ padding: '8px 12px', borderRight: '1px solid rgba(255,255,255,0.03)' }}>{row.source}</td>
-                            <td style={{ padding: '8px 12px', color: 'var(--text-secondary)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRight: '1px solid rgba(255,255,255,0.03)' }}>
-                              {row.availability}
-                            </td>
-                            <td style={{ padding: '8px 12px' }}>{row.appliedDate}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'right' }}>
-                    Note: {sheetsData.connected ? 'Currently syncing with live Google Sheets APIs.' : 'Running in simulated Sheets mode. Configure .env.local variables to authenticate.'}
-                  </p>
-                </div>
-              )}
 
               {/* TAB 4: DOCS CENTER / SIGNATURE CHECK */}
               {activeTab === 'docs' && (
