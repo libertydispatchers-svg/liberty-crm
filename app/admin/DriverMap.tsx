@@ -1,20 +1,107 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 
-// Fix leaflet icon paths since they sometimes break in Next.js
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-});
+const containerStyle = {
+  width: '100%',
+  height: '100%'
+};
+
+// Center roughly on Baltimore since that's where the app is based
+const defaultPosition = {
+  lat: 39.2904,
+  lng: -76.6122
+};
+
+// Custom dark theme for the Google Map
+const darkMapStyle = [
+  { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+  {
+    featureType: "administrative.locality",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#d59563" }]
+  },
+  {
+    featureType: "poi",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#d59563" }]
+  },
+  {
+    featureType: "poi.park",
+    elementType: "geometry",
+    stylers: [{ color: "#263c3f" }]
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#6b9a76" }]
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [{ color: "#38414e" }]
+  },
+  {
+    featureType: "road",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#212a37" }]
+  },
+  {
+    featureType: "road",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#9ca5b3" }]
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry",
+    stylers: [{ color: "#746855" }]
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#1f2835" }]
+  },
+  {
+    featureType: "road.highway",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#f3d19c" }]
+  },
+  {
+    featureType: "transit",
+    elementType: "geometry",
+    stylers: [{ color: "#2f3948" }]
+  },
+  {
+    featureType: "transit.station",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#d59563" }]
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#17263c" }]
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#515c6d" }]
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.stroke",
+    stylers: [{ color: "#17263c" }]
+  }
+];
 
 export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
-  // Center roughly on Baltimore since that's where the app is based
-  const defaultPosition: [number, number] = [39.2904, -76.6122];
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
+  });
+
+  const [selectedDriver, setSelectedDriver] = useState<any | null>(null);
 
   return (
     <div style={{ height: '600px', width: '100%', display: 'flex', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
@@ -58,34 +145,62 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
 
       {/* The actual Map */}
       <div style={{ flex: 1, position: 'relative' }}>
-        <MapContainer center={defaultPosition} zoom={11} style={{ height: '100%', width: '100%', zIndex: 1 }}>
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          />
-          {activeDrivers.map((driver, i) => {
-            // Scatter slightly based on index since we don't have real coordinates for "Downtown"
-            const lat = defaultPosition[0] + (Math.sin(i * 1.5) * 0.05);
-            const lng = defaultPosition[1] + (Math.cos(i * 1.5) * 0.05);
-            
-            const docs = driver.documents?.find((d: any) => d.name === 'Onboarding Material');
-            const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
-            const coverage = esignData.coverageArea || 'Not specified';
+        {isLoaded ? (
+          <GoogleMap
+            mapContainerStyle={containerStyle}
+            center={defaultPosition}
+            zoom={11}
+            options={{
+              styles: darkMapStyle,
+              disableDefaultUI: false,
+            }}
+          >
+            {activeDrivers.map((driver, i) => {
+              // Scatter slightly based on index since we don't have real coordinates for "Downtown"
+              const lat = defaultPosition.lat + (Math.sin(i * 1.5) * 0.05);
+              const lng = defaultPosition.lng + (Math.cos(i * 1.5) * 0.05);
+              
+              const docs = driver.documents?.find((d: any) => d.name === 'Onboarding Material');
+              const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
+              const coverage = esignData.coverageArea || 'Not specified';
 
-            return (
-              <Marker key={driver.id} position={[lat, lng]}>
-                <Popup>
-                  <div style={{ color: '#000' }}>
-                    <strong>{driver.name}</strong><br/>
-                    <span style={{ fontSize: '0.85rem' }}>Area: {coverage}</span>
-                  </div>
-                </Popup>
-              </Marker>
-            );
-          })}
-        </MapContainer>
+              return (
+                <Marker
+                  key={driver.id}
+                  position={{ lat, lng }}
+                  onClick={() => setSelectedDriver({ ...driver, lat, lng, coverage })}
+                />
+              );
+            })}
+
+            {selectedDriver && (
+              <InfoWindow
+                position={{ lat: selectedDriver.lat, lng: selectedDriver.lng }}
+                onCloseClick={() => setSelectedDriver(null)}
+              >
+                <div style={{ color: '#000', padding: '4px' }}>
+                  <strong style={{ display: 'block', marginBottom: '4px' }}>{selectedDriver.name}</strong>
+                  <span style={{ fontSize: '0.85rem' }}>Area: {selectedDriver.coverage}</span>
+                </div>
+              </InfoWindow>
+            )}
+          </GoogleMap>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#0f172a' }}>
+            <div className="spin-anim" style={{ width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--accent-color)', borderRadius: '50%' }} />
+          </div>
+        )}
       </div>
 
+      <style jsx global>{`
+        .spin-anim {
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

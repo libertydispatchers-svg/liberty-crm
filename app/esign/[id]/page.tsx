@@ -417,6 +417,9 @@ export default function EsignPage({ params }: { params: { id: string } }) {
                   onChange={(e) => setIntakeForm({ ...intakeForm, desiredDistance: e.target.value })}
                   placeholder="e.g. 5 miles, 10 miles"
                 />
+                <p style={{ margin: '6px 0 0', fontSize: '0.7rem', color: 'var(--status-rejected)' }}>
+                  * Please note: For Canary, we only pay for delivery miles, not miles driven to pick up an order.
+                </p>
               </div>
 
               <div>
