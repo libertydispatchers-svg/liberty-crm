@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getGmailClient } from '../../../lib/google';
+import { getGmailClient } from '../../../../lib/google';
 
 export const dynamic = 'force-dynamic';
 

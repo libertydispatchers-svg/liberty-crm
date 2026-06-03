@@ -1659,9 +1659,6 @@ export default function CrmDashboard() {
                       <strong>Sync Error:</strong> {gmailData.error}
                     </div>
                   )}
-                    </span>
-                  </div>
-
                   <div className="tab-layout">
                     {/* Mail list */}
                     <div className="tab-sidebar" style={{ width: '280px', display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '420px', borderRight: '1px solid var(--border-color)', paddingRight: '16px' }}>
