@@ -116,6 +116,7 @@ export default function CrmDashboard() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editProfileForm, setEditProfileForm] = useState({ name: '', phone: '', email: '' });
   const [isSheetsExpanded, setIsSheetsExpanded] = useState(false);
+  const [mainView, setMainView] = useState('crm'); // 'crm' | 'map' | 'sheets'
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -741,40 +742,50 @@ export default function CrmDashboard() {
       <main style={{ padding: '24px', maxWidth: '1600px', width: '100%', margin: '0 auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* Top Funnel Row */}
         <div className="funnel-grid">
-          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--navy-blue)' }}>
+          <div className="glass-panel" onClick={() => { setMainView('crm'); setStatusFilter(''); }} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: statusFilter === '' && mainView === 'crm' ? 'rgba(59,130,246,0.1)' : 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--navy-blue)', transition: 'all 0.2s' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Applicants</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
               <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--navy-blue)' }}>{totalCount}</span>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>leads in pool</span>
             </div>
           </div>
-          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-new)' }}>
+          <div className="glass-panel" onClick={() => { setMainView('crm'); setStatusFilter('NEW'); }} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: statusFilter === 'NEW' && mainView === 'crm' ? 'rgba(59,130,246,0.1)' : 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-new)', transition: 'all 0.2s' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>New Leads</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
               <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--status-new)' }}>{newCount}</span>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>waiting screening</span>
             </div>
           </div>
-          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-contacted)' }}>
+          <div className="glass-panel" onClick={() => { setMainView('crm'); setStatusFilter('CONTACTED'); }} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: statusFilter === 'CONTACTED' && mainView === 'crm' ? 'rgba(59,130,246,0.1)' : 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-contacted)', transition: 'all 0.2s' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contacted</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
               <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--status-contacted)' }}>{contactedCount}</span>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>active contact</span>
             </div>
           </div>
-          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-onboarding)' }}>
+          <div className="glass-panel" onClick={() => { setMainView('crm'); setStatusFilter('ONBOARDING'); }} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: statusFilter === 'ONBOARDING' && mainView === 'crm' ? 'rgba(59,130,246,0.1)' : 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-onboarding)', transition: 'all 0.2s' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>In Onboarding</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
               <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--status-onboarding)' }}>{onboardingCount}</span>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>W9/signing</span>
             </div>
           </div>
-          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-active)' }}>
+          <div className="glass-panel" onClick={() => { setMainView('crm'); setStatusFilter('ACTIVE'); }} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: statusFilter === 'ACTIVE' && mainView === 'crm' ? 'rgba(59,130,246,0.1)' : 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-active)', transition: 'all 0.2s' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Active Drivers</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
               <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--status-active)' }}>{activeCount}</span>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>fully onboarded</span>
             </div>
+          </div>
+
+          {/* New Map and Sheets Nav Cards */}
+          <div className="glass-panel" onClick={() => setMainView('map')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'map' ? 'rgba(59,130,246,0.1)' : 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--accent-cyan)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
+            <MapIcon size={24} style={{ color: 'var(--accent-cyan)', marginBottom: '4px' }} />
+            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>Coverage Map</span>
+          </div>
+          <div className="glass-panel" onClick={() => setMainView('sheets')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'sheets' ? 'rgba(16,185,129,0.1)' : 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-active)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
+            <Database size={24} style={{ color: 'var(--status-active)', marginBottom: '4px' }} />
+            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>Google Sheets</span>
           </div>
         </div>
 
@@ -1392,19 +1403,6 @@ export default function CrmDashboard() {
                 <MessageSquare size={14} style={{ color: activeTab === 'whatsapp' ? '#25D366' : 'inherit' }} />
                 WhatsApp Sync
               </button>
-
-              <button 
-                onClick={() => setActiveTab('map')}
-                className={`tab-button ${activeTab === 'map' ? 'active' : ''}`}
-                style={{ 
-                  background: activeTab === 'map' ? 'var(--panel-bg-solid)' : 'transparent',
-                  borderColor: activeTab === 'map' ? 'var(--border-color)' : 'transparent',
-                  color: activeTab === 'map' ? 'var(--text-primary)' : 'var(--text-secondary)'
-                }}
-              >
-                <Search size={14} style={{ color: activeTab === 'map' ? 'var(--accent-color)' : 'inherit' }} />
-                Map
-              </button>
             </div>
 
             {/* TAB CONTENTS */}
@@ -1816,78 +1814,6 @@ export default function CrmDashboard() {
                 </div>
               )}
 
-              {/* TAB 3: GOOGLE SHEETS */}
-              {activeTab === 'sheets' && (
-                <div style={{ 
-                  ...(isSheetsExpanded ? {
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, background: '#0f172a', padding: '24px'
-                  } : {
-                    height: '100%', minHeight: '500px'
-                  }),
-                  display: 'flex', flexDirection: 'column', gap: '16px' 
-                }}>
-                  
-                  {/* Sheets metadata banner */}
-                  <div style={{ 
-                    background: sheetsData.connected ? 'rgba(16,185,129,0.05)' : 'rgba(234,179,8,0.05)', 
-                    border: sheetsData.connected ? '1px solid rgba(16,185,129,0.15)' : '1px solid rgba(234,179,8,0.15)', 
-                    padding: '12px 16px', 
-                    borderRadius: '8px', 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center'
-                  }}>
-                    <div>
-                      <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: sheetsData.connected ? 'var(--status-active)' : 'var(--status-contacted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Database size={16} /> Sheets Synchronization Panel
-                      </h4>
-                      <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                        Spreadsheet: <b>{sheetsData.spreadsheetName}</b> ({sheetsData.sheetName})
-                      </p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                      <button 
-                        onClick={() => setIsSheetsExpanded(!isSheetsExpanded)}
-                        className="button"
-                        style={{ 
-                          height: '32px', 
-                          padding: '0 12px', 
-                          fontSize: '0.75rem',
-                          background: 'rgba(255,255,255,0.1)',
-                          border: '1px solid rgba(255,255,255,0.2)'
-                        }}
-                      >
-                        {isSheetsExpanded ? 'Exit Full Screen' : '⛶ Open Bigger View'}
-                      </button>
-                      <button 
-                        onClick={handleSheetsSync}
-                        disabled={syncingSheets}
-                        className="button highlight" 
-                        style={{ 
-                          background: sheetsData.connected ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)', 
-                          boxShadow: sheetsData.connected ? '0 4px 10px rgba(16,185,129,0.2)' : '0 4px 10px rgba(234,179,8,0.2)',
-                          height: '32px', 
-                          padding: '0 12px', 
-                          fontSize: '0.75rem' 
-                        }}
-                      >
-                        <RefreshCw size={12} className={syncingSheets ? 'spin-anim' : ''} style={{ marginRight: '4px' }} />
-                        Sync Database to Sheet
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Spreadsheet Grid Mock */}
-                  <div style={{ 
-                    flex: 1, 
-                    border: '1px solid var(--border-color)', 
-                    borderRadius: '8px', 
-                    overflow: 'auto', 
-                    background: 'var(--panel-bg-solid)', 
-                    maxHeight: '380px' 
-                  }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem', textAlign: 'left' }}>
-                      <thead>
                         <tr style={{ background: '#172033', borderBottom: '1px solid var(--border-color)' }}>
                           {sheetsData.headers?.map((header: string, i: number) => (
                             <th key={i} style={{ padding: '8px 12px', fontWeight: 600, color: 'var(--text-secondary)', borderRight: '1px solid var(--border-color)' }}>
@@ -2338,17 +2264,130 @@ export default function CrmDashboard() {
                 </div>
               )}
 
-              {/* MAP TAB */}
-              {activeTab === 'map' && (
-                <div style={{ display: 'flex', flex: 1, height: '100%' }}>
-                  <DriverMap activeDrivers={applicants.filter(a => a.status === 'ACTIVE')} />
-                </div>
-              )}
-
+              {/* MAP TAB CONTENT MOVED OUT */}
             </div>
           </div>
-
         </div>
+        )}
+
+        {/* MAP MAIN VIEW */}
+        {mainView === 'map' && (
+          <div style={{ display: 'flex', flex: 1, height: '720px', background: 'var(--panel-bg-solid)', borderRadius: '12px', overflow: 'hidden' }}>
+            <DriverMap activeDrivers={applicants.filter(a => a.status === 'ACTIVE')} />
+          </div>
+        )}
+
+        {/* SHEETS MAIN VIEW */}
+        {mainView === 'sheets' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '720px', padding: '24px', background: 'var(--panel-bg-solid)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+            
+            {/* Sheets metadata banner */}
+            <div style={{ 
+              background: sheetsData.connected ? 'rgba(16,185,129,0.05)' : 'rgba(234,179,8,0.05)', 
+              border: sheetsData.connected ? '1px solid rgba(16,185,129,0.15)' : '1px solid rgba(234,179,8,0.15)', 
+              padding: '16px 24px', 
+              borderRadius: '8px', 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center'
+            }}>
+              <div>
+                <h4 style={{ fontSize: '1.2rem', fontWeight: 700, color: sheetsData.connected ? 'var(--status-active)' : 'var(--status-contacted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Database size={20} /> Sheets Synchronization Panel
+                </h4>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  Spreadsheet: <b>{sheetsData.spreadsheetName}</b> ({sheetsData.sheetName})
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button 
+                  onClick={async () => {
+                    const res = await fetch('/api/sheets/create', { method: 'POST' });
+                    const data = await res.json();
+                    if (res.ok) { 
+                      alert(`Sheet created successfully!\n\nLink: ${data.spreadsheetUrl}\n\nPlease add this GOOGLE_SHEET_ID to your Vercel Environment Variables:\n${data.spreadsheetId}`); 
+                      fetchData(); 
+                    } else { 
+                      alert(`Failed to create sheet: ${data.error}`); 
+                    }
+                  }}
+                  className="button secondary" 
+                  style={{ 
+                    height: '36px', 
+                    padding: '0 16px', 
+                    fontSize: '0.85rem' 
+                  }}
+                >
+                  <Plus size={14} style={{ marginRight: '6px' }} />
+                  Create New Sheet
+                </button>
+                <button 
+                  onClick={handleSheetsSync}
+                  disabled={syncingSheets}
+                  className="button highlight" 
+                  style={{ 
+                    background: sheetsData.connected ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)', 
+                    boxShadow: sheetsData.connected ? '0 4px 10px rgba(16,185,129,0.2)' : '0 4px 10px rgba(234,179,8,0.2)',
+                    height: '36px', 
+                    padding: '0 16px', 
+                    fontSize: '0.85rem' 
+                  }}
+                >
+                  <RefreshCw size={14} className={syncingSheets ? 'spin-anim' : ''} style={{ marginRight: '6px' }} />
+                  Sync Database to Sheet
+                </button>
+              </div>
+            </div>
+
+            {/* Spreadsheet Grid Mock */}
+            <div style={{ 
+              flex: 1, 
+              border: '1px solid var(--border-color)', 
+              borderRadius: '8px', 
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              background: '#ffffff' // keep sheet background white for realism
+            }}>
+              <div style={{ overflowX: 'auto', flex: 1, overflowY: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem', color: '#111827' }}>
+                  <thead style={{ background: '#f3f4f6', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                    <tr>
+                      {sheetsData.headers?.map((header: string, idx: number) => (
+                        <th key={idx} style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', borderRight: '1px solid #e5e7eb', fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sheetsData.rows?.map((row: any, i: number) => (
+                      <tr key={i} style={{ borderBottom: '1px solid #e5e7eb', background: i % 2 === 0 ? '#ffffff' : '#f9fafb' }}>
+                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#6b7280', fontWeight: 500 }}>{row.rowNumber}</td>
+                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', fontFamily: 'monospace', fontSize: '0.8rem' }}>{row.id}</td>
+                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', fontWeight: 500 }}>{row.name}</td>
+                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb' }}>{row.phone}</td>
+                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb' }}>{row.email}</td>
+                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb' }}>
+                          <span style={{ 
+                            background: row.status === 'NEW' ? '#dbeafe' : row.status === 'ACTIVE' ? '#d1fae5' : '#f3f4f6', 
+                            color: row.status === 'NEW' ? '#1e40af' : row.status === 'ACTIVE' ? '#065f46' : '#374151',
+                            padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 
+                          }}>
+                            {row.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb' }}>{row.source}</td>
+                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563' }}>{row.availability}</td>
+                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563' }}>{row.appliedDate}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Footer links at bottom of page */}
