@@ -15,6 +15,7 @@
     "@prisma/client": "^5.14.0",
     "@react-google-maps/api": "^2.19.3",
     "ai": "^3.1.30",
+    "@ai-sdk/openai": "^0.0.18",
     "firebase-admin": "^13.10.0",
     "googleapis": "^137.1.0",
     "lucide-react": "^0.379.0",
