@@ -104,6 +104,7 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
   const [selectedDriver, setSelectedDriver] = useState<any | null>(null);
   const [areaFilter, setAreaFilter] = useState<string>('All');
   const [vehicleFilter, setVehicleFilter] = useState<string>('All');
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Derive unique options from data
   const areas = ['All', ...Array.from(new Set(activeDrivers.map(d => {
@@ -130,13 +131,37 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
   });
 
   return (
-    <div style={{ height: '600px', width: '100%', display: 'flex', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
+    <div style={{ 
+      ...(isExpanded ? {
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, background: '#0f172a'
+      } : {
+        height: '100%', width: '100%'
+      }),
+      display: 'flex', border: isExpanded ? 'none' : '1px solid var(--border-color)', borderRadius: isExpanded ? '0' : '8px', overflow: 'hidden' 
+    }}>
       
       {/* Sidebar for driver list */}
       <div style={{ width: '300px', background: 'var(--panel-bg)', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border-color)' }}>
         <div style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--border-color)' }}>
           <h3 style={{ margin: 0, fontSize: '1rem', color: '#fff' }}>Active Drivers Coverage</h3>
           <p style={{ margin: '4px 0 12px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Overview of driver regions</p>
+          
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)}
+            style={{ 
+              marginBottom: '12px', 
+              padding: '6px', 
+              fontSize: '0.8rem', 
+              background: 'var(--accent-color)', 
+              border: 'none', 
+              color: 'white', 
+              borderRadius: '4px',
+              cursor: 'pointer',
+              width: '100%'
+            }}
+          >
+            {isExpanded ? 'Exit Full Screen' : '⛶ Open Bigger Map'}
+          </button>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <select 

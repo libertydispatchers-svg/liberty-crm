@@ -334,10 +334,10 @@ export default function CrmDashboard() {
 
   useEffect(() => {
     fetchData();
-    // Auto-refresh data every 30 seconds to keep services live
+    // Auto-refresh data every 5 minutes to prevent Google API rate limits
     const interval = setInterval(() => {
       fetchData();
-    }, 30000);
+    }, 300000);
     return () => clearInterval(interval);
   }, [searchQuery, statusFilter, sourceFilter]);
 
@@ -691,8 +691,23 @@ export default function CrmDashboard() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <div style={{ textAlign: 'right' }}>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Workspace connected:</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Workspace connected:</p>
+                <button 
+                  onClick={() => fetchData()}
+                  style={{ 
+                    background: 'rgba(255,255,255,0.1)', 
+                    border: '1px solid rgba(255,255,255,0.2)', 
+                    color: 'white', 
+                    borderRadius: '4px', 
+                    padding: '2px 8px', 
+                    fontSize: '0.7rem', 
+                    cursor: 'pointer' 
+                  }}>
+                  ↻ Refresh
+                </button>
+              </div>
             <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent-cyan)' }}>{BASE_URL}</p>
           </div>
           <button onClick={() => setShowSettingsModal(true)} className="button" style={{ padding: '8px 12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
@@ -2305,7 +2320,7 @@ export default function CrmDashboard() {
 
               {/* MAP TAB */}
               {activeTab === 'map' && (
-                <div style={{ padding: '16px' }}>
+                <div style={{ display: 'flex', flex: 1, height: '100%' }}>
                   <DriverMap activeDrivers={applicants.filter(a => a.status === 'ACTIVE')} />
                 </div>
               )}

@@ -30,11 +30,11 @@ export async function GET(request: Request) {
     // Connect to live Gmail API
     const gmail = getGmailClient();
     
-    // Fetch last 15 emails from Inbox
+    // Fetch last 25 emails from Inbox
     const listRes = await gmail.users.messages.list({
       userId: 'me',
       q: 'label:INBOX',
-      maxResults: 100
+      maxResults: 25
     });
 
     const messages = listRes.data.messages || [];

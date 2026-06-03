@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     const searchRes = await gmail.users.messages.list({
       userId: 'me',
       q: 'from:txt.voice.google.com OR from:voice-noreply@google.com',
-      maxResults: 300
+      maxResults: 30
     });
 
     const messages = searchRes.data.messages || [];
