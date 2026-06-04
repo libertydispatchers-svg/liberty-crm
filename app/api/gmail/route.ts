@@ -154,9 +154,13 @@ export async function DELETE(request: Request) {
     if (!id) return NextResponse.json({ error: 'Message ID required' }, { status: 400 });
 
     const gmail = getGmailClient();
-    await gmail.users.messages.trash({
+    // Instead of trashing, we just remove the INBOX label (Archive)
+    await gmail.users.messages.modify({
       userId: 'me',
-      id: id
+      id: id,
+      requestBody: {
+        removeLabelIds: ['INBOX']
+      }
     });
 
     return NextResponse.json({ success: true });

@@ -289,28 +289,28 @@ export default function CrmDashboard() {
 
   const handleTrashGmail = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('Trash this email in your real Gmail inbox?')) return;
+    if (!confirm('Archive this email? It will be removed from your inbox but saved in your All Mail.')) return;
     try {
       const res = await fetch(`/api/gmail?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
         if (selectedEmail?.id === id) setSelectedEmail(null);
         fetchData();
       } else {
-        alert('Failed to trash email.');
+        alert('Failed to archive email.');
       }
     } catch (e) { console.error(e); }
   };
 
   const handleTrashVoice = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('Trash this voice log/thread in your real Gmail inbox?')) return;
+    if (!confirm('Archive this voice log? It will be removed from your view.')) return;
     try {
       const res = await fetch(`/api/gmail?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
         if (selectedSmsThread?.messages.some((m: any) => m.id === id)) setSelectedSmsThread(null);
         fetchData();
       } else {
-        alert('Failed to trash voice log.');
+        alert('Failed to archive voice log.');
       }
     } catch (e) { console.error(e); }
   };
@@ -1428,6 +1428,17 @@ export default function CrmDashboard() {
                       </span>
                     </div>
 
+                    {/* Launch Google Voice Popup */}
+                    <button
+                      onClick={() => {
+                        window.open('https://voice.google.com', 'googleVoicePopup', 'width=450,height=650,menubar=no,toolbar=no,location=no,status=no');
+                      }}
+                      className="button highlight"
+                      style={{ fontSize: '0.8rem', padding: '8px', marginBottom: '8px', display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center' }}
+                    >
+                      <Phone size={14} /> Launch Google Voice
+                    </button>
+
                     {/* Call logs */}
                     <div>
                       <h3 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
@@ -1593,7 +1604,44 @@ export default function CrmDashboard() {
                     {selectedSmsThread ? (
                       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <h4 style={{ fontSize: '0.85rem', fontWeight: 600 }}>Chat with {selectedSmsThread.applicantName}</h4>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <h4 style={{ fontSize: '0.85rem', fontWeight: 600 }}>Chat with {selectedSmsThread.applicantName}</h4>
+                            {selectedSmsThread.applicantId ? (
+                              <button 
+                                onClick={async () => {
+                                  const newName = prompt('Enter new name for this applicant:', selectedSmsThread.applicantName);
+                                  if (newName && newName !== selectedSmsThread.applicantName) {
+                                    const res = await fetch(`/api/applicants/${selectedSmsThread.applicantId}`, {
+                                      method: 'PUT',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ name: newName })
+                                    });
+                                    if (res.ok) fetchData();
+                                  }
+                                }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, fontSize: '0.8rem' }}
+                                title="Edit Name"
+                              >
+                                ✏️
+                              </button>
+                            ) : (
+                              <button 
+                                onClick={() => {
+                                  setNewApplicantForm({
+                                    name: 'New Lead',
+                                    phone: selectedSmsThread.phone,
+                                    email: '',
+                                    source: 'TEXT'
+                                  });
+                                  setShowAddModal(true);
+                                }}
+                                className="button"
+                                style={{ fontSize: '0.65rem', padding: '2px 6px', height: 'auto', borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
+                              >
+                                + Add Applicant
+                              </button>
+                            )}
+                          </div>
                           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{selectedSmsThread.phone}</span>
                         </div>
 
@@ -1713,8 +1761,39 @@ export default function CrmDashboard() {
                         <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
                           <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>{selectedEmail.subject}</h4>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                            <p>From: <b>{selectedEmail.fromName}</b> &lt;{selectedEmail.from}&gt;</p>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <p>From: <b>{selectedEmail.fromName}</b> &lt;{selectedEmail.from}&gt;</p>
+                              {(() => {
+                                const matchingApp = applicants.find((a: any) => 
+                                  selectedEmail.from.includes(a.email) || 
+                                  selectedEmail.body.includes(a.phone) ||
+                                  selectedEmail.fromName.includes(a.name) ||
+                                  (selectedEmail.senderNumber && a.phone.replace(/\D/g,'').includes(selectedEmail.senderNumber.replace(/\D/g,'')))
+                                );
+                                if (matchingApp) {
+                                  return (
+                                    <button 
+                                      onClick={async () => {
+                                        const newName = prompt('Enter new name for this applicant:', matchingApp.name);
+                                        if (newName && newName !== matchingApp.name) {
+                                          const res = await fetch(`/api/applicants/${matchingApp.id}`, {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ name: newName })
+                                          });
+                                          if (res.ok) fetchData();
+                                        }
+                                      }}
+                                      style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, fontSize: '0.8rem' }}
+                                      title="Edit Applicant Name"
+                                    >
+                                      ✏️
+                                    </button>
+                                  );
+                                }
+                                return null;
+                              })()}
+                            </div>                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                               <button 
                                 onClick={() => handleBlacklistEmail(selectedEmail.from)}
                                 className="button" 
@@ -2166,7 +2245,7 @@ export default function CrmDashboard() {
 
         {/* MAP MAIN VIEW */}
         {mainView === 'map' && (
-          <div style={{ display: 'flex', flex: 1, height: '720px', background: 'var(--panel-bg-solid)', borderRadius: '12px', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', flex: 1, minHeight: 'calc(100vh - 200px)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
             <DriverMap activeDrivers={applicants.filter(a => a.status === 'ACTIVE')} />
           </div>
         )}

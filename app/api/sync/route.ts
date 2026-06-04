@@ -39,6 +39,8 @@ export async function POST(request: Request) {
       console.warn('Failed to load blacklisted emails for sync:', e);
     }
 
+    let allApplicants = await prisma.applicant.findMany();
+
     for (const msg of messages) {
       if (!msg.id) continue;
 
@@ -88,29 +90,25 @@ export async function POST(request: Request) {
       let existingApplicant = null;
       
       if (isGoogleVoice && phoneFilter) {
-        // Search by phone if it's a voice/sms
-        existingApplicant = await prisma.applicant.findFirst({
-          where: {
-            phone: { contains: phoneFilter }
-          }
-        });
+        // Search by phone if it's a voice/sms, stripping formatting to ensure match
+        existingApplicant = allApplicants.find(a => 
+          a.phone && a.phone.replace(/\D/g, '').includes(phoneFilter)
+        );
       } else if (!isGoogleVoice && fromEmail) {
         // Ignore automated google emails and spam marketing
         const spamFilters = ['google.com', 'noreply', 'temu', 'github', 'marketing', 'support@', 'creativefabrica', 'newsletter', 'updates'];
         if (spamFilters.some(f => fromEmail.toLowerCase().includes(f))) continue;
 
         // Search by email
-        existingApplicant = await prisma.applicant.findFirst({
-          where: {
-            email: fromEmail
-          }
-        });
+        existingApplicant = allApplicants.find(a => 
+          a.email && a.email.toLowerCase() === fromEmail.toLowerCase()
+        );
       }
 
       // If not found, create new applicant
       if (!existingApplicant) {
-        await prisma.$transaction(async (tx) => {
-          await tx.applicant.create({
+        const newApp = await prisma.$transaction(async (tx) => {
+          return await tx.applicant.create({
             data: {
               name: fromName || (senderNumber ? `Applicant ${senderNumber}` : 'Unknown Candidate'),
               phone: senderNumber || 'N/A',
@@ -135,6 +133,7 @@ export async function POST(request: Request) {
             }
           });
         });
+        allApplicants.push(newApp);
         syncedCount++;
       } else if (isGoogleVoice) {
         // Log the message as a note for the existing applicant
