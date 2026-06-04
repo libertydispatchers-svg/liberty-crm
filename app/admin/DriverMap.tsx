@@ -1,106 +1,25 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-const containerStyle = {
-  width: '100%',
-  height: '100%'
-};
+// Fix for default marker icons in Leaflet with Next.js/Webpack
+const DefaultIcon = L.icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 // Center roughly on Baltimore since that's where the app is based
-const defaultPosition = {
-  lat: 39.2904,
-  lng: -76.6122
-};
-
-// Custom dark theme for the Google Map
-const darkMapStyle = [
-  { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-  { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-  {
-    featureType: "administrative.locality",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#d59563" }]
-  },
-  {
-    featureType: "poi",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#d59563" }]
-  },
-  {
-    featureType: "poi.park",
-    elementType: "geometry",
-    stylers: [{ color: "#263c3f" }]
-  },
-  {
-    featureType: "poi.park",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#6b9a76" }]
-  },
-  {
-    featureType: "road",
-    elementType: "geometry",
-    stylers: [{ color: "#38414e" }]
-  },
-  {
-    featureType: "road",
-    elementType: "geometry.stroke",
-    stylers: [{ color: "#212a37" }]
-  },
-  {
-    featureType: "road",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#9ca5b3" }]
-  },
-  {
-    featureType: "road.highway",
-    elementType: "geometry",
-    stylers: [{ color: "#746855" }]
-  },
-  {
-    featureType: "road.highway",
-    elementType: "geometry.stroke",
-    stylers: [{ color: "#1f2835" }]
-  },
-  {
-    featureType: "road.highway",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#f3d19c" }]
-  },
-  {
-    featureType: "transit",
-    elementType: "geometry",
-    stylers: [{ color: "#2f3948" }]
-  },
-  {
-    featureType: "transit.station",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#d59563" }]
-  },
-  {
-    featureType: "water",
-    elementType: "geometry",
-    stylers: [{ color: "#17263c" }]
-  },
-  {
-    featureType: "water",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#515c6d" }]
-  },
-  {
-    featureType: "water",
-    elementType: "labels.text.stroke",
-    stylers: [{ color: "#17263c" }]
-  }
-];
+const defaultPosition: [number, number] = [39.2904, -76.6122];
 
 export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
-  });
-
   const [selectedDriver, setSelectedDriver] = useState<any | null>(null);
   const [areaFilter, setAreaFilter] = useState<string>('All');
   const [vehicleFilter, setVehicleFilter] = useState<string>('All');
@@ -141,7 +60,7 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
     }}>
       
       {/* Sidebar for driver list */}
-      <div style={{ width: '300px', background: 'var(--panel-bg)', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border-color)' }}>
+      <div style={{ width: '300px', background: 'var(--panel-bg)', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border-color)', zIndex: 1000 }}>
         <div style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--border-color)' }}>
           <h3 style={{ margin: 0, fontSize: '1rem', color: '#fff' }}>Active Drivers Coverage</h3>
           <p style={{ margin: '4px 0 12px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Overview of driver regions</p>
@@ -160,29 +79,29 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
               width: '100%'
             }}
           >
-            {isExpanded ? 'Exit Full Screen' : '⛶ Open Bigger Map'}
+            {isExpanded ? 'Collapse Map' : 'Expand Fullscreen'}
           </button>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <select 
-              value={areaFilter}
-              onChange={(e) => setAreaFilter(e.target.value)}
-              style={{ padding: '6px', fontSize: '0.8rem', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '4px' }}
+              value={areaFilter} 
+              onChange={e => setAreaFilter(e.target.value)}
+              style={{ padding: '6px', borderRadius: '4px', background: 'var(--bg-color)', color: '#fff', border: '1px solid var(--control-border)', fontSize: '0.8rem' }}
             >
-              {areas.map(a => <option key={a} value={a}>{a} Area</option>)}
+              {areas.map(a => <option key={a} value={a}>{a === 'All' ? 'All Areas' : a}</option>)}
             </select>
-            
             <select 
-              value={vehicleFilter}
-              onChange={(e) => setVehicleFilter(e.target.value)}
-              style={{ padding: '6px', fontSize: '0.8rem', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '4px' }}
+              value={vehicleFilter} 
+              onChange={e => setVehicleFilter(e.target.value)}
+              style={{ padding: '6px', borderRadius: '4px', background: 'var(--bg-color)', color: '#fff', border: '1px solid var(--control-border)', fontSize: '0.8rem' }}
             >
-              {vehicles.map(v => <option key={v} value={v}>{v} Vehicle</option>)}
+              {vehicles.map(v => <option key={v} value={v}>{v === 'All' ? 'All Vehicles' : v}</option>)}
             </select>
           </div>
         </div>
-        <div style={{ padding: '12px', overflowY: 'auto', flex: 1 }}>
-          {filteredDrivers.map((driver, idx) => {
+
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+          {filteredDrivers.map(driver => {
             const docs = driver.documents?.find((d: any) => d.name === 'Onboarding Material');
             const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
             const coverage = esignData.coverageArea || 'Not specified';
@@ -214,70 +133,48 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
 
       {/* The actual Map */}
       <div style={{ flex: 1, position: 'relative' }}>
-        {loadError ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#0f172a', padding: '20px', textAlign: 'center' }}>
-            <div style={{ color: '#ef4444', fontSize: '2rem', marginBottom: '10px' }}>⚠️</div>
-            <h3 style={{ color: 'white', marginBottom: '10px' }}>Google Maps Failed to Load</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: '400px' }}>
-              Please ensure your <code>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> is correctly set in your Vercel Environment Variables and that the key has the correct permissions.
-            </p>
-          </div>
-        ) : isLoaded ? (
-          <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={defaultPosition}
-            zoom={11}
-            options={{
-              styles: darkMapStyle,
-              disableDefaultUI: false,
-            }}
-          >
-            {filteredDrivers.map((driver, i) => {
-              // Scatter slightly based on index since we don't have real coordinates for "Downtown"
-              const lat = defaultPosition.lat + (Math.sin(i * 1.5) * 0.05);
-              const lng = defaultPosition.lng + (Math.cos(i * 1.5) * 0.05);
-              
-              const docs = driver.documents?.find((d: any) => d.name === 'Onboarding Material');
-              const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
-              const coverage = esignData.coverageArea || 'Not specified';
+        <MapContainer 
+          center={defaultPosition} 
+          zoom={11} 
+          scrollWheelZoom={true} 
+          style={{ height: '100%', width: '100%' }}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url='https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+          />
+          
+          {filteredDrivers.map((driver, i) => {
+            // Scatter slightly based on index since we don't have real coordinates for "Downtown"
+            const lat = defaultPosition[0] + (Math.sin(i * 1.5) * 0.05);
+            const lng = defaultPosition[1] + (Math.cos(i * 1.5) * 0.05);
+            
+            const docs = driver.documents?.find((d: any) => d.name === 'Onboarding Material');
+            const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
+            const coverage = esignData.coverageArea || 'Not specified';
 
-              return (
-                <Marker
-                  key={driver.id}
-                  position={{ lat, lng }}
-                  onClick={() => setSelectedDriver({ ...driver, lat, lng, coverage })}
-                />
-              );
-            })}
-
-            {selectedDriver && (
-              <InfoWindow
-                position={{ lat: selectedDriver.lat, lng: selectedDriver.lng }}
-                onCloseClick={() => setSelectedDriver(null)}
+            return (
+              <Marker 
+                key={driver.id} 
+                position={[lat, lng]}
+                eventHandlers={{
+                  click: () => {
+                    setSelectedDriver({ ...driver, lat, lng, coverage });
+                  },
+                }}
               >
-                <div style={{ color: '#000', padding: '4px' }}>
-                  <strong style={{ display: 'block', marginBottom: '4px' }}>{selectedDriver.name}</strong>
-                  <span style={{ fontSize: '0.85rem' }}>Area: {selectedDriver.coverage}</span>
-                </div>
-              </InfoWindow>
-            )}
-          </GoogleMap>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#0f172a' }}>
-            <div className="spin-anim" style={{ width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--accent-color)', borderRadius: '50%' }} />
-          </div>
-        )}
+                <Popup>
+                  <div style={{ color: '#000', padding: '4px' }}>
+                    <strong style={{ display: 'block', marginBottom: '4px', fontSize: '1.1em' }}>{driver.name}</strong>
+                    <span style={{ fontSize: '0.9rem', display: 'block' }}>Area: {coverage}</span>
+                    <span style={{ fontSize: '0.9rem', color: '#666' }}>Vehicle: {esignData.vehicleType || 'Unknown'}</span>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
+        </MapContainer>
       </div>
-
-      <style jsx global>{`
-        .spin-anim {
-          animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }

@@ -2147,10 +2147,10 @@ export default function CrmDashboard() {
         {mainView === 'sheets' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '720px', padding: '24px', background: 'var(--panel-bg-solid)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
             
-            {/* Sheets metadata banner */}
+            {/* Data Export metadata banner */}
             <div style={{ 
-              background: sheetsData.connected ? 'rgba(16,185,129,0.05)' : 'rgba(234,179,8,0.05)', 
-              border: sheetsData.connected ? '1px solid rgba(16,185,129,0.15)' : '1px solid rgba(234,179,8,0.15)', 
+              background: 'rgba(16,185,129,0.05)', 
+              border: '1px solid rgba(16,185,129,0.15)', 
               padding: '16px 24px', 
               borderRadius: '8px', 
               display: 'flex', 
@@ -2158,49 +2158,32 @@ export default function CrmDashboard() {
               alignItems: 'center'
             }}>
               <div>
-                <h4 style={{ fontSize: '1.2rem', fontWeight: 700, color: sheetsData.connected ? 'var(--status-active)' : 'var(--status-contacted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Database size={20} /> Sheets Synchronization Panel
+                <h4 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--status-active)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Database size={20} /> Driver Data Roster
                 </h4>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                  Spreadsheet: <b>{sheetsData.spreadsheetName}</b> ({sheetsData.sheetName})
+                  Currently viewing <b>{applicants.length}</b> total applicants
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button 
-                  onClick={async () => {
-                    const res = await fetch('/api/sheets/create', { method: 'POST' });
-                    const data = await res.json();
-                    if (res.ok) { 
-                      alert(`Sheet created successfully!\n\nLink: ${data.spreadsheetUrl}\n\nPlease add this GOOGLE_SHEET_ID to your Vercel Environment Variables:\n${data.spreadsheetId}`); 
-                      fetchData(); 
-                    } else { 
-                      alert(`Failed to create sheet: ${data.error}`); 
-                    }
+                  onClick={() => {
+                    import('./exportCsv').then(m => m.downloadCSV(applicants, 'liberty_dispatchers_roster.csv'));
                   }}
-                  className="button secondary" 
-                  style={{ 
-                    height: '36px', 
-                    padding: '0 16px', 
-                    fontSize: '0.85rem' 
-                  }}
-                >
-                  <Plus size={14} style={{ marginRight: '6px' }} />
-                  Create New Sheet
-                </button>
-                <button 
-                  onClick={handleSheetsSync}
-                  disabled={syncingSheets}
                   className="button highlight" 
                   style={{ 
-                    background: sheetsData.connected ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)', 
-                    boxShadow: sheetsData.connected ? '0 4px 10px rgba(16,185,129,0.2)' : '0 4px 10px rgba(234,179,8,0.2)',
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
+                    boxShadow: '0 4px 10px rgba(16,185,129,0.2)',
                     height: '36px', 
                     padding: '0 16px', 
-                    fontSize: '0.85rem' 
+                    fontSize: '0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
                   }}
                 >
-                  <RefreshCw size={14} className={syncingSheets ? 'spin-anim' : ''} style={{ marginRight: '6px' }} />
-                  Sync Database to Sheet
+                  <Database size={14} />
+                  Export to Branded CSV
                 </button>
               </div>
             </div>
@@ -2219,7 +2202,7 @@ export default function CrmDashboard() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem', color: '#111827' }}>
                   <thead style={{ background: '#f3f4f6', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                     <tr>
-                      {sheetsData.headers?.map((header: string, idx: number) => (
+                      {['#', 'ID', 'Name', 'Phone', 'Email', 'Status', 'Source', 'Availability', 'Applied Date'].map((header: string, idx: number) => (
                         <th key={idx} style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', borderRight: '1px solid #e5e7eb', fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>
                           {header}
                         </th>
@@ -2227,9 +2210,9 @@ export default function CrmDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {sheetsData.rows?.map((row: any, i: number) => (
-                      <tr key={i} style={{ borderBottom: '1px solid #e5e7eb', background: i % 2 === 0 ? '#ffffff' : '#f9fafb' }}>
-                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#6b7280', fontWeight: 500 }}>{row.rowNumber}</td>
+                    {applicants.map((row: any, i: number) => (
+                      <tr key={row.id} style={{ borderBottom: '1px solid #e5e7eb', background: i % 2 === 0 ? '#ffffff' : '#f9fafb' }}>
+                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#6b7280', fontWeight: 500 }}>{i + 1}</td>
                         <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', fontFamily: 'monospace', fontSize: '0.8rem' }}>{row.id}</td>
                         <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', fontWeight: 500 }}>{row.name}</td>
                         <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb' }}>{row.phone}</td>
