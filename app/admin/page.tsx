@@ -659,6 +659,10 @@ export default function CrmDashboard() {
     );
   }
 
+  if (!authorized) {
+    return null;
+  }
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Header Banner */}
@@ -1747,7 +1751,31 @@ export default function CrmDashboard() {
                           <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
                             Respond via Workspace Email:
                           </p>
-                          
+                          {selectedEmail.senderNumber && (
+                            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                              <button 
+                                onClick={() => {
+                                  setDialedNumber(selectedEmail.senderNumber);
+                                  handleDialCall(selectedEmail.senderNumber);
+                                  setActiveTab('voice');
+                                }}
+                                className="button" 
+                                style={{ fontSize: '0.75rem', height: '30px', padding: '0 10px', flex: 1, borderColor: 'var(--status-active)', color: 'var(--status-active)' }}
+                              >
+                                Call {selectedEmail.senderNumber}
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setActiveTab('voice');
+                                }}
+                                className="button" 
+                                style={{ fontSize: '0.75rem', height: '30px', padding: '0 10px', flex: 1, borderColor: 'var(--status-active)', color: 'var(--status-active)' }}
+                              >
+                                Text (SMS)
+                              </button>
+                            </div>
+                          )}
+
                           {/* Match Gmail sender to DB applicant to enable custom links */}
                           {(() => {
                             const matchingApplicant = applicants.find(a => 
@@ -2202,7 +2230,7 @@ export default function CrmDashboard() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem', color: '#111827' }}>
                   <thead style={{ background: '#f3f4f6', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                     <tr>
-                      {['#', 'ID', 'Name', 'Phone', 'Email', 'Status', 'Source', 'Availability', 'Applied Date'].map((header: string, idx: number) => (
+                      {['#', 'ID', 'Name', 'Phone', 'Email', 'Status', 'Availability', 'Vehicle', 'Coverage Area', 'Applied Date'].map((header: string, idx: number) => (
                         <th key={idx} style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', borderRight: '1px solid #e5e7eb', fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>
                           {header}
                         </th>
@@ -2226,8 +2254,27 @@ export default function CrmDashboard() {
                             {row.status}
                           </span>
                         </td>
-                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb' }}>{row.source}</td>
-                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563' }}>{row.availability}</td>
+                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563', fontSize: '0.75rem' }}>
+                          {(() => {
+                            const docs = row.documents?.find((d: any) => d.name === 'Onboarding Material');
+                            const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
+                            return (esignData.availabilityDays || []).join(', ') || row.availability || '-';
+                          })()}
+                        </td>
+                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563', fontSize: '0.75rem' }}>
+                          {(() => {
+                            const docs = row.documents?.find((d: any) => d.name === 'Onboarding Material');
+                            const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
+                            return esignData.vehicleType || 'Unknown';
+                          })()}
+                        </td>
+                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563', fontSize: '0.75rem' }}>
+                          {(() => {
+                            const docs = row.documents?.find((d: any) => d.name === 'Onboarding Material');
+                            const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
+                            return esignData.coverageArea || 'Not specified';
+                          })()}
+                        </td>
                         <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563' }}>{row.appliedDate}</td>
                       </tr>
                     ))}

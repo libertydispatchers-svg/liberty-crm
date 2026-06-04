@@ -16,6 +16,8 @@ export function downloadCSV(data: any[], filename = 'applicants_export.csv') {
   const rows = data.map(row => {
     let coverageArea = 'Not specified';
     let vehicleType = 'Unknown';
+    let daysString = row.availability || '';
+    
     if (row.documents) {
       const docs = row.documents.find((d: any) => d.name === 'Onboarding Material');
       if (docs?.esignData) {
@@ -23,6 +25,9 @@ export function downloadCSV(data: any[], filename = 'applicants_export.csv') {
           const parsed = JSON.parse(docs.esignData);
           coverageArea = parsed.coverageArea || 'Not specified';
           vehicleType = parsed.vehicleType || 'Unknown';
+          if (parsed.availabilityDays && Array.isArray(parsed.availabilityDays)) {
+            daysString = parsed.availabilityDays.map((d: string) => d.charAt(0).toUpperCase() + d.slice(1)).join(', ');
+          }
         } catch (e) {}
       }
     }
@@ -34,7 +39,7 @@ export function downloadCSV(data: any[], filename = 'applicants_export.csv') {
       escapeCsv(row.email),
       escapeCsv(row.status),
       escapeCsv(row.source),
-      escapeCsv(row.availability),
+      escapeCsv(daysString),
       escapeCsv(row.appliedDate),
       escapeCsv(coverageArea),
       escapeCsv(vehicleType)

@@ -38,8 +38,8 @@ export async function GET(request: Request) {
     // Search Gmail for SMS emails and voicemails
     const searchRes = await gmail.users.messages.list({
       userId: 'me',
-      q: 'from:txt.voice.google.com OR from:voice-noreply@google.com',
-      maxResults: 30
+      q: 'label:INBOX',
+      maxResults: 50
     });
 
     const messages = searchRes.data.messages || [];
@@ -84,8 +84,11 @@ export async function GET(request: Request) {
           applicantPhoneRaw = phone.replace(/\D/g, '');
         }
         messageType = subjectHeader.toLowerCase().includes('voicemail') ? 'Voicemail' : 'Missed Call';
+      } else {
+        continue;
+      }
 
-        // Find matching applicant in DB for log
+      // Find matching applicant in DB for log
         const matchedApp = dbApplicants.find(a => a.phone.replace(/\D/g, '').endsWith(applicantPhoneRaw));
         const matchedAppName = matchedApp ? matchedApp.name : `Lead (${phone})`;
 
@@ -114,6 +117,10 @@ export async function GET(request: Request) {
           voicemailText: messageType === 'Voicemail' ? body : null,
           attachmentId
         });
+      }
+      
+      if (fromEmail === 'voice-noreply@google.com') {
+        continue;
       }
 
       // Find matching applicant in DB for SMS thread
