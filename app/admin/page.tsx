@@ -1699,12 +1699,23 @@ export default function CrmDashboard() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', minHeight: '500px' }}>
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '10px 14px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                      <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>Gmail API Workspace Viewer</p>
+                      <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>Google Workspace Viewer (Unified Inbox)</p>
                       <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{gmailData.emailAddress || 'recruit@libertydispatchers.com'}</p>
                     </div>
-                    <span className={`status-tag ${gmailData.connected ? 'active' : 'contacted'}`} style={{ scale: '0.85' }}>
-                      {gmailData.connected ? 'Google Live' : 'Disconnected'}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <button
+                        onClick={() => {
+                          window.open('https://voice.google.com', 'googleVoicePopup', 'width=450,height=650,menubar=no,toolbar=no,location=no,status=no');
+                        }}
+                        className="button highlight"
+                        style={{ fontSize: '0.75rem', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <Phone size={12} /> Launch Voice Side-Plugin
+                      </button>
+                      <span className={`status-tag ${gmailData.connected ? 'active' : 'contacted'}`} style={{ scale: '0.85' }}>
+                        {gmailData.connected ? 'Google Live' : 'Disconnected'}
+                      </span>
+                    </div>
                   </div>
                   {!gmailData.connected && gmailData.error && (
                     <div style={{ padding: '12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.8rem', marginTop: '10px' }}>
@@ -1857,7 +1868,7 @@ export default function CrmDashboard() {
 
                           {/* Match Gmail sender to DB applicant to enable custom links */}
                           {(() => {
-                            const matchingApplicant = applicants.find(a => 
+                            const matchingApplicant = applicants.find((a: any) => 
                               selectedEmail.from.includes(a.email) || 
                               selectedEmail.body.includes(a.phone) ||
                               selectedEmail.fromName.includes(a.name) ||
@@ -1865,30 +1876,74 @@ export default function CrmDashboard() {
                             );
 
                             if (matchingApplicant) {
+                              const docs = matchingApplicant.documents?.find((d: any) => d.name === 'Onboarding Material');
+                              const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
+                              
                               return (
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                  <button 
-                                    onClick={() => handleSendGmailTemplate(matchingApplicant, 'ONBOARDING')}
-                                    className="button highlight" 
-                                    style={{ fontSize: '0.75rem', height: '30px', padding: '0 10px', flex: 1 }}
-                                  >
-                                    Send Onboarding Material & E-Sign Link
-                                  </button>
-                                  
-                                  <button 
-                                    onClick={() => handleSendGmailTemplate(matchingApplicant, 'REJECT')}
-                                    className="button" 
-                                    style={{ fontSize: '0.75rem', height: '30px', padding: '0 10px', flex: 1, borderColor: 'rgba(239,68,68,0.2)' }}
-                                  >
-                                    Send Rejection (No Vehicle)
-                                  </button>
+                                <div style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.2)', padding: '16px', borderRadius: '8px', marginTop: '8px' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                    <div>
+                                      <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                                        👤 Lead Manager: {matchingApplicant.name}
+                                      </h4>
+                                      <span style={{ fontSize: '0.7rem', padding: '2px 8px', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '12px', color: 'var(--text-secondary)' }}>
+                                        Status: {matchingApplicant.status}
+                                      </span>
+                                    </div>
+                                    <button 
+                                      onClick={() => {
+                                        setSelectedApplicant(matchingApplicant);
+                                        setEditProfileForm({
+                                          status: matchingApplicant.status,
+                                          vehicle: esignData.vehicleType || '',
+                                          area: esignData.coverageArea || ''
+                                        });
+                                        setMainView('crm'); // Switch to main CRM view to edit profile
+                                        setStatusFilter('');
+                                        setTimeout(() => setIsEditingProfile(true), 100);
+                                      }}
+                                      className="button"
+                                      style={{ fontSize: '0.7rem', height: '26px', padding: '0 8px' }}
+                                    >
+                                      Full Profile
+                                    </button>
+                                  </div>
+
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px', fontSize: '0.8rem' }}>
+                                    <div style={{ background: 'var(--panel-bg)', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                                      <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>Vehicle</span>
+                                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{esignData.vehicleType || 'Not specified'}</div>
+                                    </div>
+                                    <div style={{ background: 'var(--panel-bg)', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                                      <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>Coverage Area</span>
+                                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{esignData.coverageArea || 'Not specified'}</div>
+                                    </div>
+                                  </div>
+
+                                  <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button 
+                                      onClick={() => handleSendGmailTemplate(matchingApplicant, 'ONBOARDING')}
+                                      className="button highlight" 
+                                      style={{ fontSize: '0.75rem', height: '36px', padding: '0 10px', flex: 1 }}
+                                    >
+                                      Send Onboarding & E-Sign
+                                    </button>
+                                    
+                                    <button 
+                                      onClick={() => handleSendGmailTemplate(matchingApplicant, 'REJECT')}
+                                      className="button" 
+                                      style={{ fontSize: '0.75rem', height: '36px', padding: '0 10px', flex: 1, borderColor: 'rgba(239,68,68,0.2)', color: 'rgba(239,68,68,0.8)' }}
+                                    >
+                                      Reject (No Vehicle)
+                                    </button>
+                                  </div>
                                 </div>
                               );
                             } else {
                               return (
-                                <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                                    Sender not recognized in Applicant Pool. Add them first.
+                                <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed var(--border-color)', padding: '16px', borderRadius: '8px', marginTop: '8px', textAlign: 'center' }}>
+                                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                                    Sender not recognized in Applicant Pool.
                                   </p>
                                   <button 
                                     onClick={() => {
@@ -1901,10 +1956,10 @@ export default function CrmDashboard() {
                                       });
                                       setShowAddModal(true);
                                     }}
-                                    className="button" 
-                                    style={{ height: '26px', fontSize: '0.7rem', padding: '0 8px' }}
+                                    className="button highlight" 
+                                    style={{ fontSize: '0.8rem', height: '36px', padding: '0 24px', margin: '0 auto', display: 'inline-flex' }}
                                   >
-                                    Add Applicant
+                                    + Add as New Lead
                                   </button>
                                 </div>
                               );

@@ -120,7 +120,12 @@ export async function GET(request: Request) {
       });
     }
 
-    const spamFilters = ['temu', 'github', 'marketing', 'support@', 'creativefabrica', 'newsletter', 'updates'];
+    const spamFilters = [
+      'temu', 'github', 'marketing', 'support@', 'creativefabrica', 'newsletter', 'updates',
+      'facebook.com', 'instagram.com', 'linkedin.com', 'twitter.com', 'x.com', 'tiktok.com',
+      'billing', 'invoice', 'receipt', 'subscription', 'no-reply', 'noreply', 'do-not-reply',
+      'amazon.com', 'promotions', 'offers', 'discount', 'alert', 'notifications@', 'hello@', 'info@'
+    ];
     let filteredEmails = [...emails].filter(e => {
       if (e.isGoogleVoice) return true;
       return !spamFilters.some(f => e.from.toLowerCase().includes(f));

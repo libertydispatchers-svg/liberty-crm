@@ -96,7 +96,12 @@ export async function POST(request: Request) {
         );
       } else if (!isGoogleVoice && fromEmail) {
         // Ignore automated google emails and spam marketing
-        const spamFilters = ['google.com', 'noreply', 'temu', 'github', 'marketing', 'support@', 'creativefabrica', 'newsletter', 'updates'];
+        const spamFilters = [
+          'google.com', 'temu', 'github', 'marketing', 'support@', 'creativefabrica', 'newsletter', 'updates',
+          'facebook.com', 'instagram.com', 'linkedin.com', 'twitter.com', 'x.com', 'tiktok.com',
+          'billing', 'invoice', 'receipt', 'subscription', 'no-reply', 'noreply', 'do-not-reply',
+          'amazon.com', 'promotions', 'offers', 'discount', 'alert', 'notifications@', 'hello@', 'info@'
+        ];
         if (spamFilters.some(f => fromEmail.toLowerCase().includes(f))) continue;
 
         // Search by email
