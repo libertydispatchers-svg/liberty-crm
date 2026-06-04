@@ -84,11 +84,8 @@ export async function GET(request: Request) {
           applicantPhoneRaw = phone.replace(/\D/g, '');
         }
         messageType = subjectHeader.toLowerCase().includes('voicemail') ? 'Voicemail' : 'Missed Call';
-      } else {
-        continue;
-      }
 
-      // Find matching applicant in DB for log
+        // Find matching applicant in DB for log
         const matchedApp = dbApplicants.find(a => a.phone.replace(/\D/g, '').endsWith(applicantPhoneRaw));
         const matchedAppName = matchedApp ? matchedApp.name : `Lead (${phone})`;
 
@@ -117,10 +114,9 @@ export async function GET(request: Request) {
           voicemailText: messageType === 'Voicemail' ? body : null,
           attachmentId
         });
-      }
-      
-      if (fromEmail === 'voice-noreply@google.com') {
-        continue;
+        continue; // Voicemails/Missed Calls don't go into SMS threads
+      } else {
+        continue; // Ignore any other emails
       }
 
       // Find matching applicant in DB for SMS thread
