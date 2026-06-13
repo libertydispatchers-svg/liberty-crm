@@ -798,7 +798,7 @@ export default function CrmDashboard() {
         <div className="crm-grid">
           
           {/* COLUMN 1: Applicants List */}
-          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', maxHeight: '720px' }}>
+          <div className="glass-panel crm-column">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Applicants Feed</h2>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -927,7 +927,7 @@ export default function CrmDashboard() {
           </div>
 
           {/* COLUMN 2: Applicant Detail View */}
-          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', maxHeight: '720px', overflowY: 'auto' }}>
+          <div className="glass-panel crm-column" style={{ overflowY: 'auto' }}>
             {selectedApplicant ? (
               <>
                 {/* Header detail */}
@@ -1323,8 +1323,8 @@ export default function CrmDashboard() {
             )}
           </div>
 
-          {/* COLUMN 3: Right workspace integrations */}
-          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', maxHeight: '720px' }}>
+          {/* COLUMN 3: Communications & Workspace */}
+          <div className="glass-panel crm-column">
             
             {/* Horizontal Tabs */}
             <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', gap: '4px' }}>
@@ -1600,96 +1600,37 @@ export default function CrmDashboard() {
                       )}
                     </div>
 
-                    {/* Active SMS Chat panel */}
-                    {selectedSmsThread ? (
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <h4 style={{ fontSize: '0.85rem', fontWeight: 600 }}>Chat with {selectedSmsThread.applicantName}</h4>
-                            {selectedSmsThread.applicantId ? (
-                              <button 
-                                onClick={async () => {
-                                  const newName = prompt('Enter new name for this applicant:', selectedSmsThread.applicantName);
-                                  if (newName && newName !== selectedSmsThread.applicantName) {
-                                    const res = await fetch(`/api/applicants/${selectedSmsThread.applicantId}`, {
-                                      method: 'PUT',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ name: newName })
-                                    });
-                                    if (res.ok) fetchData();
-                                  }
-                                }}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, fontSize: '0.8rem' }}
-                                title="Edit Name"
-                              >
-                                ✏️
-                              </button>
-                            ) : (
-                              <button 
-                                onClick={() => {
-                                  setNewApplicantForm({
-                                    name: 'New Lead',
-                                    phone: selectedSmsThread.phone,
-                                    email: '',
-                                    source: 'TEXT'
-                                  });
-                                  setShowAddModal(true);
-                                }}
-                                className="button"
-                                style={{ fontSize: '0.65rem', padding: '2px 6px', height: 'auto', borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
-                              >
-                                + Add Applicant
-                              </button>
-                            )}
-                          </div>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{selectedSmsThread.phone}</span>
+                    {/* Google Voice Iframe */}
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--panel-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                        <div>
+                          <h4 style={{ fontSize: '0.85rem', fontWeight: 600 }}>Google Voice Integration</h4>
+                          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Use the window below to dial and text applicants directly.</p>
                         </div>
+                        <button 
+                          onClick={() => {
+                            window.open('https://voice.google.com/u/0/messages' + (dialedNumber ? '?dest=' + dialedNumber : ''), 'googleVoicePopup', 'width=450,height=650,menubar=no,toolbar=no,location=no,status=no');
+                          }}
+                          className="button highlight"
+                          style={{ fontSize: '0.75rem', height: '30px', padding: '0 10px' }}
+                        >
+                          <ExternalLink size={14} style={{ marginRight: '6px' }} /> Pop Out
+                        </button>
+                      </div>
 
-                        {/* Chat bubbles */}
-                        <div className="chat-container" style={{ overflowY: 'auto', flex: 1, border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px' }}>
-                          {selectedSmsThread.messages?.map((m: any, idx: number) => (
-                            <div key={idx} className={`chat-bubble ${m.sender}`}>
-                              <p>{m.text}</p>
-                              <span style={{ 
-                                fontSize: '0.55rem', 
-                                display: 'block', 
-                                marginTop: '4px', 
-                                textAlign: m.sender === 'crm' ? 'right' : 'left',
-                                opacity: 0.6
-                              }}>
-                                {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                          ))}
-                          <div ref={chatEndRef} />
+                      <div style={{ flex: 1, border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', background: '#fff', position: 'relative' }}>
+                        <iframe 
+                          src={`https://voice.google.com/u/0/messages${dialedNumber ? '?dest=' + dialedNumber : ''}`}
+                          style={{ width: '100%', height: '100%', border: 'none' }}
+                          title="Google Voice"
+                        />
+                        <div style={{ position: 'absolute', bottom: '10px', left: '0', right: '0', textAlign: 'center', pointerEvents: 'none' }}>
+                          <p style={{ display: 'inline-block', background: 'rgba(0,0,0,0.7)', color: 'white', padding: '4px 12px', borderRadius: '12px', fontSize: '0.7rem', opacity: 0.5 }}>
+                            If Voice refuses to connect, use the Pop Out button above.
+                          </p>
                         </div>
-
-                        {/* Send SMS Box */}
-                        <form onSubmit={handleSendSms} style={{ display: 'flex', gap: '8px' }}>
-                          <input 
-                            type="text" 
-                            className="input-field" 
-                            placeholder="Type a text message..." 
-                            value={smsInputText}
-                            onChange={(e) => setSmsInputText(e.target.value)}
-                            style={{ height: '36px', fontSize: '0.8rem' }}
-                          />
-                          <button 
-                            type="submit" 
-                            disabled={sendingSms || !smsInputText.trim()}
-                            className="button highlight" 
-                            style={{ width: '40px', height: '36px', padding: 0 }}
-                          >
-                            <Send size={14} />
-                          </button>
-                        </form>
                       </div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, color: 'var(--text-muted)' }}>
-                        <MessageSquare size={32} style={{ opacity: 0.2, marginBottom: '8px' }} />
-                        <p style={{ fontSize: '0.8rem' }}>Select a text thread from the left column</p>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -1920,7 +1861,7 @@ export default function CrmDashboard() {
                                     </div>
                                   </div>
 
-                                  <div style={{ display: 'flex', gap: '8px' }}>
+                                  <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                                     <button 
                                       onClick={() => handleSendGmailTemplate(matchingApplicant, 'ONBOARDING')}
                                       className="button highlight" 
@@ -1937,6 +1878,52 @@ export default function CrmDashboard() {
                                       Reject (No Vehicle)
                                     </button>
                                   </div>
+
+                                  {matchingApplicant.phone && matchingApplicant.phone !== 'N/A' && (
+                                    <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '12px', marginTop: '4px' }}>
+                                      <button 
+                                        onClick={() => {
+                                          setDialedNumber(matchingApplicant.phone);
+                                          handleDialCall(matchingApplicant.phone);
+                                          setActiveTab('voice');
+                                        }}
+                                        className="button" 
+                                        style={{ fontSize: '0.7rem', height: '30px', padding: '0 8px', flex: 1, borderColor: 'var(--status-active)', color: 'var(--status-active)' }}
+                                      >
+                                        <Phone size={12} /> Call
+                                      </button>
+                                      <button 
+                                        onClick={() => {
+                                          setDialedNumber(matchingApplicant.phone);
+                                          setActiveTab('voice');
+                                        }}
+                                        className="button" 
+                                        style={{ fontSize: '0.7rem', height: '30px', padding: '0 8px', flex: 1, borderColor: 'var(--status-active)', color: 'var(--status-active)' }}
+                                      >
+                                        <MessageSquare size={12} /> Text
+                                      </button>
+                                      <button 
+                                        onClick={() => {
+                                          if (confirm('Send automated SMS requesting name and email?')) {
+                                            // Handle sending automated SMS via api/voice
+                                            fetch('/api/voice', {
+                                              method: 'POST',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({
+                                                to: matchingApplicant.phone,
+                                                message: "Hi! Thanks for reaching out to Liberty Dispatchers. Could you please reply with your full name and email address so we can send you the onboarding questionnaire?"
+                                              })
+                                            });
+                                            alert("SMS request sent!");
+                                          }
+                                        }}
+                                        className="button" 
+                                        style={{ fontSize: '0.7rem', height: '30px', padding: '0 8px', flex: 2, background: 'rgba(234,179,8,0.1)', borderColor: 'rgba(234,179,8,0.3)', color: 'var(--status-contacted)' }}
+                                      >
+                                        <CheckCircle2 size={12} /> Request Name/Email
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
                               );
                             } else {

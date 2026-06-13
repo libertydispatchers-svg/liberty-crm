@@ -107,13 +107,26 @@ a {
   grid-template-columns: 320px 420px 1fr;
   gap: 20px;
   flex: 1;
-  min-height: 600px;
 }
 @media (max-width: 1200px) {
   .crm-grid { grid-template-columns: 300px 1fr; }
 }
 @media (max-width: 900px) {
   .crm-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; }
+}
+
+.crm-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 720px;
+}
+
+@media (max-width: 900px) {
+  .crm-column {
+    max-height: none;
+    height: auto;
+  }
 }
 
 .tab-layout {
