@@ -465,6 +465,8 @@ export default function CrmDashboard() {
     setSendingSms(false);
   };
 
+  const [pullingSheets, setPullingSheets] = useState(false);
+
   // Trigger Google Sheets sync
   const handleSheetsSync = async () => {
     setSyncingSheets(true);
@@ -480,6 +482,24 @@ export default function CrmDashboard() {
       console.error(e);
     }
     setSyncingSheets(false);
+  };
+
+  // Pull data from Google Sheets master CRM
+  const handleSheetsPull = async () => {
+    setPullingSheets(true);
+    try {
+      const res = await fetch('/api/sheets/pull', { method: 'POST' });
+      if (res.ok) {
+        fetchData(); // reload all applicants to reflect changes
+        alert('Successfully synchronized with Google Sheets master CRM.');
+      } else {
+        alert('Failed to pull from Google Sheets.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error pulling from Google Sheets.');
+    }
+    setPullingSheets(false);
   };
 
   // Inline editing for Google Sheets rows in tab
@@ -2401,6 +2421,27 @@ export default function CrmDashboard() {
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button 
+                  onClick={handleSheetsPull}
+                  disabled={pullingSheets}
+                  className="button" 
+                  style={{ 
+                    background: pullingSheets ? 'var(--bg-color)' : 'var(--accent-color)', 
+                    color: '#fff',
+                    border: '1px solid var(--control-border)',
+                    height: '36px', 
+                    padding: '0 16px', 
+                    fontSize: '0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    borderRadius: '8px',
+                    cursor: pullingSheets ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  <RefreshCw size={14} className={pullingSheets ? "spin" : ""} />
+                  {pullingSheets ? 'Pulling...' : 'Pull from Sheets'}
+                </button>
+                <button 
                   onClick={() => {
                     import('./exportCsv').then(m => m.downloadCSV(applicants, 'liberty_dispatchers_roster.csv'));
                   }}
@@ -2413,7 +2454,11 @@ export default function CrmDashboard() {
                     fontSize: '0.85rem',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px'
+                    gap: '6px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    color: '#fff',
+                    cursor: 'pointer'
                   }}
                 >
                   <Database size={14} />

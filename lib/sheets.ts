@@ -74,3 +74,68 @@ export async function syncToSheets() {
     return false;
   }
 }
+
+export async function pullFromSheets() {
+  try {
+    const hasCreds = 
+      process.env.GOOGLE_CLIENT_ID && 
+      process.env.GOOGLE_CLIENT_SECRET && 
+      process.env.GOOGLE_REFRESH_TOKEN &&
+      process.env.GOOGLE_SHEET_ID;
+
+    if (!hasCreds) {
+      throw new Error('Missing Google credentials');
+    }
+
+    const sheets = getSheetsClient();
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID!;
+    
+    const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId });
+    const targetSheet = sheetMeta.data.sheets?.[0]?.properties?.title || 'Sheet1';
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `${targetSheet}!A2:I500`, // Skip header row
+    });
+
+    const rows = response.data.values;
+    if (!rows || rows.length === 0) {
+      console.log('No data found in Google Sheets to pull.');
+      return true;
+    }
+
+    // Headers: 'Row #', 'Applicant ID', 'Full Name', 'Phone', 'Email', 'Status', 'Source', 'Availability Hours', 'Applied Date'
+    for (const row of rows) {
+      const id = row[1];
+      const name = row[2];
+      const phone = row[3];
+      const email = row[4];
+      const status = row[5];
+      const source = row[6];
+
+      if (!id || id.trim() === '') continue;
+
+      // Ensure the record exists before trying to update
+      const existing = await prisma.applicant.findUnique({ where: { id } });
+      if (existing) {
+        // Only update basic fields that a manager might edit in a spreadsheet
+        await prisma.applicant.update({
+          where: { id },
+          data: {
+            name: name || existing.name,
+            phone: phone || existing.phone,
+            email: email || existing.email,
+            status: status || existing.status,
+            source: source || existing.source,
+          }
+        });
+      }
+    }
+
+    console.log('Successfully pulled database from Google Sheets.');
+    return true;
+  } catch (error) {
+    console.error('Failed to pull from Google Sheets:', error);
+    return false;
+  }
+}
