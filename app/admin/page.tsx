@@ -73,7 +73,6 @@ export default function CrmDashboard() {
   const [noteInput, setNoteInput] = useState('');
 
   // Sheets inline editing state
-  const [editingCell, setEditingCell] = useState<{ rowIdx: number, field: 'name' | 'phone' | 'email', value: string } | null>(null);
 
   // New Applicant Modal state
   const [showAddModal, setShowAddModal] = useState(false);
@@ -119,6 +118,7 @@ export default function CrmDashboard() {
   const [mainView, setMainView] = useState('crm'); // 'crm' | 'map' | 'sheets'
   const [customEmailBody, setCustomEmailBody] = useState('');
   const [sendingCustomEmail, setSendingCustomEmail] = useState(false);
+  const [editingCell, setEditingCell] = useState<{ id: string, field: string, value: string } | null>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -465,6 +465,28 @@ export default function CrmDashboard() {
       alert(`Failed to send SMS due to a network error: ${e.message}`);
     }
     setSendingSms(false);
+  };
+
+  // Handle Inline Cell Editing
+  const handleCellSave = async (id: string, field: string) => {
+    if (!editingCell || editingCell.id !== id || editingCell.field !== field) return;
+    
+    // Optimistically update the local state to match
+    setApplicants(prev => prev.map(app => 
+      app.id === id ? { ...app, [field]: editingCell.value } : app
+    ));
+    setEditingCell(null);
+
+    try {
+      await fetch(`/api/applicants/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: editingCell.value })
+      });
+      fetchData(); // Refresh to ensure backend sync
+    } catch (e) {
+      console.error('Failed to update inline cell', e);
+    }
   };
 
   const [pullingSheets, setPullingSheets] = useState(false);
@@ -1745,6 +1767,16 @@ export default function CrmDashboard() {
                       <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{gmailData.emailAddress || 'recruit@libertydispatchers.com'}</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <button 
+                        onClick={() => {
+                          setLoading(true);
+                          fetch('/api/gmail').then(r => r.json()).then(data => { setGmailData(data); setLoading(false); });
+                        }}
+                        className="button highlight"
+                        style={{ fontSize: '0.7rem', padding: '4px 10px', height: '26px' }}
+                      >
+                        Refresh Inbox
+                      </button>
                       <span className={`status-tag ${gmailData.connected ? 'active' : 'contacted'}`} style={{ scale: '0.85' }}>
                         {gmailData.connected ? 'Google Live' : 'Disconnected'}
                       </span>
@@ -1864,7 +1896,6 @@ export default function CrmDashboard() {
                           lineHeight: '1.5',
                           overflowY: 'auto', 
                           whiteSpace: 'pre-line',
-                          maxHeight: '240px',
                           color: 'var(--text-primary)',
                           wordBreak: 'break-word',
                           overflowWrap: 'anywhere'
@@ -2260,174 +2291,57 @@ export default function CrmDashboard() {
               )}
 
               {activeTab === 'whatsapp' && (
-                <div className="tab-layout" style={{ height: '520px' }}>
-                  {!whatsappData.connected ? (
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.15)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '32px', textAlign: 'center' }}>
-                      <MessageSquare size={48} style={{ color: '#25D366', marginBottom: '16px' }} />
-                      <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Connect WhatsApp Business</h3>
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '400px', marginBottom: '24px', lineHeight: 1.5 }}>
-                        To sync WhatsApp messages directly into the Liberty CRM, link your WhatsApp Business API or scan the QR code to bridge your mobile device.
-                      </p>
-                      <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
-                        <button className="button highlight" style={{ background: '#25D366', borderColor: '#25D366', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', fontSize: '0.8rem' }} onClick={() => alert('WhatsApp QR Scan integration pending backend setup.')}>
-                          <MessageSquare size={16} /> Show QR Code
-                        </button>
-                        <button className="button" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', fontSize: '0.8rem' }} onClick={() => alert('API Key setup pending backend.')}>
-                          <Settings size={16} /> Enter API Key
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      {/* WHATSAPP LIST */}
-                      <div className="tab-sidebar" style={{ width: '280px', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h3 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <MessageSquare size={14} style={{ color: '#25D366' }} /> WhatsApp Chats
-                      </h3>
-                      <div className={`status-indicator ${whatsappData.connected ? 'active' : 'offline'}`} />
-                    </div>
-                    
-                    <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
-                      {whatsappData.chats && whatsappData.chats.length > 0 ? (
-                        whatsappData.chats.map((chat: any) => {
-                          const isSelected = selectedWhatsappChat?.phone === chat.phone;
-                          const lastMsg = chat.messages[chat.messages.length - 1];
-                          return (
-                            <div 
-                              key={chat.phone}
-                              onClick={() => setSelectedWhatsappChat(chat)}
-                              className={`list-item ${isSelected ? 'selected' : ''}`}
-                            >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                                  {chat.applicantName}
-                                </span>
-                                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                                  {lastMsg ? new Date(lastMsg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                                </span>
-                              </div>
-                              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {lastMsg ? lastMsg.text : 'No messages'}
-                              </div>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                          No WhatsApp chats found.
-                        </div>
-                      )}
-                    </div>
+                <div className="tab-layout" style={{ height: '520px', display: 'flex', flexDirection: 'column', padding: '24px', background: 'rgba(0,0,0,0.15)', borderRadius: '8px' }}>
+                  <div style={{ marginBottom: '20px' }}>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: '#25D366', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <MessageSquare size={24} /> WhatsApp Web Launcher
+                    </h3>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                      Select a candidate to instantly open a chat with them on WhatsApp Web.
+                    </p>
                   </div>
-
-                  {/* WHATSAPP DETAIL */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'rgba(0,0,0,0.15)' }}>
-                    {selectedWhatsappChat ? (
-                      <>
-                        {/* Header */}
-                        <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  
+                  <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+                    {applicants.map(app => {
+                      const cleanPhone = app.phone.replace(/\D/g, '');
+                      // basic check to ensure it's a valid length phone number (e.g. US 10 digits)
+                      const isValidPhone = cleanPhone.length >= 10;
+                      return (
+                        <div key={app.id} style={{ 
+                          background: 'var(--panel-bg-solid)', 
+                          border: '1px solid var(--border-color)', 
+                          borderRadius: '8px', 
+                          padding: '16px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}>
                           <div>
-                            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                              {selectedWhatsappChat.applicantName}
-                            </h3>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                              {selectedWhatsappChat.phone}
-                            </div>
+                            <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>{app.name}</h4>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{app.phone}</p>
                           </div>
-                        </div>
-
-                        {/* Thread */}
-                        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }} className="custom-scrollbar">
-                          {selectedWhatsappChat.messages?.map((msg: any) => (
-                            <div key={msg.id} style={{ alignSelf: msg.sender === 'applicant' ? 'flex-start' : 'flex-end', maxWidth: '80%' }}>
-                              <div style={{ 
-                                background: msg.sender === 'applicant' ? 'rgba(255,255,255,0.05)' : '#128C7E',
-                                padding: '10px 14px',
-                                borderRadius: msg.sender === 'applicant' ? '12px 12px 12px 2px' : '12px 12px 2px 12px',
-                                fontSize: '0.85rem',
-                                color: '#ffffff',
-                                border: msg.sender === 'applicant' ? '1px solid rgba(255,255,255,0.1)' : 'none',
-                                lineHeight: 1.4
-                              }}>
-                                {msg.text}
-                              </div>
-                              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px', textAlign: msg.sender === 'applicant' ? 'left' : 'right' }}>
-                                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Reply Input */}
-                        <div style={{ padding: '16px', borderTop: '1px solid var(--border-color)', background: 'var(--panel-bg-solid)' }}>
-                          <form 
-                            onSubmit={async (e) => {
-                              e.preventDefault();
-                              if (!whatsappInput.trim() || sendingWhatsapp) return;
-                              
-                              setSendingWhatsapp(true);
-                              try {
-                                const res = await fetch('/api/whatsapp', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({
-                                    phone: selectedWhatsappChat.phone,
-                                    applicantId: selectedWhatsappChat.applicantId,
-                                    text: whatsappInput
-                                  })
-                                });
-                                
-                                if (res.ok) {
-                                  const data = await res.json();
-                                  setWhatsappInput('');
-                                  // Update local message list for instant feedback
-                                  setSelectedWhatsappChat((prev: any) => {
-                                    if (!prev) return null;
-                                    return {
-                                      ...prev,
-                                      messages: [...(prev.messages || []), data.sentMessage]
-                                    };
-                                  });
-                                  fetchData(); // Refresh all data in background
-                                } else {
-                                  alert('Failed to send WhatsApp message');
-                                }
-                              } catch (e) {
-                                console.error(e);
-                              }
-                              setSendingWhatsapp(false);
+                          <a 
+                            href={isValidPhone ? `https://wa.me/1${cleanPhone.slice(-10)}` : '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="button highlight"
+                            style={{ 
+                              background: isValidPhone ? '#25D366' : 'var(--border-color)', 
+                              borderColor: isValidPhone ? '#25D366' : 'var(--border-color)', 
+                              color: '#fff', 
+                              padding: '6px 12px', 
+                              fontSize: '0.75rem',
+                              textDecoration: 'none',
+                              pointerEvents: isValidPhone ? 'auto' : 'none',
+                              opacity: isValidPhone ? 1 : 0.5
                             }}
-                            style={{ display: 'flex', gap: '12px' }}
                           >
-                            <input 
-                              type="text" 
-                              className="input-field" 
-                              placeholder="Type a message to send via WhatsApp..." 
-                              value={whatsappInput}
-                              onChange={(e) => setWhatsappInput(e.target.value)}
-                              disabled={sendingWhatsapp}
-                            />
-                            <button 
-                              type="submit" 
-                              className="button highlight" 
-                              disabled={!whatsappInput.trim() || sendingWhatsapp}
-                              style={{ padding: '0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                            >
-                              <Send size={14} /> Send
-                            </button>
-                          </form>
+                            Open Chat
+                          </a>
                         </div>
-                      </>
-                    ) : (
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-                        <MessageSquare size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />
-                        <p>Select a WhatsApp chat to reply</p>
-                      </div>
-                    )}
+                      );
+                    })}
                   </div>
-                </>
-              )}
                 </div>
               )}
 
@@ -2545,9 +2459,51 @@ export default function CrmDashboard() {
                       <tr key={row.id} style={{ borderBottom: '1px solid #e5e7eb', background: i % 2 === 0 ? '#ffffff' : '#f9fafb' }}>
                         <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#6b7280', fontWeight: 500 }}>{i + 1}</td>
                         <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', fontFamily: 'monospace', fontSize: '0.8rem' }}>{row.id}</td>
-                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', fontWeight: 500 }}>{row.name}</td>
-                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb' }}>{row.phone}</td>
-                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb' }}>{row.email}</td>
+                        <td 
+                          style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', fontWeight: 500, cursor: 'pointer' }}
+                          onClick={() => setEditingCell({ id: row.id, field: 'name', value: row.name })}
+                        >
+                          {editingCell?.id === row.id && editingCell?.field === 'name' ? (
+                            <input 
+                              autoFocus
+                              value={editingCell.value}
+                              onChange={e => setEditingCell({ ...editingCell, value: e.target.value })}
+                              onBlur={() => handleCellSave(row.id, 'name')}
+                              onKeyDown={e => e.key === 'Enter' && handleCellSave(row.id, 'name')}
+                              style={{ width: '100%', padding: '4px', border: '1px solid var(--accent-color)', borderRadius: '4px' }}
+                            />
+                          ) : (row.name)}
+                        </td>
+                        <td 
+                          style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', cursor: 'pointer' }}
+                          onClick={() => setEditingCell({ id: row.id, field: 'phone', value: row.phone })}
+                        >
+                          {editingCell?.id === row.id && editingCell?.field === 'phone' ? (
+                            <input 
+                              autoFocus
+                              value={editingCell.value}
+                              onChange={e => setEditingCell({ ...editingCell, value: e.target.value })}
+                              onBlur={() => handleCellSave(row.id, 'phone')}
+                              onKeyDown={e => e.key === 'Enter' && handleCellSave(row.id, 'phone')}
+                              style={{ width: '100%', padding: '4px', border: '1px solid var(--accent-color)', borderRadius: '4px' }}
+                            />
+                          ) : (row.phone)}
+                        </td>
+                        <td 
+                          style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', cursor: 'pointer' }}
+                          onClick={() => setEditingCell({ id: row.id, field: 'email', value: row.email })}
+                        >
+                          {editingCell?.id === row.id && editingCell?.field === 'email' ? (
+                            <input 
+                              autoFocus
+                              value={editingCell.value}
+                              onChange={e => setEditingCell({ ...editingCell, value: e.target.value })}
+                              onBlur={() => handleCellSave(row.id, 'email')}
+                              onKeyDown={e => e.key === 'Enter' && handleCellSave(row.id, 'email')}
+                              style={{ width: '100%', padding: '4px', border: '1px solid var(--accent-color)', borderRadius: '4px' }}
+                            />
+                          ) : (row.email)}
+                        </td>
                         <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb' }}>
                           <span style={{ 
                             background: row.status === 'NEW' ? '#dbeafe' : row.status === 'ACTIVE' ? '#d1fae5' : '#f3f4f6', 
