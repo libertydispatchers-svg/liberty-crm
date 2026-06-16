@@ -225,6 +225,8 @@ export default function LandingPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Radius (Miles)</label>
                   <select value={editForm.coverageRadius} onChange={e => setEditForm({...editForm, coverageRadius: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: '#1e293b', color: '#fff' }}>
+                    <option value="3">3 Miles</option>
+                    <option value="5">5 Miles</option>
                     <option value="10">10 Miles</option>
                     <option value="25">25 Miles</option>
                     <option value="50">50 Miles</option>

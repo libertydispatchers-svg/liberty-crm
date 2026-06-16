@@ -409,14 +409,22 @@ export default function EsignPage({ params }: { params: { id: string } }) {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Desired Delivery Distance</label>
-                <input 
-                  type="text" 
-                  className="input-field" 
-                  value={intakeForm.desiredDistance}
-                  onChange={(e) => setIntakeForm({ ...intakeForm, desiredDistance: e.target.value })}
-                  placeholder="e.g. 5 miles, 10 miles"
-                />
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Desired Delivery Distance (Radius)</label>
+                <select 
+                  className="input-field"
+                  value={intakeForm.coverageRadius || intakeForm.desiredDistance}
+                  onChange={(e) => setIntakeForm({ ...intakeForm, coverageRadius: e.target.value, desiredDistance: e.target.value })}
+                >
+                  <option value="">Select Radius...</option>
+                  <option value="3">3 Miles</option>
+                  <option value="5">5 Miles</option>
+                  <option value="10">10 Miles</option>
+                  <option value="25">25 Miles</option>
+                  <option value="50">50 Miles</option>
+                  <option value="100">100 Miles</option>
+                  <option value="250">250 Miles</option>
+                  <option value="Anywhere">Nationwide (Anywhere)</option>
+                </select>
                 <p style={{ margin: '6px 0 0', fontSize: '0.7rem', color: 'var(--status-rejected)' }}>
                   * Please note: For Canary, we only pay for delivery miles, not miles driven to pick up an order.
                 </p>

@@ -39,7 +39,7 @@ export default function CrmDashboard() {
   const [sourceFilter, setSourceFilter] = useState('');
   
   // Workspace tabs: 'voice', 'gmail', 'sheets', 'docs', 'whatsapp', 'map'
-  const [activeTab, setActiveTab] = useState<'voice' | 'gmail' | 'sheets' | 'docs' | 'whatsapp' | 'map'>('voice');
+  const [activeTab, setActiveTab] = useState<'comms' | 'gmail' | 'sheets' | 'docs' | 'map'>('comms');
   
   // API statuses
   const [loading, setLoading] = useState(true);
@@ -1084,7 +1084,7 @@ export default function CrmDashboard() {
                     <button 
                       onClick={() => {
                         setDialedNumber(selectedApplicant.phone);
-                        setActiveTab('voice');
+                        setActiveTab('comms');
                         handleDialCall(selectedApplicant.phone);
                       }} 
                       className="button highlight" 
@@ -1099,7 +1099,7 @@ export default function CrmDashboard() {
                         const foundThread = voiceData.smsThreads?.find((t: any) => t.phone === selectedApplicant.phone) || 
                           { phone: selectedApplicant.phone, applicantName: selectedApplicant.name, messages: [] };
                         setSelectedSmsThread(foundThread);
-                        setActiveTab('voice');
+                        setActiveTab('comms');
                       }} 
                       className="button" 
                       style={{ flex: 1, height: '32px', fontSize: '0.75rem', padding: '0 8px' }}
@@ -1138,30 +1138,37 @@ export default function CrmDashboard() {
                         <div>
                           {doc.status === 'SIGNED' ? (
                             <span style={{ fontSize: '0.75rem', color: 'var(--status-active)', fontWeight: 600 }}>Signed</span>
-                          ) : doc.status === 'SENT' ? (
-                            <span style={{ fontSize: '0.7rem', color: 'var(--status-contacted)', fontStyle: 'italic' }}>Pending sign</span>
                           ) : (
-                          <div style={{ display: 'flex', gap: '4px' }}>
-                            <button 
-                              onClick={() => handleSendDocument(doc.name)} 
-                              className="button highlight" 
-                              style={{ padding: '4px 8px', fontSize: '0.7rem', height: '24px' }}
-                            >
-                              Email
-                            </button>
-                            <button 
-                              onClick={() => {
-                                const cleanNum = selectedApplicant.phone.replace(/\D/g, '');
-                                const msg = encodeURIComponent(`Hi ${selectedApplicant.name}, please review and sign your ${doc.name} here: https://liberty-crm-736433125033.europe-west1.run.app/esign/${selectedApplicant.id}`);
-                                window.open(`https://voice.google.com/u/0/messages?a=nc,%2B1${cleanNum}&text=${msg}`, '_blank');
-                                handleSendDocument(doc.name);
-                              }} 
-                              className="button" 
-                              style={{ padding: '4px 8px', fontSize: '0.7rem', height: '24px', background: 'rgba(255,255,255,0.1)' }}
-                            >
-                              Text
-                            </button>
-                          </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              {doc.status === 'SENT' && (
+                                <span style={{ fontSize: '0.7rem', color: 'var(--status-contacted)', fontStyle: 'italic' }}>Pending sign</span>
+                              )}
+                              <div style={{ display: 'flex', gap: '4px' }}>
+                                <button 
+                                  onClick={() => handleSendDocument(doc.name)} 
+                                  className="button highlight" 
+                                  style={{ padding: '4px 8px', fontSize: '0.7rem', height: '24px' }}
+                                >
+                                  Email
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                    const cleanNum = selectedApplicant.phone.replace(/\D/g, '');
+                                    const msg = encodeURIComponent(`Hi ${selectedApplicant.name}, please review and sign your ${doc.name} here: https://liberty-crm-736433125033.europe-west1.run.app/esign/${selectedApplicant.id}`);
+                                    if (cleanNum.length >= 10) {
+                                      window.open(`https://wa.me/1${cleanNum.slice(-10)}?text=${msg}`, '_blank');
+                                    } else {
+                                      alert('Invalid phone number for texting.');
+                                    }
+                                    handleSendDocument(doc.name); // Updates status to SENT and triggers email
+                                  }} 
+                                  className="button" 
+                                  style={{ padding: '4px 8px', fontSize: '0.7rem', height: '24px', background: '#25D366', borderColor: '#25D366', color: '#fff' }}
+                                >
+                                  Text (WA)
+                                </button>
+                              </div>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -1400,20 +1407,20 @@ export default function CrmDashboard() {
             {/* Horizontal Tabs */}
             <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', gap: '4px' }}>
               <button 
-                onClick={() => setActiveTab('voice')} 
-                className={`tab-button ${activeTab === 'voice' ? 'active' : ''}`}
+                onClick={() => setActiveTab('comms')} 
+                className={`tab-button ${activeTab === 'comms' ? 'active' : ''}`}
                 style={{ 
                   flex: 1, 
                   borderBottom: 'none', 
                   borderBottomLeftRadius: 0, 
                   borderBottomRightRadius: 0, 
-                  background: activeTab === 'voice' ? 'var(--panel-bg-solid)' : 'transparent',
-                  borderColor: activeTab === 'voice' ? 'var(--border-color)' : 'transparent',
-                  color: activeTab === 'voice' ? 'var(--text-primary)' : 'var(--text-secondary)'
+                  background: activeTab === 'comms' ? 'var(--panel-bg-solid)' : 'transparent',
+                  borderColor: activeTab === 'comms' ? 'var(--border-color)' : 'transparent',
+                  color: activeTab === 'comms' ? 'var(--text-primary)' : 'var(--text-secondary)'
                 }}
               >
-                <Phone size={14} style={{ color: activeTab === 'voice' ? 'var(--status-contacted)' : 'inherit' }} />
-                Voice
+                <MessageSquare size={14} style={{ color: activeTab === 'comms' ? 'var(--status-contacted)' : 'inherit' }} />
+                Comms Hub
               </button>
 
               <button 
@@ -1449,311 +1456,73 @@ export default function CrmDashboard() {
                 <FileText size={14} style={{ color: activeTab === 'docs' ? 'var(--status-onboarding)' : 'inherit' }} />
                 Docs Center
               </button>
-              
-              <button 
-                onClick={() => setActiveTab('whatsapp')}
-                className={`tab-button ${activeTab === 'whatsapp' ? 'active' : ''}`}
-                style={{ 
-                  background: activeTab === 'whatsapp' ? 'var(--panel-bg-solid)' : 'transparent',
-                  borderColor: activeTab === 'whatsapp' ? 'var(--border-color)' : 'transparent',
-                  color: activeTab === 'whatsapp' ? 'var(--text-primary)' : 'var(--text-secondary)'
-                }}
-              >
-                <MessageSquare size={14} style={{ color: activeTab === 'whatsapp' ? '#25D366' : 'inherit' }} />
-                WhatsApp Sync
-              </button>
             </div>
 
             {/* TAB CONTENTS */}
             <div style={{ flex: 1, overflowY: 'auto' }}>
               
-              {/* TAB 1: GOOGLE VOICE */}
-              {activeTab === 'voice' && (
-                <div className="tab-layout" style={{ height: '520px' }}>
-                  
-                  {/* Left sub-column: threads and calls log */}
-                  <div className="tab-sidebar" style={{ width: '240px', display: 'flex', flexDirection: 'column', gap: '16px', borderRight: '1px solid var(--border-color)', paddingRight: '16px', overflowY: 'auto', height: '100%' }}>
-                    
-                    {/* Connection indicator */}
-                    <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Connection State:</span>
-                      <span style={{ fontSize: '0.75rem', padding: '2px 8px', background: 'rgba(255,255,255,0.1)', borderRadius: '10px' }}>
-                        {voiceData.connected ? 'Live API' : 'Direct Dial'}
-                      </span>
-                    </div>
-                    
-                    {!voiceData.connected && voiceData.error && (
-                      <div style={{ padding: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '6px', color: '#fca5a5', fontSize: '0.7rem', marginBottom: '8px' }}>
-                        <strong>Voice Error:</strong> {voiceData.error}
-                      </div>
-                    )}
-
-                    {/* Internal Dialer */}
-                    <div style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', marginBottom: '8px' }}>
-                      <h4 style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Phone size={12} /> Quick Dialer
-                      </h4>
-                      <form onSubmit={(e) => {
-                        e.preventDefault();
-                        const num = new FormData(e.currentTarget).get('number');
-                        if (num) window.location.href = `https://voice.google.com/u/0/calls?a=nc,%2B${num.toString().replace(/\\D/g, '')}`;
-                      }} style={{ display: 'flex', gap: '6px' }}>
-                        <input type="tel" name="number" placeholder="(555) 555-5555" className="input-field" style={{ flex: 1, fontSize: '0.8rem', height: '32px', padding: '0 8px' }} />
-                        <button type="submit" className="button highlight" style={{ height: '32px', padding: '0 12px', fontSize: '0.75rem' }}>Call</button>
-                      </form>
-                    </div>
-
-                    {/* Call logs */}
-                    <div>
-                      <h3 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
-                        Voice Call Logs
-                      </h3>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
-                        {voiceData.callLogs?.map((log: any) => (
-                          <div key={log.id} style={{ 
-                            background: 'rgba(255,255,255,0.01)', 
-                            border: '1px solid var(--border-color)',
-                            borderRadius: '6px',
-                            padding: '6px 10px',
-                            fontSize: '0.7rem'
-                          }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <b style={{ color: 'var(--text-primary)' }}>{log.applicantName}</b>
-                              <span style={{ 
-                                color: log.type === 'missed' ? 'var(--status-rejected)' : 
-                                       log.type === 'inbound' ? 'var(--status-active)' : 'var(--status-contacted)',
-                                fontWeight: 600,
-                                textTransform: 'capitalize',
-                                fontSize: '0.6rem'
-                              }}>
-                                {log.type}
-                              </span>
-                            </div>
-                            <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem', marginTop: '2px' }}>
-                              {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Duration: {log.duration}
-                            </div>
-                            {log.voicemailText && (
-                              <div style={{ 
-                                background: 'rgba(255, 109, 0, 0.05)', 
-                                border: '1px solid rgba(255, 109, 0, 0.1)',
-                                borderRadius: '4px',
-                                padding: '8px',
-                                marginTop: '4px',
-                                fontStyle: 'italic',
-                                fontSize: '0.65rem',
-                                color: 'var(--text-secondary)'
-                              }}>
-                                <div style={{ marginBottom: '6px' }}>VM: "{log.voicemailText.substring(0, 50)}..."</div>
-                                {log.attachmentId && (
-                                  <audio 
-                                    controls 
-                                    src={`/api/voice/audio?messageId=${log.id}&attachmentId=${log.attachmentId}`} 
-                                    style={{ width: '100%', height: '24px' }} 
-                                  />
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* SMS Threads */}
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <h3 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
-                        Text Messages
-                      </h3>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto', flex: 1 }}>
-                        {voiceData.smsThreads?.map((thread: any) => {
-                          const isSel = selectedSmsThread && selectedSmsThread.phone === thread.phone;
-                          const lastMsg = thread.messages[thread.messages.length - 1];
-
-                          return (
-                            <div 
-                              key={thread.phone}
-                              onClick={() => setSelectedSmsThread(thread)}
-                              style={{ 
-                                background: isSel ? 'rgba(255, 109, 0, 0.05)' : 'transparent',
-                                border: isSel ? '1px solid var(--accent-color)' : '1px solid var(--border-color)',
-                                borderRadius: '6px',
-                                padding: '8px 10px',
-                                cursor: 'pointer',
-                                fontSize: '0.75rem'
-                              }}
-                            >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                                <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{thread.applicantName}</div>
-                                {lastMsg?.id && (
-                                  <Trash2 
-                                    size={12} 
-                                    style={{ color: 'var(--text-muted)', cursor: 'pointer' }}
-                                    onClick={(e) => handleTrashVoice(lastMsg.id, e)}
-                                  />
-                                )}
-                              </div>
-                              <div style={{ color: 'var(--text-muted)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontSize: '0.65rem' }}>
-                                {lastMsg ? lastMsg.text : 'No messages'}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+              {/* TAB 1: COMMS HUB */}
+              {activeTab === 'comms' && (
+                <div style={{ height: '100%', minHeight: '520px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ marginBottom: '10px' }}>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>External Comms Hub</h3>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Launch your preferred communication platforms in dedicated windows to avoid browser security restrictions.</p>
                   </div>
-
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
-                    
-                    {/* Dialer / active call widget */}
-                    <div style={{ 
-                      background: 'rgba(255,255,255,0.01)', 
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '10px',
-                      padding: '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ 
-                          width: '32px', 
-                          height: '32px', 
-                          borderRadius: '50%', 
-                          background: isCalling ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.03)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          border: '1px solid var(--border-color)',
-                          color: isCalling ? 'var(--status-active)' : 'var(--text-secondary)'
-                        }}>
-                          <Phone size={14} className={isCalling ? 'pulse-anim' : ''} />
-                        </div>
-                        <div>
-                          {isCalling ? (
-                            <>
-                              <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--status-active)' }}>Calling...</p>
-                              <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{activeCall}</p>
-                            </>
-                          ) : (
-                            <>
-                              <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>Google Voice Dial Out</p>
-                              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Linked line: {voiceData.googleVoiceNumber}</p>
-                            </>
-                          )}
-                        </div>
+                  
+                  <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                    {/* Google Voice Launcher */}
+                    <div style={{ flex: '1 1 250px', background: 'var(--panel-bg)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '16px' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981' }}>
+                        <Phone size={24} />
                       </div>
-
-                      {!isCalling && (
-                        <div style={{ display: 'flex', gap: '4px' }}>
-                          <input 
-                            type="text" 
-                            className="input-field" 
-                            placeholder="Enter number..." 
-                            value={dialedNumber}
-                            onChange={(e) => setDialedNumber(e.target.value)}
-                            style={{ width: '130px', height: '28px', fontSize: '0.75rem', padding: '0 8px' }}
-                          />
-                          <button 
-                            onClick={() => handleDialCall(dialedNumber)}
-                            disabled={!dialedNumber} 
-                            className="button highlight" 
-                            style={{ height: '28px', padding: '0 8px', fontSize: '0.7rem' }}
-                          >
-                            Call
-                          </button>
-                        </div>
-                      )}
+                      <div>
+                        <h4 style={{ fontWeight: 600, marginBottom: '4px' }}>Google Voice</h4>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Make calls and send text messages through your Google Voice number.</p>
+                      </div>
+                      <button 
+                        onClick={() => window.open('https://voice.google.com/', 'Voice', 'width=800,height=900,left=200,top=100')}
+                        className="button highlight"
+                        style={{ width: '100%', marginTop: 'auto' }}
+                      >
+                        Launch Voice Window
+                      </button>
                     </div>
 
-                    {/* Active SMS Chat panel */}
-                    {selectedSmsThread ? (
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <h4 style={{ fontSize: '0.85rem', fontWeight: 600 }}>Chat with {selectedSmsThread.applicantName}</h4>
-                            {selectedSmsThread.applicantId ? (
-                              <button 
-                                onClick={async () => {
-                                  const newName = prompt('Enter new name for this applicant:', selectedSmsThread.applicantName);
-                                  if (newName && newName !== selectedSmsThread.applicantName) {
-                                    const res = await fetch(`/api/applicants/${selectedSmsThread.applicantId}`, {
-                                      method: 'PUT',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ name: newName })
-                                    });
-                                    if (res.ok) fetchData();
-                                  }
-                                }}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, fontSize: '0.8rem' }}
-                                title="Edit Name"
-                              >
-                                ✏️
-                              </button>
-                            ) : (
-                              <button 
-                                onClick={() => {
-                                  setNewApplicantForm({
-                                    name: 'New Lead',
-                                    phone: selectedSmsThread.phone,
-                                    email: '',
-                                    source: 'TEXT'
-                                  });
-                                  setShowAddModal(true);
-                                }}
-                                className="button"
-                                style={{ fontSize: '0.65rem', padding: '2px 6px', height: 'auto', borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
-                              >
-                                + Add Applicant
-                              </button>
-                            )}
-                          </div>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{selectedSmsThread.phone}</span>
-                        </div>
-
-                        {/* Chat bubbles */}
-                        <div className="chat-container" style={{ overflowY: 'auto', flex: 1, border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px' }}>
-                          {selectedSmsThread.messages?.map((m: any, idx: number) => (
-                            <div key={idx} className={`chat-bubble ${m.sender}`}>
-                              <p>{m.text}</p>
-                              <span style={{ 
-                                fontSize: '0.55rem', 
-                                display: 'block', 
-                                marginTop: '4px', 
-                                textAlign: m.sender === 'crm' ? 'right' : 'left',
-                                opacity: 0.6
-                              }}>
-                                {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                          ))}
-                          <div ref={chatEndRef} />
-                        </div>
-
-                        {/* Send SMS Box */}
-                        <form onSubmit={handleSendSms} style={{ display: 'flex', gap: '8px' }}>
-                          <input 
-                            type="text" 
-                            className="input-field" 
-                            placeholder="Type a text message..." 
-                            value={smsInputText}
-                            onChange={(e) => setSmsInputText(e.target.value)}
-                            style={{ height: '36px', fontSize: '0.8rem', flex: 1 }}
-                          />
-                          <button 
-                            type="submit" 
-                            disabled={sendingSms || !smsInputText.trim()}
-                            className="button highlight" 
-                            style={{ width: '40px', height: '36px', padding: 0 }}
-                          >
-                            <Send size={14} />
-                          </button>
-                        </form>
+                    {/* WhatsApp Launcher */}
+                    <div style={{ flex: '1 1 250px', background: 'var(--panel-bg)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '16px' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(37,211,102,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#25D366' }}>
+                        <MessageSquare size={24} />
                       </div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, color: 'var(--text-muted)' }}>
-                        <MessageSquare size={32} style={{ opacity: 0.2, marginBottom: '8px' }} />
-                        <p style={{ fontSize: '0.8rem' }}>Select a text thread from the left column</p>
+                      <div>
+                        <h4 style={{ fontWeight: 600, marginBottom: '4px' }}>WhatsApp Web</h4>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Chat directly with applicants via WhatsApp.</p>
                       </div>
-                    )}
+                      <button 
+                        onClick={() => window.open('https://web.whatsapp.com/', 'WhatsApp', 'width=1000,height=900,left=250,top=100')}
+                        className="button highlight"
+                        style={{ width: '100%', marginTop: 'auto', background: '#25D366', borderColor: '#25D366' }}
+                      >
+                        Launch WhatsApp Window
+                      </button>
+                    </div>
+
+                    {/* Gmail Launcher */}
+                    <div style={{ flex: '1 1 250px', background: 'var(--panel-bg)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '16px' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
+                        <Mail size={24} />
+                      </div>
+                      <div>
+                        <h4 style={{ fontWeight: 600, marginBottom: '4px' }}>Gmail</h4>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Access your full inbox and draft emails.</p>
+                      </div>
+                      <button 
+                        onClick={() => window.open('https://mail.google.com/', 'Gmail', 'width=1200,height=900,left=300,top=100')}
+                        className="button highlight"
+                        style={{ width: '100%', marginTop: 'auto' }}
+                      >
+                        Launch Gmail Window
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1785,6 +1554,60 @@ export default function CrmDashboard() {
                   {!gmailData.connected && gmailData.error && (
                     <div style={{ padding: '12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.8rem', marginTop: '10px' }}>
                       <strong>Sync Error:</strong> {gmailData.error}
+                    </div>
+                  )}
+                  {selectedApplicant && selectedApplicant.email && (
+                    <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '12px', borderRadius: '8px' }}>
+                      <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                        Compose Email to {selectedApplicant.name} ({selectedApplicant.email}):
+                      </p>
+                      <form onSubmit={async (e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.currentTarget);
+                        const subject = formData.get('subject') as string;
+                        const body = formData.get('body') as string;
+                        if (!subject.trim() || !body.trim()) return;
+                        
+                        // Using same state as custom email just for simplicity, but no strict need to disable
+                        try {
+                          const res = await fetch('/api/gmail', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              to: selectedApplicant.email,
+                              subject: subject,
+                              body: body
+                            })
+                          });
+                          if (res.ok) {
+                            alert('Email sent successfully!');
+                            (e.target as HTMLFormElement).reset();
+                          } else {
+                            const errData = await res.json();
+                            alert(`Failed to send: ${errData.error}`);
+                          }
+                        } catch (err) {
+                          console.error('Error sending custom email', err);
+                          alert('Network error sending email');
+                        }
+                      }} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <input type="text" name="subject" placeholder="Subject" className="input-field" style={{ fontSize: '0.8rem', height: '32px' }} required />
+                        <textarea 
+                          name="body"
+                          placeholder="Type your message..." 
+                          className="input-field" 
+                          style={{ minHeight: '60px', resize: 'vertical', fontSize: '0.8rem', padding: '8px' }}
+                          required
+                        />
+                        <button 
+                          type="submit" 
+                          className="button highlight" 
+                          style={{ alignSelf: 'flex-end', padding: '0 16px', height: '32px', fontSize: '0.75rem' }}
+                        >
+                          <Send size={14} style={{ marginRight: '6px' }} />
+                          Send Email
+                        </button>
+                      </form>
                     </div>
                   )}
                   <div className="tab-layout">
@@ -1914,7 +1737,7 @@ export default function CrmDashboard() {
                                 onClick={() => {
                                   setDialedNumber(selectedEmail.senderNumber);
                                   handleDialCall(selectedEmail.senderNumber);
-                                  setActiveTab('voice');
+                                  setActiveTab('comms');
                                 }}
                                 className="button" 
                                 style={{ fontSize: '0.75rem', height: '30px', padding: '0 10px', flex: 1, borderColor: 'var(--status-active)', color: 'var(--status-active)' }}
@@ -1923,7 +1746,7 @@ export default function CrmDashboard() {
                               </button>
                               <button 
                                 onClick={() => {
-                                  setActiveTab('voice');
+                                  setActiveTab('comms');
                                 }}
                                 className="button" 
                                 style={{ fontSize: '0.75rem', height: '30px', padding: '0 10px', flex: 1, borderColor: 'var(--status-active)', color: 'var(--status-active)' }}
@@ -2011,7 +1834,7 @@ export default function CrmDashboard() {
                                         onClick={() => {
                                           setDialedNumber(matchingApplicant.phone);
                                           handleDialCall(matchingApplicant.phone);
-                                          setActiveTab('voice');
+                                          setActiveTab('comms');
                                         }}
                                         className="button" 
                                         style={{ fontSize: '0.7rem', height: '30px', padding: '0 8px', flex: 1, borderColor: 'var(--status-active)', color: 'var(--status-active)' }}
@@ -2021,7 +1844,7 @@ export default function CrmDashboard() {
                                       <button 
                                         onClick={() => {
                                           setDialedNumber(matchingApplicant.phone);
-                                          setActiveTab('voice');
+                                          setActiveTab('comms');
                                         }}
                                         className="button" 
                                         style={{ fontSize: '0.7rem', height: '30px', padding: '0 8px', flex: 1, borderColor: 'var(--status-active)', color: 'var(--status-active)' }}
@@ -2250,13 +2073,32 @@ export default function CrmDashboard() {
                               ) : (
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed rgba(255,255,255,0.05)', paddingTop: '8px', marginTop: '4px' }}>
                                   <span>Document has not been signed.</span>
-                                  <button 
-                                    onClick={() => handleSendDocument(doc.name)}
-                                    className="button" 
-                                    style={{ height: '24px', padding: '0 8px', fontSize: '0.7rem' }}
-                                  >
-                                    Send Signature URL
-                                  </button>
+                                  <div style={{ display: 'flex', gap: '6px' }}>
+                                    <button 
+                                      onClick={() => {
+                                        const phone = selectedApplicant.phone || '';
+                                        const cleanPhone = phone.replace(/\D/g, '');
+                                        const url = `https://libertydispatchers.com/onboarding/${selectedApplicant.id}`;
+                                        const msg = encodeURIComponent(`Hi ${selectedApplicant.name}, please complete your ${doc.name} here: ${url}`);
+                                        if (cleanPhone.length >= 10) {
+                                          window.open(`https://wa.me/1${cleanPhone.slice(-10)}?text=${msg}`, '_blank');
+                                        } else {
+                                          alert('Invalid phone number.');
+                                        }
+                                      }}
+                                      className="button highlight" 
+                                      style={{ height: '24px', padding: '0 8px', fontSize: '0.7rem', background: '#25D366', borderColor: '#25D366', color: '#fff' }}
+                                    >
+                                      Text Link (WA)
+                                    </button>
+                                    <button 
+                                      onClick={() => handleSendDocument(doc.name)}
+                                      className="button" 
+                                      style={{ height: '24px', padding: '0 8px', fontSize: '0.7rem' }}
+                                    >
+                                      Email Signature URL
+                                    </button>
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -2290,60 +2132,7 @@ export default function CrmDashboard() {
                 </div>
               )}
 
-              {activeTab === 'whatsapp' && (
-                <div className="tab-layout" style={{ height: '520px', display: 'flex', flexDirection: 'column', padding: '24px', background: 'rgba(0,0,0,0.15)', borderRadius: '8px' }}>
-                  <div style={{ marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: '#25D366', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <MessageSquare size={24} /> WhatsApp Web Launcher
-                    </h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '8px' }}>
-                      Select a candidate to instantly open a chat with them on WhatsApp Web.
-                    </p>
-                  </div>
-                  
-                  <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-                    {applicants.map(app => {
-                      const cleanPhone = app.phone.replace(/\D/g, '');
-                      // basic check to ensure it's a valid length phone number (e.g. US 10 digits)
-                      const isValidPhone = cleanPhone.length >= 10;
-                      return (
-                        <div key={app.id} style={{ 
-                          background: 'var(--panel-bg-solid)', 
-                          border: '1px solid var(--border-color)', 
-                          borderRadius: '8px', 
-                          padding: '16px',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
-                        }}>
-                          <div>
-                            <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>{app.name}</h4>
-                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{app.phone}</p>
-                          </div>
-                          <a 
-                            href={isValidPhone ? `https://wa.me/1${cleanPhone.slice(-10)}` : '#'}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="button highlight"
-                            style={{ 
-                              background: isValidPhone ? '#25D366' : 'var(--border-color)', 
-                              borderColor: isValidPhone ? '#25D366' : 'var(--border-color)', 
-                              color: '#fff', 
-                              padding: '6px 12px', 
-                              fontSize: '0.75rem',
-                              textDecoration: 'none',
-                              pointerEvents: isValidPhone ? 'auto' : 'none',
-                              opacity: isValidPhone ? 1 : 0.5
-                            }}
-                          >
-                            Open Chat
-                          </a>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+
 
               {/* MAP TAB CONTENT MOVED OUT */}
             </div>

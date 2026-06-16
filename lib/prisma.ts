@@ -39,6 +39,7 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
+db.settings({ ignoreUndefinedProperties: true });
 
 // Helper to convert Firestore Timestamps to JS Date objects recursively
 function convertTimestamps(data: any): any {
@@ -57,6 +58,22 @@ function convertTimestamps(data: any): any {
     return copy;
   }
   return data;
+}
+
+// Helper to remove undefined values from objects before sending to Firestore
+function removeUndefined(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (Array.isArray(obj)) return obj.map(removeUndefined);
+  if (typeof obj === 'object' && !(obj instanceof Date)) {
+    const copy: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        copy[key] = removeUndefined(value);
+      }
+    }
+    return copy;
+  }
+  return obj;
 }
 
 // Fetch all documents in a collection
@@ -249,7 +266,7 @@ function createCollectionAdapter(collectionName: string) {
               relationCreates.push({ collection: 'documents', data: { ...c, applicantId: docId } });
             }
           }
-        } else {
+        } else if (value !== undefined) {
           cleanData[key] = value;
         }
       }
@@ -321,7 +338,7 @@ function createCollectionAdapter(collectionName: string) {
               relationCreates.push({ collection: 'documents', data: { ...c, applicantId: docId } });
             }
           }
-        } else {
+        } else if (value !== undefined) {
           cleanData[key] = value;
         }
       }
@@ -352,10 +369,11 @@ function createCollectionAdapter(collectionName: string) {
       const batch = db.batch();
       for (const doc of matching) {
         const docRef = db.collection(collectionName).doc(doc.id);
-        batch.update(docRef, {
+        const cleanData = removeUndefined({
           ...options.data,
           updatedAt: new Date().toISOString()
         });
+        batch.update(docRef, cleanData);
       }
       await batch.commit();
       return { count: matching.length };
@@ -366,10 +384,10 @@ function createCollectionAdapter(collectionName: string) {
       const found = allDocs.find(doc => evaluateWhere(doc, options.where));
       if (found) {
         const docRef = db.collection(collectionName).doc(found.id);
-        const updatedData = {
+        const updatedData = removeUndefined({
           ...options.update,
           updatedAt: new Date().toISOString()
-        };
+        });
         await docRef.update(updatedData);
         return { id: found.id, ...found, ...updatedData };
       } else {

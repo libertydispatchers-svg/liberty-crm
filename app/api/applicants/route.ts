@@ -3,6 +3,7 @@ import { prisma } from '../../../lib/prisma';
 import { MOCK_APPLICANTS } from '../../../lib/mockApplicants';
 import bcrypt from 'bcryptjs';
 import { SignJWT } from 'jose';
+import { getGmailClient } from '../../../lib/gmail';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,6 +103,45 @@ export async function POST(request: Request) {
         await syncToSheets();
       } catch (err) {
         console.error('Failed to sync to sheets in POST applicant:', err);
+      }
+
+      // Send Verification/Welcome Email
+      try {
+        const gmail = getGmailClient();
+        const htmlBody = `
+        <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b131e; color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #d7b55f;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: #ffffff; margin: 0;">Liberty Dispatchers</h1>
+          </div>
+          <h2 style="color: #d7b55f; text-align: center;">Verify Your Email & Complete Onboarding</h2>
+          <p>Hi ${name},</p>
+          <p>Welcome to Liberty Dispatchers! We've successfully received your initial registration.</p>
+          <p>Please log in to your portal to complete your onboarding documents so we can get you approved and added to the grid.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://liberty-crm-736433125033.europe-west1.run.app" style="background: linear-gradient(135deg, #d7b55f 0%, #a8262a 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Access Your Portal</a>
+          </div>
+        </div>
+        `;
+        const emailLines = [
+          `To: ${email}`,
+          `Subject: Verify Email - Welcome to Liberty Dispatchers!`,
+          `Content-Type: text/html; charset=utf-8`,
+          `MIME-Version: 1.0`,
+          ``,
+          htmlBody
+        ];
+        const rawEmail = Buffer.from(emailLines.join('\r\n'))
+          .toString('base64')
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+$/, '');
+
+        await gmail.users.messages.send({
+          userId: 'me',
+          requestBody: { raw: rawEmail }
+        });
+      } catch (emailErr) {
+        console.error('Failed to send welcome email:', emailErr);
       }
 
       // Auto login after sign up
