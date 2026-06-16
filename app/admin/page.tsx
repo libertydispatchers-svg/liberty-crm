@@ -888,7 +888,10 @@ export default function CrmDashboard() {
 
             {/* Cards List */}
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px' }}>
-              {applicants.map(app => {
+              {applicants.filter(app => {
+                const blacklisted = (settingsForm.BLACKLISTED_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+                return !app.email || !blacklisted.includes(app.email.toLowerCase());
+              }).map(app => {
                 const isSelected = selectedApplicant && selectedApplicant.id === app.id;
                 let srcIcon = <Mail size={12} />;
                 if (app.source === 'CALL') srcIcon = <Phone size={12} />;
@@ -1443,7 +1446,7 @@ export default function CrmDashboard() {
                       <form onSubmit={(e) => {
                         e.preventDefault();
                         const num = new FormData(e.currentTarget).get('number');
-                        if (num) window.location.href = `tel:${num}`;
+                        if (num) window.location.href = `https://voice.google.com/u/0/calls?a=nc,%2B${num.toString().replace(/\\D/g, '')}`;
                       }} style={{ display: 'flex', gap: '6px' }}>
                         <input type="tel" name="number" placeholder="(555) 555-5555" className="input-field" style={{ flex: 1, fontSize: '0.8rem', height: '32px', padding: '0 8px' }} />
                         <button type="submit" className="button highlight" style={{ height: '32px', padding: '0 12px', fontSize: '0.75rem' }}>Call</button>
@@ -1727,7 +1730,10 @@ export default function CrmDashboard() {
                   <div className="tab-layout">
                     {/* Mail list */}
                     <div className="tab-sidebar" style={{ width: '350px', display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '420px', borderRight: '1px solid var(--border-color)', paddingRight: '16px' }}>
-                      {gmailData.emails?.map((mail: any) => {
+                      {gmailData.emails?.filter((mail: any) => {
+                        const blacklisted = (settingsForm.BLACKLISTED_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+                        return !mail.from || !blacklisted.includes(mail.from.toLowerCase());
+                      }).map((mail: any) => {
                         const isSel = selectedEmail && selectedEmail.id === mail.id;
                         return (
                           <div 
