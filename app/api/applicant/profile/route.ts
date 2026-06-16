@@ -65,9 +65,14 @@ export async function PUT(request: Request) {
     // Update the Onboarding Material document's esignData
     if (coverageAddress || coverageRadius || vehicleType) {
       const onboardDoc = applicant.documents.find(d => d.name === 'Onboarding Material');
-      let esignData = {};
+      let esignData: any = {};
       if (onboardDoc && onboardDoc.esignData) {
-        try { esignData = JSON.parse(onboardDoc.esignData); } catch(e) {}
+        try { 
+          const parsed = JSON.parse(onboardDoc.esignData);
+          if (parsed && typeof parsed === 'object') {
+            esignData = parsed;
+          }
+        } catch(e) {}
       }
       if (coverageAddress) (esignData as any).coverageAddress = coverageAddress;
       if (coverageRadius) (esignData as any).coverageRadius = coverageRadius;

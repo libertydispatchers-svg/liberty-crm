@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { User, LogOut, CheckCircle, MapPin, Truck, Phone, Mail } from 'lucide-react';
+
+const MiniMap = dynamic(() => import('./components/MiniMap'), { ssr: false });
 
 export default function LandingPage() {
   const [view, setView] = useState<'login' | 'register' | 'dashboard'>('register');
@@ -125,7 +128,8 @@ export default function LandingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editForm)
       });
-      if (!res.ok) throw new Error('Failed to update profile');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to update profile');
       setSuccessMsg('Profile updated successfully!');
       setTimeout(() => setSuccessMsg(''), 3000);
       await fetchProfile();
@@ -239,6 +243,9 @@ export default function LandingPage() {
                     <option value="Box Truck">Box Truck</option>
                     <option value="Bicycle/Scooter">Bicycle/Scooter</option>
                   </select>
+                </div>
+                <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+                  <MiniMap address={editForm.coverageAddress} radiusStr={editForm.coverageRadius} />
                 </div>
               </div>
             </div>
