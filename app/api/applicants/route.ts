@@ -3,7 +3,7 @@ import { prisma } from '../../../lib/prisma';
 import { MOCK_APPLICANTS } from '../../../lib/mockApplicants';
 import bcrypt from 'bcryptjs';
 import { SignJWT } from 'jose';
-import { getGmailClient } from '../../../lib/gmail';
+import { getGmailClient } from '../../../lib/google';
 
 export const dynamic = 'force-dynamic';
 

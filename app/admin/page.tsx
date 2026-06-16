@@ -709,7 +709,7 @@ export default function CrmDashboard() {
           borderTopColor: '#3b82f6',
           borderRadius: '50%'
         }} />
-        <style jsx global>{`
+        <style>{`
           .spin-anim {
             animation: spin 1s linear infinite;
           }
@@ -2236,6 +2236,7 @@ export default function CrmDashboard() {
               <div style={{ overflowX: 'auto', flex: 1, overflowY: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem', color: '#111827' }}>
                   <thead style={{ background: '#f3f4f6', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                    <tr>
                       {['#', 'ID', 'Name', 'Phone', 'Email', 'Status', 'Availability', 'Vehicle', 'Coverage Area', 'Applied Date', 'Actions'].map((header: string, idx: number) => (
                         <th key={idx} style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', borderRight: '1px solid #e5e7eb', fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>
                           {header}
