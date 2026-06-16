@@ -62,11 +62,15 @@ export async function PUT(
       if (email) updateData.email = email;
       if (availability) updateData.availability = availability;
 
+      let wasApproved = false;
       if (status && status !== existing.status) {
         updateData.status = status;
         notesToCreate.push({
           content: `Status updated to ${status}`
         });
+        if (status === 'ACTIVE') {
+          wasApproved = true;
+        }
       }
 
       const { vehicleType, coverageArea } = body;
@@ -160,6 +164,54 @@ export async function PUT(
               }
             }
           }
+          }
+        }
+      }
+
+      if (wasApproved && existing.email) {
+        const htmlBody = `
+        <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b131e; color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #d7b55f;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: #ffffff; margin: 0;">Liberty Dispatchers</h1>
+          </div>
+          <h2 style="color: #d7b55f; text-align: center;">Welcome to the Grid!</h2>
+          <p>Hi ${existing.name || 'there'},</p>
+          <p>Your driver application has been reviewed and <strong>approved</strong>!</p>
+          <p>You have been successfully added to the active dispatch grid and can now begin receiving routes.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://liberty-crm-736433125033.europe-west1.run.app" style="background: linear-gradient(135deg, #d7b55f 0%, #a8262a 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Login to Dashboard</a>
+          </div>
+          <p style="color: #94a3b8; font-size: 12px; text-align: center;">If you have any questions, please reply to this email.</p>
+        </div>
+        `;
+
+        try {
+          const gmail = getGmailClient();
+          const emailLines = [
+            `To: ${existing.email}`,
+            `Subject: Welcome to Liberty Dispatchers - You are Approved!`,
+            `Content-Type: text/html; charset=utf-8`,
+            `MIME-Version: 1.0`,
+            ``,
+            htmlBody
+          ];
+          
+          const rawEmail = Buffer.from(emailLines.join('\r\n'))
+            .toString('base64')
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/, '');
+            
+          await gmail.users.messages.send({
+            userId: 'me',
+            requestBody: { raw: rawEmail }
+          });
+          
+          notesToCreate.push({
+            content: \`Sent approval welcome email to \${existing.email}\`
+          });
+        } catch (emailErr) {
+          console.error('Failed to send approval HTML email via Gmail API', emailErr);
         }
       }
 

@@ -35,11 +35,13 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
   const [vehicleFilter, setVehicleFilter] = useState<string>('All');
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const [geocodedLocations, setGeocodedLocations] = useState<Record<string, [number, number]>>({});
+
   // Derive unique options from data
   const areas = ['All', ...Array.from(new Set(activeDrivers.map(d => {
     const docs = d.documents?.find((doc: any) => doc.name === 'Onboarding Material');
     const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
-    return esignData.coverageArea || 'Not specified';
+    return esignData.coverageAddress || esignData.coverageArea || 'Not specified';
   })))];
 
   const vehicles = ['All', ...Array.from(new Set(activeDrivers.map(d => {
@@ -51,13 +53,43 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
   const filteredDrivers = activeDrivers.filter(driver => {
     const docs = driver.documents?.find((d: any) => d.name === 'Onboarding Material');
     const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
-    const coverage = esignData.coverageArea || 'Not specified';
+    const coverage = esignData.coverageAddress || esignData.coverageArea || 'Not specified';
     const vehicle = esignData.vehicleType || 'Unknown';
 
     if (areaFilter !== 'All' && coverage !== areaFilter) return false;
     if (vehicleFilter !== 'All' && vehicle !== vehicleFilter) return false;
     return true;
   });
+
+  useEffect(() => {
+    // Geocode addresses
+    const geocode = async () => {
+      const newLocs = { ...geocodedLocations };
+      let changed = false;
+      for (const d of filteredDrivers) {
+        const docs = d.documents?.find((doc: any) => doc.name === 'Onboarding Material');
+        const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
+        const address = esignData.coverageAddress;
+        if (address && !newLocs[address] && !REGION_MAP[address]) {
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`);
+            const data = await res.json();
+            if (data && data.length > 0) {
+              newLocs[address] = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+              changed = true;
+            } else {
+              newLocs[address] = [39.8283, -98.5795]; // Default center US
+              changed = true;
+            }
+          } catch(e) {
+            console.error('Geocode error', e);
+          }
+        }
+      }
+      if (changed) setGeocodedLocations(newLocs);
+    };
+    geocode();
+  }, [filteredDrivers]);
 
   return (
     <div style={{ 
@@ -114,7 +146,8 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
           {filteredDrivers.map(driver => {
             const docs = driver.documents?.find((d: any) => d.name === 'Onboarding Material');
             const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
-            const coverage = esignData.coverageArea || 'Not specified';
+            const coverage = esignData.coverageAddress || esignData.coverageArea || 'Not specified';
+            const radius = esignData.coverageRadius ? `${esignData.coverageRadius} Miles` : '';
             
             return (
               <div key={driver.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', marginBottom: '8px', border: '1px solid var(--glass-border)' }}>
@@ -126,7 +159,7 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
                 </div>
                 <div style={{ paddingLeft: '32px' }}>
                   <p style={{ margin: '0 0 4px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                    <strong>Area:</strong> {coverage}
+                    <strong>Area:</strong> {coverage} {radius && `(${radius})`}
                   </p>
                   <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                     Vehicle: {esignData.vehicleType || 'Unknown'}
@@ -157,19 +190,28 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
           {filteredDrivers.map((driver, i) => {
             const docs = driver.documents?.find((d: any) => d.name === 'Onboarding Material');
             const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
-            const coverage = esignData.coverageArea || 'Not specified';
+            const coverage = esignData.coverageAddress || esignData.coverageArea || 'Not specified';
+            const radiusStr = esignData.coverageRadius || '25';
 
             // Get exact coordinates or default to Baltimore with scatter
             let lat = defaultPosition[0] + (Math.sin(i * 1.5) * 0.05);
             let lng = defaultPosition[1] + (Math.cos(i * 1.5) * 0.05);
-            let radius = 2000; // default 2km
+            
+            let radius = 2000; // default
+            if (radiusStr === 'Anywhere') {
+              radius = 500000;
+            } else {
+              radius = parseInt(radiusStr) * 1609.34; // miles to meters
+            }
 
-            if (REGION_MAP[coverage]) {
+            if (geocodedLocations[coverage]) {
+              lat = geocodedLocations[coverage][0] + (Math.sin(i * 10) * 0.01);
+              lng = geocodedLocations[coverage][1] + (Math.cos(i * 10) * 0.01);
+            } else if (REGION_MAP[coverage]) {
               const [rLat, rLng, rRadius] = REGION_MAP[coverage];
-              // Add slight scatter to prevent stacking on the exact same coordinate
               lat = rLat + (Math.sin(i * 10) * 0.01);
               lng = rLng + (Math.cos(i * 10) * 0.01);
-              radius = rRadius;
+              if (!esignData.coverageRadius) radius = rRadius;
             }
 
             return (
@@ -185,7 +227,7 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
                   <Popup>
                     <div style={{ color: '#000', padding: '4px' }}>
                       <strong style={{ display: 'block', marginBottom: '4px', fontSize: '1.1em' }}>{driver.name}</strong>
-                      <span style={{ fontSize: '0.9rem', display: 'block' }}>Area: {coverage}</span>
+                      <span style={{ fontSize: '0.9rem', display: 'block' }}>Area: {coverage} {radiusStr !== 'Anywhere' && `(${radiusStr} mi)`}</span>
                       <span style={{ fontSize: '0.9rem', color: '#666' }}>Vehicle: {esignData.vehicleType || 'Unknown'}</span>
                     </div>
                   </Popup>

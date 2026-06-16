@@ -1233,7 +1233,7 @@ export default function CrmDashboard() {
                             </div>
                             <div>
                               <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem' }}>Coverage Area:</span>
-                              <b style={{ color: 'var(--text-primary)' }}>{intake.coverageArea || 'N/A'}</b>
+                              <b style={{ color: 'var(--text-primary)' }}>{intake.coverageAddress || intake.coverageArea || 'N/A'} {intake.coverageRadius && `(${intake.coverageRadius} mi)`}</b>
                             </div>
                             <div>
                               <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem' }}>Desired Distance:</span>
@@ -1963,7 +1963,7 @@ export default function CrmDashboard() {
                                         setEditProfileForm({
                                           status: matchingApplicant.status,
                                           vehicle: esignData.vehicleType || '',
-                                          area: esignData.coverageArea || ''
+                                          area: (esignData.coverageAddress || esignData.coverageArea || '') + (esignData.coverageRadius ? ` (${esignData.coverageRadius} mi)` : '')
                                         });
                                         setMainView('crm'); // Switch to main CRM view to edit profile
                                         setStatusFilter('');
@@ -1983,7 +1983,7 @@ export default function CrmDashboard() {
                                     </div>
                                     <div style={{ background: 'var(--panel-bg)', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                                       <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>Coverage Area</span>
-                                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{esignData.coverageArea || 'Not specified'}</div>
+                                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{esignData.coverageAddress || esignData.coverageArea || 'Not specified'} {esignData.coverageRadius && `(${esignData.coverageRadius} mi)`}</div>
                                     </div>
                                   </div>
 
@@ -2358,7 +2358,7 @@ export default function CrmDashboard() {
               // Show applicants who have a completed location/onboarding or are ACTIVE
               const docs = a.documents?.find((d: any) => d.name === 'Onboarding Material');
               const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
-              return a.status === 'ACTIVE' || (esignData.coverageArea && esignData.coverageArea !== '');
+              return a.status === 'ACTIVE' || (esignData.coverageAddress && esignData.coverageAddress !== '') || (esignData.coverageArea && esignData.coverageArea !== '');
             })} />
           </div>
         )}
@@ -2531,7 +2531,7 @@ export default function CrmDashboard() {
                           {(() => {
                             const docs = row.documents?.find((d: any) => d.name === 'Onboarding Material');
                             const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
-                            return esignData.coverageArea || 'Not specified';
+                            return (esignData.coverageAddress || esignData.coverageArea || 'Not specified') + (esignData.coverageRadius ? ` (${esignData.coverageRadius} mi)` : '');
                           })()}
                         </td>
                         <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563' }}>{row.appliedDate}</td>

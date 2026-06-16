@@ -23,7 +23,7 @@ export function downloadCSV(data: any[], filename = 'applicants_export.csv') {
       if (docs?.esignData) {
         try {
           const parsed = JSON.parse(docs.esignData);
-          coverageArea = parsed.coverageArea || 'Not specified';
+          coverageArea = (parsed.coverageAddress || parsed.coverageArea || 'Not specified') + (parsed.coverageRadius ? ` (${parsed.coverageRadius} mi)` : '');
           vehicleType = parsed.vehicleType || 'Unknown';
           if (parsed.availabilityDays && Array.isArray(parsed.availabilityDays)) {
             daysString = parsed.availabilityDays.map((d: string) => d.charAt(0).toUpperCase() + d.slice(1)).join(', ');

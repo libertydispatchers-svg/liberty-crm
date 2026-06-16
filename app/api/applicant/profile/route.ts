@@ -50,7 +50,7 @@ export async function PUT(request: Request) {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     
     const body = await request.json();
-    const { name, phone, availability, coverageArea, vehicleType } = body;
+    const { name, phone, availability, coverageAddress, coverageRadius, vehicleType } = body;
 
     const applicant = await prisma.applicant.update({
       where: { id: payload.sub as string },
@@ -63,21 +63,32 @@ export async function PUT(request: Request) {
     });
 
     // Update the Onboarding Material document's esignData
-    if (coverageArea || vehicleType) {
+    if (coverageAddress || coverageRadius || vehicleType) {
       const onboardDoc = applicant.documents.find(d => d.name === 'Onboarding Material');
+      let esignData = {};
+      if (onboardDoc && onboardDoc.esignData) {
+        try { esignData = JSON.parse(onboardDoc.esignData); } catch(e) {}
+      }
+      if (coverageAddress) (esignData as any).coverageAddress = coverageAddress;
+      if (coverageRadius) (esignData as any).coverageRadius = coverageRadius;
+      if (vehicleType) (esignData as any).vehicleType = vehicleType;
+
       if (onboardDoc) {
-        let esignData = {};
-        if (onboardDoc.esignData) {
-          try { esignData = JSON.parse(onboardDoc.esignData); } catch(e) {}
-        }
-        if (coverageArea) (esignData as any).coverageArea = coverageArea;
-        if (vehicleType) (esignData as any).vehicleType = vehicleType;
-        
         await prisma.document.update({
           where: { id: onboardDoc.id },
           data: {
             esignData: JSON.stringify(esignData),
             status: 'SIGNED',
+            signedAt: new Date()
+          }
+        });
+      } else {
+        await prisma.document.create({
+          data: {
+            name: 'Onboarding Material',
+            applicantId: payload.sub as string,
+            status: 'SIGNED',
+            esignData: JSON.stringify(esignData),
             signedAt: new Date()
           }
         });

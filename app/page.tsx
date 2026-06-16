@@ -14,7 +14,7 @@ export default function LandingPage() {
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   // Dashboard Form
   const [profile, setProfile] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ name: '', phone: '', coverageArea: '', vehicleType: '' });
+  const [editForm, setEditForm] = useState({ name: '', phone: '', coverageAddress: '', coverageRadius: '25', vehicleType: '' });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -42,13 +42,15 @@ export default function LandingPage() {
       if (data.id) {
         setProfile(data);
         
-        let coverage = '';
+        let coverageAddress = '';
+        let coverageRadius = '25';
         let vehicle = '';
         const onboardDoc = data.documents?.find((d: any) => d.name === 'Onboarding Material');
         if (onboardDoc?.esignData) {
           try {
             const parsed = JSON.parse(onboardDoc.esignData);
-            coverage = parsed.coverageArea || '';
+            if (parsed.coverageAddress) coverageAddress = parsed.coverageAddress;
+            if (parsed.coverageRadius) coverageRadius = parsed.coverageRadius;
             vehicle = parsed.vehicleType || '';
           } catch(e){}
         }
@@ -56,7 +58,8 @@ export default function LandingPage() {
         setEditForm({
           name: data.name || '',
           phone: data.phone || '',
-          coverageArea: coverage,
+          coverageAddress,
+          coverageRadius,
           vehicleType: vehicle
         });
       }
@@ -212,15 +215,18 @@ export default function LandingPage() {
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Preferred Coverage Area</label>
-                  <select value={editForm.coverageArea} onChange={e => setEditForm({...editForm, coverageArea: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: '#1e293b', color: '#fff' }}>
-                    <option value="">Select an area...</option>
-                    <option value="Downtown">Downtown</option>
-                    <option value="Northside">Northside</option>
-                    <option value="Southside">Southside</option>
-                    <option value="Eastside">Eastside</option>
-                    <option value="Westside">Westside</option>
-                    <option value="Metro">Full Metro</option>
+                  <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Coverage Address / City / Zip</label>
+                  <input type="text" placeholder="e.g. Dallas, TX or 75201" value={editForm.coverageAddress} onChange={e => setEditForm({...editForm, coverageAddress: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Radius (Miles)</label>
+                  <select value={editForm.coverageRadius} onChange={e => setEditForm({...editForm, coverageRadius: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: '#1e293b', color: '#fff' }}>
+                    <option value="10">10 Miles</option>
+                    <option value="25">25 Miles</option>
+                    <option value="50">50 Miles</option>
+                    <option value="100">100 Miles</option>
+                    <option value="250">250 Miles</option>
+                    <option value="Anywhere">Nationwide (Anywhere)</option>
                   </select>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
