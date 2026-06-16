@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, Plus, Phone, MessageSquare, Mail, Database, FileText, 
   CheckCircle2, AlertCircle, Trash2, Send, Clock, User, 
-  ShieldCheck, RefreshCw, X, PhoneCall, Check, Calendar, ExternalLink, Settings, Map
+  ShieldCheck, RefreshCw, X, PhoneCall, Check, Calendar, ExternalLink, Settings, Map, Lock
 } from 'lucide-react';
 import { IS_PRODUCTION, BASE_URL } from '../../lib/config';
 import dynamic from 'next/dynamic';
