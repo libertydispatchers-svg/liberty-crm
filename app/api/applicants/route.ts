@@ -24,11 +24,28 @@ export async function GET(request: Request) {
     }
 
     if (search) {
-      whereClause.OR = [
+      let cleanSearch = search.replace(/\D/g, '');
+      if (cleanSearch.startsWith('1') && cleanSearch.length === 11) {
+        cleanSearch = cleanSearch.substring(1);
+      }
+      
+      const orConditions: any[] = [
         { name: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
         { phone: { contains: search, mode: 'insensitive' } },
       ];
+      
+      if (cleanSearch.length > 0) {
+        orConditions.push({ phone: { contains: cleanSearch, mode: 'insensitive' } });
+        
+        if (cleanSearch.length === 10) {
+          const formatted1 = `(${cleanSearch.slice(0,3)}) ${cleanSearch.slice(3,6)}-${cleanSearch.slice(6)}`;
+          const formatted2 = `${cleanSearch.slice(0,3)}-${cleanSearch.slice(3,6)}-${cleanSearch.slice(6)}`;
+          orConditions.push({ phone: { contains: formatted1, mode: 'insensitive' } });
+          orConditions.push({ phone: { contains: formatted2, mode: 'insensitive' } });
+        }
+      }
+      whereClause.OR = orConditions;
     }
 
     const applicants = await prisma.applicant.findMany({
