@@ -1387,23 +1387,6 @@ export default function CrmDashboard() {
               </button>
 
               <button 
-                onClick={() => setActiveTab('sheets')} 
-                className={`tab-button ${activeTab === 'sheets' ? 'active' : ''}`}
-                style={{ 
-                  flex: 1, 
-                  borderBottom: 'none', 
-                  borderBottomLeftRadius: 0, 
-                  borderBottomRightRadius: 0, 
-                  background: activeTab === 'sheets' ? 'var(--panel-bg-solid)' : 'transparent',
-                  borderColor: activeTab === 'sheets' ? 'var(--border-color)' : 'transparent',
-                  color: activeTab === 'sheets' ? 'var(--text-primary)' : 'var(--text-secondary)'
-                }}
-              >
-                <Database size={14} style={{ color: activeTab === 'sheets' ? 'var(--status-active)' : 'inherit' }} />
-                Sheets
-              </button>
-
-              <button 
                 onClick={() => setActiveTab('docs')} 
                 className={`tab-button ${activeTab === 'docs' ? 'active' : ''}`}
                 style={{ 
@@ -1452,16 +1435,20 @@ export default function CrmDashboard() {
                       </span>
                     </div>
 
-                    {/* Launch Google Voice Popup */}
-                    <button
-                      onClick={() => {
-                        window.open('https://voice.google.com', 'googleVoicePopup', 'width=450,height=650,menubar=no,toolbar=no,location=no,status=no');
-                      }}
-                      className="button highlight"
-                      style={{ fontSize: '0.8rem', padding: '8px', marginBottom: '8px', display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center' }}
-                    >
-                      <Phone size={14} /> Launch Google Voice
-                    </button>
+                    {/* Internal Dialer */}
+                    <div style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', marginBottom: '8px' }}>
+                      <h4 style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Phone size={12} /> Quick Dialer
+                      </h4>
+                      <form onSubmit={(e) => {
+                        e.preventDefault();
+                        const num = new FormData(e.currentTarget).get('number');
+                        if (num) window.location.href = `tel:${num}`;
+                      }} style={{ display: 'flex', gap: '6px' }}>
+                        <input type="tel" name="number" placeholder="(555) 555-5555" className="input-field" style={{ flex: 1, fontSize: '0.8rem', height: '32px', padding: '0 8px' }} />
+                        <button type="submit" className="button highlight" style={{ height: '32px', padding: '0 12px', fontSize: '0.75rem' }}>Call</button>
+                      </form>
+                    </div>
 
                     {/* Call logs */}
                     <div>
@@ -2021,11 +2008,6 @@ export default function CrmDashboard() {
                         <p style={{ fontSize: '0.8rem' }}>Select an email to view</p>
                       </div>
                     )}
-
-                    {/* Google Voice Iframe Sidebar */}
-                    <div className="tab-sidebar" style={{ width: '380px', display: 'flex', flexDirection: 'column', borderLeft: '1px solid var(--border-color)', paddingLeft: '16px' }}>
-                      <iframe src="https://voice.google.com" style={{ width: '100%', height: '100%', border: 'none', borderRadius: '8px', background: '#ffffff', minHeight: '400px' }} title="Google Voice View" />
-                    </div>
                   </div>
                 </div>
               )}
@@ -2195,8 +2177,26 @@ export default function CrmDashboard() {
 
               {activeTab === 'whatsapp' && (
                 <div className="tab-layout" style={{ height: '520px' }}>
-                  {/* WHATSAPP LIST */}
-                  <div className="tab-sidebar" style={{ width: '280px', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
+                  {!whatsappData.connected ? (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.15)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '32px', textAlign: 'center' }}>
+                      <MessageSquare size={48} style={{ color: '#25D366', marginBottom: '16px' }} />
+                      <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Connect WhatsApp Business</h3>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '400px', marginBottom: '24px', lineHeight: 1.5 }}>
+                        To sync WhatsApp messages directly into the Liberty CRM, link your WhatsApp Business API or scan the QR code to bridge your mobile device.
+                      </p>
+                      <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+                        <button className="button highlight" style={{ background: '#25D366', borderColor: '#25D366', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', fontSize: '0.8rem' }} onClick={() => alert('WhatsApp QR Scan integration pending backend setup.')}>
+                          <MessageSquare size={16} /> Show QR Code
+                        </button>
+                        <button className="button" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', fontSize: '0.8rem' }} onClick={() => alert('API Key setup pending backend.')}>
+                          <Settings size={16} /> Enter API Key
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* WHATSAPP LIST */}
+                      <div className="tab-sidebar" style={{ width: '280px', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
                     <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h3 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <MessageSquare size={14} style={{ color: '#25D366' }} /> WhatsApp Chats
@@ -2342,6 +2342,8 @@ export default function CrmDashboard() {
                       </div>
                     )}
                   </div>
+                </>
+              )}
                 </div>
               )}
 
