@@ -69,6 +69,34 @@ export async function PUT(
         });
       }
 
+      const { vehicleType, coverageArea } = body;
+
+      if (vehicleType || coverageArea) {
+        const doc = await prisma.document.findFirst({
+          where: { applicantId: params.id, name: 'Onboarding Material' }
+        });
+        
+        const currentEsignData = doc && doc.esignData ? JSON.parse(doc.esignData) : {};
+        if (vehicleType) currentEsignData.vehicleType = vehicleType;
+        if (coverageArea) currentEsignData.coverageArea = coverageArea;
+        
+        if (doc) {
+          await prisma.document.update({
+            where: { id: doc.id },
+            data: { esignData: JSON.stringify(currentEsignData) }
+          });
+        } else {
+          await prisma.document.create({
+            data: {
+              name: 'Onboarding Material',
+              applicantId: params.id,
+              status: 'PENDING',
+              esignData: JSON.stringify(currentEsignData)
+            }
+          });
+        }
+      }
+
       // Handle onboarding link generation and status updates
       if (docAction && docName) {
         const doc = await prisma.document.findFirst({
