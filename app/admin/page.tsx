@@ -1437,6 +1437,12 @@ export default function CrmDashboard() {
                         {voiceData.connected ? 'Live API' : 'Direct Dial'}
                       </span>
                     </div>
+                    
+                    {!voiceData.connected && voiceData.error && (
+                      <div style={{ padding: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '6px', color: '#fca5a5', fontSize: '0.7rem', marginBottom: '8px' }}>
+                        <strong>Voice Error:</strong> {voiceData.error}
+                      </div>
+                    )}
 
                     {/* Internal Dialer */}
                     <div style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', marginBottom: '8px' }}>
@@ -1730,7 +1736,7 @@ export default function CrmDashboard() {
                   <div className="tab-layout">
                     {/* Mail list */}
                     <div className="tab-sidebar" style={{ width: '350px', display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '420px', borderRight: '1px solid var(--border-color)', paddingRight: '16px' }}>
-                      {gmailData.emails?.filter((mail: any) => {
+                      {(gmailData.emails || []).filter((mail: any) => {
                         const blacklisted = (settingsForm.BLACKLISTED_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
                         return !mail.from || !blacklisted.includes(mail.from.toLowerCase());
                       }).map((mail: any) => {
