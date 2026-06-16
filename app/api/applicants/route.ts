@@ -51,13 +51,18 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, phone, email, source } = body;
+    const { name, phone, email, source, password } = body;
 
-    if (!name || !phone || !email) {
-      return NextResponse.json({ error: 'Name, phone, and email are required' }, { status: 400 });
+    if (!name || !phone || !email || !password) {
+      return NextResponse.json({ error: 'Name, phone, email, and password are required' }, { status: 400 });
     }
 
     try {
+      // Hash password
+      const bcrypt = require('bcryptjs');
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(password, salt);
+
       // Create the applicant, default documents, and initial note in a single transaction
       const applicant = await prisma.$transaction(async (tx) => {
         const appObj = await tx.applicant.create({
@@ -65,14 +70,15 @@ export async function POST(request: Request) {
             name,
             phone,
             email,
-            source: source || 'EMAIL',
+            passwordHash,
+            source: source || 'WEBSITE',
             status: 'NEW',
             availability: JSON.stringify({
               monday: [], tuesday: [], wednesday: [], thursday: [], friday: [], saturday: [], sunday: []
             }),
             notes: {
               create: {
-                content: `Applicant profile created. Source: ${source || 'EMAIL'}`,
+                content: `Applicant profile created via website.`,
               }
             },
             documents: {
@@ -97,10 +103,30 @@ export async function POST(request: Request) {
         console.error('Failed to sync to sheets in POST applicant:', err);
       }
 
-      return NextResponse.json(applicant);
+      // Auto login after sign up
+      const { SignJWT } = require('jose');
+      const JWT_SECRET = new TextEncoder().encode(
+        process.env.JWT_SECRET || 'liberty-dispatch-fallback-secret-32-chars-long'
+      );
+      const token = await new SignJWT({ sub: applicant.id, email: applicant.email, role: 'applicant' })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('7d')
+        .sign(JWT_SECRET);
+
+      const response = NextResponse.json(applicant);
+      response.cookies.set('applicant_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7 // 1 week
+      });
+
+      return response;
     } catch (error: any) {
       console.error('Prisma database connection failed during POST:', error);
-      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+      return NextResponse.json({ error: 'Database connection failed or email already registered' }, { status: 500 });
     }
   } catch (error: any) {
     console.error('Error handling POST applicant request:', error);
