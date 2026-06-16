@@ -2367,7 +2367,7 @@ export default function CrmDashboard() {
 
         {/* MAP MAIN VIEW */}
         {mainView === 'map' && (
-          <div style={{ display: 'flex', flex: 1, minHeight: 'calc(100vh - 200px)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+          <div style={{ display: 'flex', flex: 1, height: 'calc(100vh - 100px)', minHeight: '800px', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
             <DriverMap activeDrivers={applicants.filter(a => {
               // Show applicants who have a completed location/onboarding or are ACTIVE
               const docs = a.documents?.find((d: any) => d.name === 'Onboarding Material');
