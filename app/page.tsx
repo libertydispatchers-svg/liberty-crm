@@ -87,7 +87,7 @@ export default function LandingPage() {
       
       // Auto-logged in
       await fetchProfile();
-      setView('dashboard');
+      window.location.href = `/esign/${data.applicant.id}`;
     } catch (err: any) {
       setErrorMsg(err.message);
     } finally {
@@ -194,6 +194,25 @@ export default function LandingPage() {
               <LogOut size={16} /> Sign Out
             </button>
           </div>
+
+          {(() => {
+            const onboardDoc = profile.documents?.find((d: any) => d.name === 'Onboarding Material');
+            if (onboardDoc && onboardDoc.status !== 'SIGNED') {
+              return (
+                <div style={{ padding: '24px', background: 'rgba(239, 68, 68, 0.1)', borderBottom: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
+                  <h3 style={{ color: '#fca5a5', marginBottom: '12px', fontSize: '1.1rem' }}>⚠️ Onboarding Incomplete</h3>
+                  <p style={{ color: '#e2e8f0', marginBottom: '16px', fontSize: '0.9rem' }}>Please complete your onboarding questionnaire so we can approve your account.</p>
+                  <button 
+                    onClick={() => window.location.href = `/esign/${profile.id}`}
+                    style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    Complete Questionnaire Now
+                  </button>
+                </div>
+              );
+            }
+            return null;
+          })()}
 
           {/* Dashboard Form */}
           <form onSubmit={handleUpdateProfile} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>

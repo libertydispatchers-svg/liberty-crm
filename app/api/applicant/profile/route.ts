@@ -82,9 +82,7 @@ export async function PUT(request: Request) {
         await prisma.document.update({
           where: { id: onboardDoc.id },
           data: {
-            esignData: JSON.stringify(esignData),
-            status: 'SIGNED',
-            signedAt: new Date()
+            esignData: JSON.stringify(esignData)
           }
         });
       } else {
@@ -92,9 +90,8 @@ export async function PUT(request: Request) {
           data: {
             name: 'Onboarding Material',
             applicantId: payload.sub as string,
-            status: 'SIGNED',
-            esignData: JSON.stringify(esignData),
-            signedAt: new Date()
+            status: 'PENDING',
+            esignData: JSON.stringify(esignData)
           }
         });
       }
