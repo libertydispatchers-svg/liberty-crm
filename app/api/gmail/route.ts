@@ -174,3 +174,42 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const { to, subject, body } = await request.json();
+    if (!to || !subject || !body) {
+      return NextResponse.json({ error: 'Missing to, subject, or body fields' }, { status: 400 });
+    }
+
+    const gmail = getGmailClient();
+
+    // To send an email using the Gmail API, we need a base64url encoded RFC 2822 message
+    const messageParts = [
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      'Content-Type: text/plain; charset=utf-8',
+      'MIME-Version: 1.0',
+      '',
+      body
+    ];
+    const messageStr = messageParts.join('\n');
+    const encodedMessage = Buffer.from(messageStr)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    const res = await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: {
+        raw: encodedMessage
+      }
+    });
+
+    return NextResponse.json({ success: true, messageId: res.data.id });
+  } catch (error: any) {
+    console.error('Error sending Gmail message:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

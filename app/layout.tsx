@@ -23,7 +23,35 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              function loadTailorTalkWhatsAppWidget(callback) {
+                var script = document.createElement('script');
+                script.src = "https://plugins.tailortalk.ai/widget_whatsapp.js";
+                script.onload = callback;
+                document.head.appendChild(script);
+              }
+
+              loadTailorTalkWhatsAppWidget(function() {
+                window.TailorTalkWhatsApp && window.TailorTalkWhatsApp.init({
+                  "agentId": "public",
+                  "whatsappConfig": {
+                    "businessInfo": {
+                      "phoneNumber": "14106354001"
+                    },
+                    "buttonText": "DISPATCH",
+                    "welcomeMessage": "Hello"
+                  },
+                  "position": "right"
+                });
+              });
+            })();
+          `
+        }} />
+      </body>
     </html>
   );
 }

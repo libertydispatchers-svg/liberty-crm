@@ -117,6 +117,8 @@ export default function CrmDashboard() {
   const [editProfileForm, setEditProfileForm] = useState({ name: '', phone: '', email: '' });
   const [isSheetsExpanded, setIsSheetsExpanded] = useState(false);
   const [mainView, setMainView] = useState('crm'); // 'crm' | 'map' | 'sheets'
+  const [customEmailBody, setCustomEmailBody] = useState('');
+  const [sendingCustomEmail, setSendingCustomEmail] = useState(false);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -2004,6 +2006,56 @@ export default function CrmDashboard() {
                                       </button>
                                     </div>
                                   )}
+
+                                  {/* Custom Email Composer */}
+                                  <div style={{ marginTop: '12px', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '12px' }}>
+                                    <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                                      Draft Custom Email Reply:
+                                    </p>
+                                    <form onSubmit={async (e) => {
+                                      e.preventDefault();
+                                      if (!customEmailBody.trim()) return;
+                                      setSendingCustomEmail(true);
+                                      try {
+                                        const res = await fetch('/api/gmail', {
+                                          method: 'POST',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({
+                                            to: matchingApplicant.email,
+                                            subject: `Re: ${selectedEmail.subject || 'Your Inquiry'}`,
+                                            body: customEmailBody
+                                          })
+                                        });
+                                        if (res.ok) {
+                                          alert('Email sent successfully!');
+                                          setCustomEmailBody('');
+                                        } else {
+                                          const errData = await res.json();
+                                          alert(`Failed to send: ${errData.error}`);
+                                        }
+                                      } catch (err) {
+                                        console.error('Error sending custom email', err);
+                                        alert('Failed to send email due to a network error');
+                                      }
+                                      setSendingCustomEmail(false);
+                                    }}>
+                                      <textarea 
+                                        className="input-field" 
+                                        placeholder={`Compose an email directly to ${matchingApplicant.name}...`}
+                                        value={customEmailBody}
+                                        onChange={(e) => setCustomEmailBody(e.target.value)}
+                                        style={{ width: '100%', height: '80px', fontSize: '0.8rem', padding: '8px', marginBottom: '8px', resize: 'vertical' }}
+                                      />
+                                      <button 
+                                        type="submit" 
+                                        disabled={sendingCustomEmail || !customEmailBody.trim()}
+                                        className="button highlight" 
+                                        style={{ fontSize: '0.75rem', height: '30px', padding: '0 16px' }}
+                                      >
+                                        {sendingCustomEmail ? 'Sending...' : 'Send Custom Email'}
+                                      </button>
+                                    </form>
+                                  </div>
                                 </div>
                               );
                             } else {
