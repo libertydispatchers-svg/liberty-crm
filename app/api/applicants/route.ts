@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../lib/prisma';
 import { MOCK_APPLICANTS } from '../../../lib/mockApplicants';
+import bcrypt from 'bcryptjs';
+import { SignJWT } from 'jose';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,7 +61,6 @@ export async function POST(request: Request) {
 
     try {
       // Hash password
-      const bcrypt = require('bcryptjs');
       const salt = await bcrypt.genSalt(10);
       const passwordHash = await bcrypt.hash(password, salt);
 
@@ -104,7 +105,6 @@ export async function POST(request: Request) {
       }
 
       // Auto login after sign up
-      const { SignJWT } = require('jose');
       const JWT_SECRET = new TextEncoder().encode(
         process.env.JWT_SECRET || 'liberty-dispatch-fallback-secret-32-chars-long'
       );
