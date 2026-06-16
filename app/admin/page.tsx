@@ -468,12 +468,13 @@ export default function CrmDashboard() {
   };
 
   // Handle Inline Cell Editing
-  const handleCellSave = async (id: string, field: string) => {
+  const handleCellSave = async (id: string, field: string, forcedValue?: string) => {
+    const valToSave = forcedValue !== undefined ? forcedValue : (editingCell?.value || '');
     if (!editingCell || editingCell.id !== id || editingCell.field !== field) return;
     
     // Optimistically update the local state to match
     setApplicants(prev => prev.map(app => 
-      app.id === id ? { ...app, [field]: editingCell.value } : app
+      app.id === id ? { ...app, [field]: valToSave } : app
     ));
     setEditingCell(null);
 
@@ -2235,8 +2236,7 @@ export default function CrmDashboard() {
               <div style={{ overflowX: 'auto', flex: 1, overflowY: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem', color: '#111827' }}>
                   <thead style={{ background: '#f3f4f6', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                    <tr>
-                      {['#', 'ID', 'Name', 'Phone', 'Email', 'Status', 'Availability', 'Vehicle', 'Coverage Area', 'Applied Date'].map((header: string, idx: number) => (
+                      {['#', 'ID', 'Name', 'Phone', 'Email', 'Status', 'Availability', 'Vehicle', 'Coverage Area', 'Applied Date', 'Actions'].map((header: string, idx: number) => (
                         <th key={idx} style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', borderRight: '1px solid #e5e7eb', fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>
                           {header}
                         </th>
@@ -2293,37 +2293,117 @@ export default function CrmDashboard() {
                             />
                           ) : (row.email)}
                         </td>
-                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb' }}>
-                          <span style={{ 
-                            background: row.status === 'NEW' ? '#dbeafe' : row.status === 'ACTIVE' ? '#d1fae5' : '#f3f4f6', 
-                            color: row.status === 'NEW' ? '#1e40af' : row.status === 'ACTIVE' ? '#065f46' : '#374151',
-                            padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 
-                          }}>
-                            {row.status}
-                          </span>
+                        <td 
+                          style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', cursor: 'pointer' }}
+                          onClick={() => setEditingCell({ id: row.id, field: 'status', value: row.status })}
+                        >
+                          {editingCell?.id === row.id && editingCell?.field === 'status' ? (
+                            <select 
+                              autoFocus
+                              value={editingCell.value}
+                              onChange={e => {
+                                setEditingCell({ ...editingCell, value: e.target.value });
+                                handleCellSave(row.id, 'status', e.target.value);
+                              }}
+                              onBlur={() => handleCellSave(row.id, 'status')}
+                              style={{ width: '100%', padding: '4px', border: '1px solid var(--accent-color)', borderRadius: '4px', background: '#fff' }}
+                            >
+                              <option value="NEW">NEW</option>
+                              <option value="ACTIVE">ACTIVE</option>
+                              <option value="PENDING">PENDING</option>
+                              <option value="REJECTED">REJECTED</option>
+                            </select>
+                          ) : (
+                            <span style={{ 
+                              background: row.status === 'NEW' ? '#dbeafe' : row.status === 'ACTIVE' ? '#d1fae5' : '#f3f4f6', 
+                              color: row.status === 'NEW' ? '#1e40af' : row.status === 'ACTIVE' ? '#065f46' : '#374151',
+                              padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 
+                            }}>
+                              {row.status}
+                            </span>
+                          )}
                         </td>
-                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563', fontSize: '0.75rem' }}>
-                          {(() => {
+                        <td 
+                          style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563', fontSize: '0.75rem', cursor: 'pointer' }}
+                          onClick={() => {
                             const docs = row.documents?.find((d: any) => d.name === 'Onboarding Material');
                             const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
-                            return (esignData.availabilityDays || []).join(', ') || row.availability || '-';
-                          })()}
+                            setEditingCell({ id: row.id, field: 'availability', value: (esignData.availabilityDays || []).join(', ') || row.availability || '' });
+                          }}
+                        >
+                          {editingCell?.id === row.id && editingCell?.field === 'availability' ? (
+                            <input 
+                              autoFocus
+                              value={editingCell.value}
+                              onChange={e => setEditingCell({ ...editingCell, value: e.target.value })}
+                              onBlur={() => handleCellSave(row.id, 'availability')}
+                              onKeyDown={e => e.key === 'Enter' && handleCellSave(row.id, 'availability')}
+                              style={{ width: '100%', padding: '4px', border: '1px solid var(--accent-color)', borderRadius: '4px' }}
+                            />
+                          ) : (
+                            (() => {
+                              const docs = row.documents?.find((d: any) => d.name === 'Onboarding Material');
+                              const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
+                              return (esignData.availabilityDays || []).join(', ') || row.availability || '-';
+                            })()
+                          )}
                         </td>
-                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563', fontSize: '0.75rem' }}>
-                          {(() => {
+                        <td 
+                          style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563', fontSize: '0.75rem', cursor: 'pointer' }}
+                          onClick={() => {
                             const docs = row.documents?.find((d: any) => d.name === 'Onboarding Material');
                             const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
-                            return esignData.vehicleType || 'Unknown';
-                          })()}
+                            setEditingCell({ id: row.id, field: 'vehicleType', value: esignData.vehicleType || '' });
+                          }}
+                        >
+                          {editingCell?.id === row.id && editingCell?.field === 'vehicleType' ? (
+                            <input 
+                              autoFocus
+                              value={editingCell.value}
+                              onChange={e => setEditingCell({ ...editingCell, value: e.target.value })}
+                              onBlur={() => handleCellSave(row.id, 'vehicleType')}
+                              onKeyDown={e => e.key === 'Enter' && handleCellSave(row.id, 'vehicleType')}
+                              style={{ width: '100%', padding: '4px', border: '1px solid var(--accent-color)', borderRadius: '4px' }}
+                            />
+                          ) : (
+                            (() => {
+                              const docs = row.documents?.find((d: any) => d.name === 'Onboarding Material');
+                              const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
+                              return esignData.vehicleType || 'Unknown';
+                            })()
+                          )}
                         </td>
-                        <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563', fontSize: '0.75rem' }}>
-                          {(() => {
+                        <td 
+                          style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563', fontSize: '0.75rem', cursor: 'pointer' }}
+                          onClick={() => {
                             const docs = row.documents?.find((d: any) => d.name === 'Onboarding Material');
                             const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
-                            return (esignData.coverageAddress || esignData.coverageArea || 'Not specified') + (esignData.coverageRadius ? ` (${esignData.coverageRadius} mi)` : '');
-                          })()}
+                            setEditingCell({ id: row.id, field: 'coverageArea', value: (esignData.coverageAddress || esignData.coverageArea || '') + (esignData.coverageRadius ? ` (${esignData.coverageRadius} mi)` : '') });
+                          }}
+                        >
+                          {editingCell?.id === row.id && editingCell?.field === 'coverageArea' ? (
+                            <input 
+                              autoFocus
+                              value={editingCell.value}
+                              onChange={e => setEditingCell({ ...editingCell, value: e.target.value })}
+                              onBlur={() => handleCellSave(row.id, 'coverageArea')}
+                              onKeyDown={e => e.key === 'Enter' && handleCellSave(row.id, 'coverageArea')}
+                              style={{ width: '100%', padding: '4px', border: '1px solid var(--accent-color)', borderRadius: '4px' }}
+                            />
+                          ) : (
+                            (() => {
+                              const docs = row.documents?.find((d: any) => d.name === 'Onboarding Material');
+                              const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
+                              return (esignData.coverageAddress || esignData.coverageArea || 'Not specified') + (esignData.coverageRadius ? ` (${esignData.coverageRadius} mi)` : '');
+                            })()
+                          )}
                         </td>
                         <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563' }}>{row.appliedDate}</td>
+                        <td style={{ padding: '10px 16px', color: '#4b5563', textAlign: 'center' }}>
+                          <button onClick={(e) => handleDeleteApplicant(row.id, e)} className="button" style={{ padding: '6px', color: 'var(--status-rejected)' }} title="Delete Record">
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
