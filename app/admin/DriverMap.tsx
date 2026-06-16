@@ -69,7 +69,7 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
       for (const d of filteredDrivers) {
         const docs = d.documents?.find((doc: any) => doc.name === 'Onboarding Material');
         const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
-        const address = esignData.coverageAddress;
+        const address = esignData.coverageAddress || esignData.coverageArea;
         if (address && !newLocs[address] && !REGION_MAP[address]) {
           try {
             const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`);
@@ -94,7 +94,7 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
   return (
     <div style={{ 
       ...(isExpanded ? {
-        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, background: '#0f172a'
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, background: 'var(--bg-color)'
       } : {
         height: '100%', width: '100%', minHeight: '600px'
       }),
@@ -103,8 +103,8 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
       
       {/* Sidebar for driver list */}
       <div style={{ width: '300px', background: 'var(--panel-bg)', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border-color)', zIndex: 1000, flexShrink: 0 }}>
-        <div style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--border-color)' }}>
-          <h3 style={{ margin: 0, fontSize: '1rem', color: '#fff' }}>Driver Coverage Overview</h3>
+        <div style={{ padding: '16px', background: 'var(--glass-bg)', borderBottom: '1px solid var(--border-color)' }}>
+          <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>Driver Coverage Overview</h3>
           <p style={{ margin: '4px 0 12px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Overview of applicant regions</p>
           
           <button 
@@ -128,14 +128,14 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
             <select 
               value={areaFilter} 
               onChange={e => setAreaFilter(e.target.value)}
-              style={{ padding: '6px', borderRadius: '4px', background: 'var(--bg-color)', color: '#fff', border: '1px solid var(--control-border)', fontSize: '0.8rem' }}
+              style={{ padding: '6px', borderRadius: '4px', background: 'var(--control-bg)', color: 'var(--text-primary)', border: '1px solid var(--control-border)', fontSize: '0.8rem' }}
             >
               {areas.map(a => <option key={a} value={a}>{a === 'All' ? 'All Areas' : a}</option>)}
             </select>
             <select 
               value={vehicleFilter} 
               onChange={e => setVehicleFilter(e.target.value)}
-              style={{ padding: '6px', borderRadius: '4px', background: 'var(--bg-color)', color: '#fff', border: '1px solid var(--control-border)', fontSize: '0.8rem' }}
+              style={{ padding: '6px', borderRadius: '4px', background: 'var(--control-bg)', color: 'var(--text-primary)', border: '1px solid var(--control-border)', fontSize: '0.8rem' }}
             >
               {vehicles.map(v => <option key={v} value={v}>{v === 'All' ? 'All Vehicles' : v}</option>)}
             </select>
@@ -150,12 +150,12 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
             const radius = esignData.coverageRadius ? `${esignData.coverageRadius} Miles` : '';
             
             return (
-              <div key={driver.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', marginBottom: '8px', border: '1px solid var(--glass-border)' }}>
+              <div key={driver.id} style={{ padding: '12px', background: 'var(--control-bg)', borderRadius: '8px', marginBottom: '8px', border: '1px solid var(--glass-border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--accent-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 'bold' }}>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--navy-blue)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 'bold' }}>
                     {driver.name.charAt(0)}
                   </div>
-                  <strong style={{ fontSize: '0.85rem', color: '#fff' }}>{driver.name}</strong>
+                  <strong style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{driver.name}</strong>
                 </div>
                 <div style={{ paddingLeft: '32px' }}>
                   <p style={{ margin: '0 0 4px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
@@ -184,7 +184,7 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
         >
           <TileLayer
             attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url='https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+            url='https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
           />
           
           {filteredDrivers.map((driver, i) => {
