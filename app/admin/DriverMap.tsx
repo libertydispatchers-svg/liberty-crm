@@ -62,8 +62,8 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
       {/* Sidebar for driver list */}
       <div style={{ width: '300px', background: 'var(--panel-bg)', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border-color)', zIndex: 1000 }}>
         <div style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--border-color)' }}>
-          <h3 style={{ margin: 0, fontSize: '1rem', color: '#fff' }}>Active Drivers Coverage</h3>
-          <p style={{ margin: '4px 0 12px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Overview of driver regions</p>
+          <h3 style={{ margin: 0, fontSize: '1rem', color: '#fff' }}>Driver Coverage Overview</h3>
+          <p style={{ margin: '4px 0 12px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Overview of applicant regions</p>
           
           <button 
             onClick={() => setIsExpanded(!isExpanded)}
@@ -141,7 +141,7 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
         >
           <TileLayer
             attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url='https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+            url='https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
           />
           
           {filteredDrivers.map((driver, i) => {

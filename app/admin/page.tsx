@@ -807,13 +807,13 @@ export default function CrmDashboard() {
           </div>
 
           {/* New Map and Sheets Nav Cards */}
-          <div className="glass-panel" onClick={() => setMainView('map')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'map' ? 'rgba(59,130,246,0.1)' : 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--accent-cyan)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
-            <Map size={24} style={{ color: 'var(--accent-cyan)', marginBottom: '4px' }} />
-            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>Coverage Map</span>
+          <div className="glass-panel" onClick={() => setMainView('map')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'map' ? 'rgba(168,85,247,0.15)' : 'rgba(0,0,0,0.02)', borderTop: mainView === 'map' ? '2px solid #a855f7' : '2px solid rgba(168,85,247,0.3)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
+            <Map size={24} style={{ color: '#a855f7', marginBottom: '4px' }} />
+            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: mainView === 'map' ? '#c084fc' : 'var(--text-primary)' }}>Coverage Map</span>
           </div>
-          <div className="glass-panel" onClick={() => setMainView('sheets')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'sheets' ? 'rgba(16,185,129,0.1)' : 'rgba(0,0,0,0.02)', borderTop: '2px solid var(--status-active)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
-            <Database size={24} style={{ color: 'var(--status-active)', marginBottom: '4px' }} />
-            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>Google Sheets</span>
+          <div className="glass-panel" onClick={() => setMainView('sheets')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'sheets' ? 'rgba(15,157,88,0.15)' : 'rgba(0,0,0,0.02)', borderTop: mainView === 'sheets' ? '2px solid #0f9d58' : '2px solid rgba(15,157,88,0.3)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
+            <Database size={24} style={{ color: '#0f9d58', marginBottom: '4px' }} />
+            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: mainView === 'sheets' ? '#34d399' : 'var(--text-primary)' }}>Google Sheets</span>
           </div>
         </div>
 
@@ -2368,7 +2368,12 @@ export default function CrmDashboard() {
         {/* MAP MAIN VIEW */}
         {mainView === 'map' && (
           <div style={{ display: 'flex', flex: 1, minHeight: 'calc(100vh - 200px)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
-            <DriverMap activeDrivers={applicants.filter(a => a.status === 'ACTIVE')} />
+            <DriverMap activeDrivers={applicants.filter(a => {
+              // Show applicants who have a completed location/onboarding or are ACTIVE
+              const docs = a.documents?.find((d: any) => d.name === 'Onboarding Material');
+              const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
+              return a.status === 'ACTIVE' || (esignData.coverageArea && esignData.coverageArea !== '');
+            })} />
           </div>
         )}
 
