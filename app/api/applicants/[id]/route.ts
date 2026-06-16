@@ -164,7 +164,6 @@ export async function PUT(
               }
             }
           }
-          }
         }
       }
 
@@ -208,7 +207,7 @@ export async function PUT(
           });
           
           notesToCreate.push({
-            content: \`Sent approval welcome email to \${existing.email}\`
+            content: `Sent approval welcome email to ${existing.email}`
           });
         } catch (emailErr) {
           console.error('Failed to send approval HTML email via Gmail API', emailErr);
