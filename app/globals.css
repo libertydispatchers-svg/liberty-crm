@@ -112,7 +112,27 @@ a {
   .crm-grid { grid-template-columns: 300px 1fr; }
 }
 @media (max-width: 900px) {
-  .crm-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; }
+  .crm-grid { 
+    grid-template-columns: 1fr; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px;
+  }
+}
+
+.admin-header {
+  padding: 16px 32px;
+  display: flex;
+  justifyContent: space-between;
+  alignItems: center;
+}
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    padding: 12px 16px;
+    gap: 12px;
+    align-items: flex-start;
+  }
 }
 
 .crm-column {

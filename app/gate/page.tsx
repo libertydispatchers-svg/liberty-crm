@@ -36,8 +36,8 @@ function GateContent() {
     // Simulate network delay for premium feel and security
     setTimeout(() => {
       if (code === '6492') {
-        // Set cookie for 30 days
-        document.cookie = "liberty_gate=6492; path=/; max-age=2592000; SameSite=Strict; Secure";
+        // Set session cookie (expires when browser closes)
+        document.cookie = "liberty_gate=6492; path=/; SameSite=Strict; Secure";
         router.push(redirectTarget);
       } else {
         setErrorMsg('Invalid Authorization Passcode. Access Denied.');

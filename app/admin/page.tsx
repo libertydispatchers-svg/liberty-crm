@@ -684,14 +684,10 @@ export default function CrmDashboard() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Header Banner */}
-      <header style={{ 
+      <header className="admin-header" style={{ 
         borderBottom: '1px solid var(--border-color)', 
         background: 'rgba(255, 255, 255, 0.9)', 
         backdropFilter: 'blur(10px)',
-        padding: '16px 32px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
         position: 'sticky',
         top: 0,
         zIndex: 50
@@ -739,6 +735,16 @@ export default function CrmDashboard() {
           </button>
           <button onClick={() => fetchData()} className="button" style={{ padding: '8px 12px' }}>
             <RefreshCw size={14} className={loading ? 'spin-anim' : ''} />
+          </button>
+          <button 
+            onClick={() => {
+              document.cookie = "liberty_gate=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+              window.location.href = '/gate';
+            }} 
+            className="button" 
+            style={{ padding: '8px 12px', borderColor: 'var(--status-rejected)', color: 'var(--status-rejected)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Lock size={14} /> Lock CRM
           </button>
         </div>
       </header>
@@ -1721,15 +1727,6 @@ export default function CrmDashboard() {
                       <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{gmailData.emailAddress || 'recruit@libertydispatchers.com'}</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <button
-                        onClick={() => {
-                          window.open('https://voice.google.com', 'googleVoicePopup', 'width=450,height=650,menubar=no,toolbar=no,location=no,status=no');
-                        }}
-                        className="button highlight"
-                        style={{ fontSize: '0.75rem', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                      >
-                        <Phone size={12} /> Launch Voice Side-Plugin
-                      </button>
                       <span className={`status-tag ${gmailData.connected ? 'active' : 'contacted'}`} style={{ scale: '0.85' }}>
                         {gmailData.connected ? 'Google Live' : 'Disconnected'}
                       </span>
@@ -1742,7 +1739,7 @@ export default function CrmDashboard() {
                   )}
                   <div className="tab-layout">
                     {/* Mail list */}
-                    <div className="tab-sidebar" style={{ width: '280px', display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '420px', borderRight: '1px solid var(--border-color)', paddingRight: '16px' }}>
+                    <div className="tab-sidebar" style={{ width: '350px', display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '420px', borderRight: '1px solid var(--border-color)', paddingRight: '16px' }}>
                       {gmailData.emails?.map((mail: any) => {
                         const isSel = selectedEmail && selectedEmail.id === mail.id;
                         return (
@@ -1786,7 +1783,7 @@ export default function CrmDashboard() {
 
                     {/* Mail reader and actions */}
                     {selectedEmail ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: '300px' }}>
                         <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
                           <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>{selectedEmail.subject}</h4>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
@@ -2019,11 +2016,16 @@ export default function CrmDashboard() {
                         </div>
                       </div>
                     ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', minWidth: '300px' }}>
                         <Mail size={32} style={{ opacity: 0.2, marginBottom: '8px' }} />
                         <p style={{ fontSize: '0.8rem' }}>Select an email to view</p>
                       </div>
                     )}
+
+                    {/* Google Voice Iframe Sidebar */}
+                    <div className="tab-sidebar" style={{ width: '380px', display: 'flex', flexDirection: 'column', borderLeft: '1px solid var(--border-color)', paddingLeft: '16px' }}>
+                      <iframe src="https://voice.google.com" style={{ width: '100%', height: '100%', border: 'none', borderRadius: '8px', background: '#ffffff', minHeight: '400px' }} title="Google Voice View" />
+                    </div>
                   </div>
                 </div>
               )}
