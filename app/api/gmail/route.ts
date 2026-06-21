@@ -30,11 +30,11 @@ export async function GET(request: Request) {
     // Connect to live Gmail API
     const gmail = getGmailClient();
     
-    // Fetch last 25 emails from Inbox
+    // Fetch last 60 emails from Inbox
     const listRes = await gmail.users.messages.list({
       userId: 'me',
       q: 'label:INBOX',
-      maxResults: 25
+      maxResults: 60
     });
 
     const messages = listRes.data.messages || [];
@@ -52,8 +52,8 @@ export async function GET(request: Request) {
       console.warn('Failed to load blacklisted emails:', e);
     }
 
-    for (const msg of messages) {
-      if (!msg.id) continue;
+    const fetchDetails = messages.map(async (msg) => {
+      if (!msg.id) return null;
 
       const detail = await gmail.users.messages.get({
         userId: 'me',
@@ -106,8 +106,9 @@ export async function GET(request: Request) {
         senderNumber = phoneMatch ? phoneMatch[0] : '';
       }
 
-      emails.push({
+      return {
         id: msg.id,
+        threadId: msg.threadId,
         from: fromEmail,
         fromName: fromName || fromEmail,
         to: toHeader,
@@ -117,7 +118,12 @@ export async function GET(request: Request) {
         isGoogleVoice,
         type,
         senderNumber
-      });
+      };
+    });
+
+    const results = await Promise.all(fetchDetails);
+    for (const res of results) {
+      if (res) emails.push(res);
     }
 
     const spamFilters = [

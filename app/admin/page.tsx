@@ -277,6 +277,25 @@ export default function CrmDashboard() {
       });
       const data = await res.json();
       if (data.success) {
+        // Optimistic UI update
+        setSettingsForm(updatedSettings);
+        if (selectedEmail && selectedEmail.from.includes(email)) {
+          setSelectedEmail(null);
+        }
+
+        // Delete the corresponding spam applicant if they exist
+        const matchingApp = applicants.find(a => 
+          a.email.toLowerCase() === email.toLowerCase() || 
+          email.toLowerCase().includes(a.email.toLowerCase())
+        );
+        if (matchingApp) {
+          try {
+            await fetch(`/api/applicants/${matchingApp.id}`, { method: 'DELETE' });
+          } catch (delErr) {
+            console.error('Failed to auto-delete spam applicant', delErr);
+          }
+        }
+
         alert('Email marked as non-applicant and ignored successfully!');
         fetchSettings(); // Refresh settings state
         fetchData(); // Refresh UI/Gmail inbox
