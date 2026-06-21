@@ -283,7 +283,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Applicant deleted successfully' });
   } catch (error: any) {
-    console.warn('Prisma delete failed, returning simulated success:', error);
-    return NextResponse.json({ message: process.env.NODE_ENV === 'production' ? 'Applicant deleted successfully' : 'Applicant deleted successfully (Simulation Mode)' });
+    console.error('Prisma delete failed:', error);
+    return NextResponse.json({ error: error.message || 'Failed to delete applicant' }, { status: 500 });
   }
 }

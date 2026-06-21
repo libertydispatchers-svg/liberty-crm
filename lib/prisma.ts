@@ -18,11 +18,13 @@ if (!admin.apps.length) {
       }
     } else if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
       // Local development fallback
-      const fs = require('fs');
-      const localCreds = '/Users/STUDIO/.config/gcloud/application_default_credentials.json';
-      if (fs.existsSync(localCreds)) {
-        process.env.GOOGLE_APPLICATION_CREDENTIALS = localCreds;
-      }
+      try {
+        const fs = require('fs');
+        const localCreds = '/Users/STUDIO/.config/gcloud/application_default_credentials.json';
+        if (fs.existsSync(localCreds)) {
+          process.env.GOOGLE_APPLICATION_CREDENTIALS = localCreds;
+        }
+      } catch (err) {}
     }
   }
 
