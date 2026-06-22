@@ -2190,18 +2190,26 @@ export default function CrmDashboard() {
 
         {/* COMMS MAIN VIEW */}
         {mainView === 'comms' && (
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: 'calc(100vh - 100px)', minHeight: '800px', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', background: 'var(--panel-bg-solid)' }}>
-            <div style={{ padding: '12px 20px', background: 'var(--accent-color)', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 'bold' }}>Google Voice Communicator</span>
-              <a href="https://voice.google.com/messages" target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'underline', fontSize: '0.85rem' }}>
-                Open in new tab (if blocked)
-              </a>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: 'calc(100vh - 100px)', minHeight: '800px', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', background: 'var(--panel-bg-solid)', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ textAlign: 'center', maxWidth: '500px', padding: '40px', background: 'var(--glass-bg)', borderRadius: '16px', border: '1px solid var(--border-color)', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
+              <div style={{ width: '80px', height: '80px', background: 'rgba(59,130,246,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', color: '#3b82f6' }}>
+                <Phone size={40} />
+              </div>
+              <h2 style={{ fontSize: '1.5rem', marginBottom: '16px', color: 'var(--text-primary)' }}>Google Voice Comms</h2>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '32px' }}>
+                Google's security policies prevent Google Voice from being embedded inside other websites. To manage your calls and texts, open the communicator in a dedicated window.
+              </p>
+              <button 
+                onClick={() => {
+                  window.open('https://voice.google.com/messages', 'GoogleVoice', 'width=800,height=900,menubar=no,toolbar=no,location=no,status=no,popup=yes');
+                }}
+                className="button highlight"
+                style={{ width: '100%', padding: '16px', fontSize: '1.1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', border: 'none', color: 'white', borderRadius: '8px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(59,130,246,0.4)' }}
+              >
+                <MessageSquare size={20} />
+                Launch Google Voice App
+              </button>
             </div>
-            <iframe 
-              src="https://voice.google.com/messages" 
-              style={{ width: '100%', height: '100%', border: 'none' }}
-              title="Google Voice"
-            />
           </div>
         )}
 
