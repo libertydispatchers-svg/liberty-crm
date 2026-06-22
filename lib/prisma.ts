@@ -82,9 +82,15 @@ function removeUndefined(obj: any): any {
   return obj;
 }
 
-// Fetch all documents in a collection
-async function fetchCollectionDocs(collectionName: string): Promise<any[]> {
-  const snapshot = await db.collection(collectionName).get();
+// Fetch documents with optional where clauses
+async function fetchCollectionDocs(collectionName: string, queries: { field: string, operator: FirebaseFirestore.WhereFilterOp, value: any }[] = []): Promise<any[]> {
+  let ref: FirebaseFirestore.Query | FirebaseFirestore.CollectionReference = db.collection(collectionName);
+  for (const q of queries) {
+    if (q.value !== undefined && q.value !== null) {
+      ref = ref.where(q.field, q.operator, q.value);
+    }
+  }
+  const snapshot = await ref.get();
   return snapshot.docs.map(doc => {
     const data = convertTimestamps(doc.data());
     return {
@@ -135,7 +141,18 @@ async function resolveIncludes(items: any[], include: any) {
     if (!relValue) continue;
 
     if (relKey === 'notes') {
-      const allNotes = await fetchCollectionDocs('notes');
+      const applicantIds = items.map(i => i.id);
+      let allNotes: any[] = [];
+      if (applicantIds.length > 0) {
+        // Break into chunks of 10 for 'in' queries if needed, or fetch all if too many.
+        // For simplicity, fetch specific by id if single, else fetch all.
+        if (applicantIds.length === 1) {
+          allNotes = await fetchCollectionDocs('notes', [{ field: 'applicantId', operator: '==', value: applicantIds[0] }]);
+        } else {
+          allNotes = await fetchCollectionDocs('notes');
+        }
+      }
+
       for (const item of items) {
         let matchingNotes = allNotes.filter(n => n.applicantId === item.id);
         if (typeof relValue === 'object' && (relValue as any).orderBy) {
@@ -157,7 +174,15 @@ async function resolveIncludes(items: any[], include: any) {
     }
 
     if (relKey === 'documents') {
-      const allDocs = await fetchCollectionDocs('documents');
+      const applicantIds = items.map(i => i.id);
+      let allDocs: any[] = [];
+      if (applicantIds.length > 0) {
+        if (applicantIds.length === 1) {
+          allDocs = await fetchCollectionDocs('documents', [{ field: 'applicantId', operator: '==', value: applicantIds[0] }]);
+        } else {
+          allDocs = await fetchCollectionDocs('documents');
+        }
+      }
       for (const item of items) {
         item.documents = allDocs.filter(d => d.applicantId === item.id);
       }
@@ -228,6 +253,14 @@ function createCollectionAdapter(collectionName: string) {
     },
 
     findUnique: async (options: { where: any; include?: any }) => {
+      if (options.where && options.where.id) {
+        const docRef = await db.collection(collectionName).doc(options.where.id).get();
+        if (!docRef.exists) return null;
+        const found = { id: docRef.id, ...convertTimestamps(docRef.data()) };
+        const items = [found];
+        await resolveIncludes(items, options.include);
+        return items[0];
+      }
       const allDocs = await fetchCollectionDocs(collectionName);
       const found = allDocs.find(doc => evaluateWhere(doc, options.where));
       if (!found) return null;
@@ -237,6 +270,14 @@ function createCollectionAdapter(collectionName: string) {
     },
 
     findFirst: async (options: { where?: any; include?: any }) => {
+      if (options.where && options.where.id && Object.keys(options.where).length === 1) {
+        const docRef = await db.collection(collectionName).doc(options.where.id).get();
+        if (!docRef.exists) return null;
+        const found = { id: docRef.id, ...convertTimestamps(docRef.data()) };
+        const items = [found];
+        await resolveIncludes(items, options.include);
+        return items[0];
+      }
       const allDocs = await fetchCollectionDocs(collectionName);
       const found = allDocs.find(doc => evaluateWhere(doc, options.where));
       if (!found) return null;
