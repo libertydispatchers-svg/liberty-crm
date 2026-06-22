@@ -50,6 +50,9 @@ export async function POST(request: Request) {
     return response;
   } catch (error: any) {
     console.error('Login error:', error);
+    if (error.message && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('Quota'))) {
+      return NextResponse.json({ error: 'Your application is currently pending approval. Please check your email for updates.' }, { status: 403 });
+    }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
