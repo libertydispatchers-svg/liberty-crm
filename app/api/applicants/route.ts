@@ -151,6 +151,7 @@ export async function POST(request: Request) {
           body: JSON.stringify({
             from: 'Liberty Dispatchers <apply@libertydispatch.xyz>',
             to: [email],
+            reply_to: 'libertydispatchers@gmail.com',
             subject: 'Verify Email - Welcome to Liberty Dispatchers!',
             html: htmlBody
           })
