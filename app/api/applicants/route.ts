@@ -124,7 +124,6 @@ export async function POST(request: Request) {
 
       // Send Verification/Welcome Email
       try {
-        const gmail = getGmailClient();
         const htmlBody = `
         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b131e; color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #d7b55f;">
           <div style="text-align: center; margin-bottom: 24px;">
@@ -139,28 +138,35 @@ export async function POST(request: Request) {
           </div>
         </div>
         `;
-        const emailLines = [
-          `To: ${email}`,
-          `Subject: Verify Email - Welcome to Liberty Dispatchers!`,
-          `Content-Type: text/html; charset=utf-8`,
-          `MIME-Version: 1.0`,
-          ``,
-          htmlBody
-        ];
-        const rawEmail = Buffer.from(emailLines.join('\r\n'))
-          .toString('base64')
-          .replace(/\+/g, '-')
-          .replace(/\//g, '_')
-          .replace(/=+$/, '');
 
-        await gmail.users.messages.send({
-          userId: 'me',
-          requestBody: { raw: rawEmail }
+        const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_iYXGPDLy_D8qB1XdZeZjrMtGxFKZnukLa';
+
+        // Send to applicant
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${RESEND_API_KEY}`
+          },
+          body: JSON.stringify({
+            from: 'Liberty Dispatchers <apply@libertydispatch.xyz>',
+            to: [email],
+            subject: 'Verify Email - Welcome to Liberty Dispatchers!',
+            html: htmlBody
+          })
         });
 
         // 2. Send Admin Notification Email
-        const adminEmailResponse = await gmail.users.getProfile({ userId: 'me' }).catch(() => null);
-        const adminEmail = adminEmailResponse?.data?.emailAddress || 'libertydispatchers@gmail.com';
+        let adminEmail = 'libertydispatchers@gmail.com';
+        try {
+          const gmail = getGmailClient();
+          const adminEmailResponse = await gmail.users.getProfile({ userId: 'me' }).catch(() => null);
+          if (adminEmailResponse?.data?.emailAddress) {
+            adminEmail = adminEmailResponse.data.emailAddress;
+          }
+        } catch (e) {
+          // Fallback if Gmail fails
+        }
         
         const adminHtmlBody = `
         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
@@ -175,27 +181,23 @@ export async function POST(request: Request) {
           <p>Log in to the CRM Admin Dashboard to view their profile and onboarding status.</p>
         </div>
         `;
-        const adminEmailLines = [
-          `To: ${adminEmail}`,
-          `Subject: New Driver Signup: ${name}`,
-          `Content-Type: text/html; charset=utf-8`,
-          `MIME-Version: 1.0`,
-          ``,
-          adminHtmlBody
-        ];
-        const rawAdminEmail = Buffer.from(adminEmailLines.join('\r\n'))
-          .toString('base64')
-          .replace(/\+/g, '-')
-          .replace(/\//g, '_')
-          .replace(/=+$/, '');
 
-        await gmail.users.messages.send({
-          userId: 'me',
-          requestBody: { raw: rawAdminEmail }
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${RESEND_API_KEY}`
+          },
+          body: JSON.stringify({
+            from: 'Liberty Dispatchers <apply@libertydispatch.xyz>',
+            to: [adminEmail],
+            subject: `New Driver Signup: ${name}`,
+            html: adminHtmlBody
+          })
         });
 
       } catch (emailErr) {
-        console.error('Failed to send emails:', emailErr);
+        console.error('Failed to send emails via Resend:', emailErr);
       }
 
       // Auto login after sign up
