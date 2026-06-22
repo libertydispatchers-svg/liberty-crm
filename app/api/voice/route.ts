@@ -45,6 +45,7 @@ export async function GET(request: Request) {
     const messages = searchRes.data.messages || [];
     const threadsMap = new Map<string, any>();
     const callLogs: any[] = [];
+    const autoRespondedNumbers = new Set<string>();
 
     for (const msg of messages) {
       if (!msg.id) continue;
@@ -85,6 +86,57 @@ export async function GET(request: Request) {
         }
         messageType = subjectHeader.toLowerCase().includes('voicemail') ? 'Voicemail' : 'Missed Call';
 
+        // Auto-Responder Logic for completely new callers
+        if (applicantPhoneRaw && applicantPhoneRaw.length >= 10) {
+          const appExists = dbApplicants.find(a => a.phone.replace(/\D/g, '').endsWith(applicantPhoneRaw));
+          if (!appExists && !autoRespondedNumbers.has(applicantPhoneRaw)) {
+            autoRespondedNumbers.add(applicantPhoneRaw);
+            try {
+              // 1. Create stub applicant
+              const newApp = await prisma.applicant.create({
+                data: {
+                  name: `Voice Lead (${phone})`,
+                  phone: phone,
+                  email: '',
+                  status: 'NEW',
+                  source: 'VOICE'
+                }
+              });
+              dbApplicants.push(newApp);
+
+              // 2. Send Auto-Reply
+              const cleanVoicePhone = (process.env.DISPATCHER_PHONE_NUMBER || '4106354001').replace(/\D/g, '');
+              const routingAddress = `1${applicantPhoneRaw}.${cleanVoicePhone}@txt.voice.google.com`;
+              
+              const autoReplyText = "Thanks for contacting Liberty Dispatch! To start driving and get your onboarding info, please complete your application here: https://libertydispatch.xyz";
+              const emailLines = [
+                `To: ${routingAddress}`,
+                `Subject: Re: Auto-Reply`,
+                `Content-Type: text/plain; charset=utf-8`,
+                `MIME-Version: 1.0`,
+                ``,
+                autoReplyText
+              ];
+              const rawEmail = Buffer.from(emailLines.join('\r\n')).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+              
+              await gmail.users.messages.send({
+                userId: 'me',
+                requestBody: { raw: rawEmail }
+              });
+
+              // 3. Log Note
+              await prisma.note.create({
+                data: {
+                  content: `[AUTO-RESPONDER TRIGGERED] Sent onboarding link to new caller.`,
+                  applicantId: newApp.id
+                }
+              });
+            } catch (autoErr) {
+              console.error('Failed to run auto-responder for voice lead', autoErr);
+            }
+          }
+        }
+
         // Find matching applicant in DB for log
         const matchedApp = dbApplicants.find(a => a.phone.replace(/\D/g, '').endsWith(applicantPhoneRaw));
         const matchedAppName = matchedApp ? matchedApp.name : `Lead (${phone})`;
@@ -117,6 +169,54 @@ export async function GET(request: Request) {
         continue; // Voicemails/Missed Calls don't go into SMS threads
       } else {
         continue; // Ignore any other emails
+      }
+
+      // Auto-Responder Logic for completely new SMS
+      if (applicantPhoneRaw && applicantPhoneRaw.length >= 10) {
+        const appExists = dbApplicants.find(a => a.phone.replace(/\D/g, '').endsWith(applicantPhoneRaw));
+        if (!appExists && !autoRespondedNumbers.has(applicantPhoneRaw)) {
+          autoRespondedNumbers.add(applicantPhoneRaw);
+          try {
+            // 1. Create stub applicant
+            const newApp = await prisma.applicant.create({
+              data: {
+                name: `SMS Lead (${phone})`,
+                phone: phone,
+                email: '',
+                status: 'NEW',
+                source: 'VOICE'
+              }
+            });
+            dbApplicants.push(newApp);
+
+            // 2. Send Auto-Reply
+            const autoReplyText = "Thanks for contacting Liberty Dispatch! To start driving and get your onboarding info, please complete your application here: https://libertydispatch.xyz";
+            const emailLines = [
+              `To: ${fromEmail}`,
+              `Subject: Re: Auto-Reply`,
+              `Content-Type: text/plain; charset=utf-8`,
+              `MIME-Version: 1.0`,
+              ``,
+              autoReplyText
+            ];
+            const rawEmail = Buffer.from(emailLines.join('\r\n')).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            
+            await gmail.users.messages.send({
+              userId: 'me',
+              requestBody: { raw: rawEmail }
+            });
+
+            // 3. Log Note
+            await prisma.note.create({
+              data: {
+                content: `[AUTO-RESPONDER TRIGGERED] Sent onboarding link to new SMS lead.`,
+                applicantId: newApp.id
+              }
+            });
+          } catch (autoErr) {
+            console.error('Failed to run auto-responder for SMS lead', autoErr);
+          }
+        }
       }
 
       // Find matching applicant in DB for SMS thread

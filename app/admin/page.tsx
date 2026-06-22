@@ -358,10 +358,10 @@ export default function CrmDashboard() {
 
   useEffect(() => {
     fetchData();
-    // Auto-refresh data every 5 minutes to prevent Google API rate limits
+    // Auto-refresh data every 60 seconds to process auto-responder quickly
     const interval = setInterval(() => {
       fetchData();
-    }, 300000);
+    }, 60000);
     return () => clearInterval(interval);
   }, [searchQuery, statusFilter, sourceFilter]);
 
