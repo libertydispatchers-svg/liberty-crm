@@ -66,6 +66,7 @@ model Applicant {
   updatedAt    DateTime   @updatedAt
   documents    Document[]
   notes        Note[]
+  jobs         Job[]
 }
 
 model Note {
@@ -92,4 +93,18 @@ model Setting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+model Job {
+  id               String     @id @default(cuid())
+  title            String
+  company          String
+  pickupAddress    String
+  dropoffAddress   String
+  payout           String
+  status           String     @default("OPEN")
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  assignedDriverId String?
+  assignedDriver   Applicant? @relation(fields: [assignedDriverId], references: [id], onDelete: SetNull)
 }

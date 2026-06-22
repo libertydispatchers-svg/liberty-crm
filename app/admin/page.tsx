@@ -4,12 +4,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, Plus, Phone, MessageSquare, Mail, Database, FileText, 
   CheckCircle2, AlertCircle, Trash2, Send, Clock, User, 
-  ShieldCheck, RefreshCw, X, PhoneCall, Check, Calendar, ExternalLink, Settings, Map, Lock
+  ShieldCheck, RefreshCw, X, PhoneCall, Check, Calendar, ExternalLink, Settings, Map, Lock, Briefcase
 } from 'lucide-react';
 import { IS_PRODUCTION, BASE_URL } from '../../lib/config';
 import dynamic from 'next/dynamic';
 
 const DriverMap = dynamic(() => import('./DriverMap'), { ssr: false });
+const JobBoard = dynamic(() => import('./JobBoard'), { ssr: false });
 
 const getCookie = (name: string) => {
   if (typeof document === 'undefined') return '';
@@ -115,7 +116,7 @@ export default function CrmDashboard() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editProfileForm, setEditProfileForm] = useState({ name: '', phone: '', email: '' });
   const [isSheetsExpanded, setIsSheetsExpanded] = useState(false);
-  const [mainView, setMainView] = useState('crm'); // 'crm' | 'map' | 'sheets'
+  const [mainView, setMainView] = useState<'crm' | 'map' | 'sheets' | 'jobs'>('crm'); // 'crm' | 'map' | 'sheets' | 'jobs'
   const [customEmailBody, setCustomEmailBody] = useState('');
   const [sendingCustomEmail, setSendingCustomEmail] = useState(false);
   const [editingCell, setEditingCell] = useState<{ id: string, field: string, value: string } | null>(null);
@@ -870,10 +871,14 @@ export default function CrmDashboard() {
             </div>
           </div>
 
-          {/* New Map and Sheets Nav Cards */}
+          {/* New Map, Sheets, Jobs Nav Cards */}
           <div className="glass-panel" onClick={() => setMainView('map')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'map' ? 'rgba(168,85,247,0.15)' : 'rgba(0,0,0,0.02)', borderTop: mainView === 'map' ? '2px solid #a855f7' : '2px solid rgba(168,85,247,0.3)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
             <Map size={24} style={{ color: '#a855f7', marginBottom: '4px' }} />
             <span style={{ fontSize: '0.9rem', fontWeight: 700, color: mainView === 'map' ? '#c084fc' : 'var(--text-primary)' }}>Coverage Map</span>
+          </div>
+          <div className="glass-panel" onClick={() => setMainView('jobs')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'jobs' ? 'rgba(234,179,8,0.15)' : 'rgba(0,0,0,0.02)', borderTop: mainView === 'jobs' ? '2px solid #eab308' : '2px solid rgba(234,179,8,0.3)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
+            <Briefcase size={24} style={{ color: '#eab308', marginBottom: '4px' }} />
+            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: mainView === 'jobs' ? '#fde047' : 'var(--text-primary)' }}>Job Dispatch</span>
           </div>
           <div className="glass-panel" onClick={() => setMainView('sheets')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'sheets' ? 'rgba(15,157,88,0.15)' : 'rgba(0,0,0,0.02)', borderTop: mainView === 'sheets' ? '2px solid #0f9d58' : '2px solid rgba(15,157,88,0.3)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
             <Database size={24} style={{ color: '#0f9d58', marginBottom: '4px' }} />
@@ -2169,6 +2174,13 @@ export default function CrmDashboard() {
               const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
               return a.status === 'ACTIVE' || (esignData.coverageAddress && esignData.coverageAddress !== '') || (esignData.coverageArea && esignData.coverageArea !== '');
             })} />
+          </div>
+        )}
+
+        {/* JOBS MAIN VIEW */}
+        {mainView === 'jobs' && (
+          <div style={{ display: 'flex', flex: 1, height: 'calc(100vh - 100px)', minHeight: '800px', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', background: 'var(--panel-bg-solid)' }}>
+            <JobBoard activeDrivers={applicants.filter(a => a.status === 'ACTIVE')} />
           </div>
         )}
 

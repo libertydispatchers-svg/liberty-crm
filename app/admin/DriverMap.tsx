@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
+import { Maximize, Minimize } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -28,6 +29,16 @@ const REGION_MAP: Record<string, [number, number, number]> = {
 };
 
 const defaultPosition: [number, number] = [39.2904, -76.6122];
+
+function MapUpdater({ selectedDriver }: { selectedDriver: any }) {
+  const map = useMap();
+  useEffect(() => {
+    if (selectedDriver && selectedDriver.lat && selectedDriver.lng) {
+      map.flyTo([selectedDriver.lat, selectedDriver.lng], 12, { animate: true, duration: 1 });
+    }
+  }, [selectedDriver, map]);
+  return null;
+}
 
 export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
   const [selectedDriver, setSelectedDriver] = useState<any | null>(null);
@@ -107,23 +118,6 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
           <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>Driver Coverage Overview</h3>
           <p style={{ margin: '4px 0 12px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Overview of applicant regions</p>
           
-          <button 
-            onClick={() => setIsExpanded(!isExpanded)}
-            style={{ 
-              marginBottom: '12px', 
-              padding: '6px', 
-              fontSize: '0.8rem', 
-              background: 'var(--accent-color)', 
-              border: 'none', 
-              color: 'white', 
-              borderRadius: '4px',
-              cursor: 'pointer',
-              width: '100%'
-            }}
-          >
-            {isExpanded ? 'Collapse Map' : 'Expand Fullscreen'}
-          </button>
-
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <select 
               value={areaFilter} 
@@ -150,7 +144,26 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
             const radius = esignData.coverageRadius ? `${esignData.coverageRadius} Miles` : '';
             
             return (
-              <div key={driver.id} style={{ padding: '12px', background: 'var(--control-bg)', borderRadius: '8px', marginBottom: '8px', border: '1px solid var(--glass-border)' }}>
+              <div 
+                key={driver.id} 
+                onClick={() => {
+                  const lat = driver.lat || defaultPosition[0];
+                  const lng = driver.lng || defaultPosition[1];
+                  setSelectedDriver({ ...driver, lat, lng });
+                }}
+                style={{ 
+                  padding: '12px', 
+                  background: selectedDriver?.id === driver.id ? 'rgba(59, 130, 246, 0.1)' : 'var(--control-bg)', 
+                  borderRadius: '8px', 
+                  marginBottom: '8px', 
+                  border: selectedDriver?.id === driver.id ? '1px solid #3b82f6' : '1px solid var(--glass-border)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: selectedDriver?.id === driver.id ? '0 4px 12px rgba(0,0,0,0.1)' : 'none'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                   <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--navy-blue)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 'bold' }}>
                     {driver.name.charAt(0)}
@@ -186,6 +199,31 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
             attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
             url='https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
           />
+          <MapUpdater selectedDriver={selectedDriver} />
+          
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              zIndex: 1000,
+              background: '#fff',
+              border: '2px solid rgba(0,0,0,0.2)',
+              borderRadius: '4px',
+              width: '34px',
+              height: '34px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: '#333',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+            }}
+            title={isExpanded ? "Collapse Map" : "Expand Fullscreen"}
+          >
+            {isExpanded ? <Minimize size={18} /> : <Maximize size={18} />}
+          </button>
           
           {filteredDrivers.map((driver, i) => {
             const docs = driver.documents?.find((d: any) => d.name === 'Onboarding Material');
@@ -213,6 +251,10 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
               lng = rLng + (Math.cos(i * 10) * 0.01);
               if (!esignData.coverageRadius) radius = rRadius;
             }
+
+            // Save the computed lat/lng back to the driver object so the sidebar click can use it
+            driver.lat = lat;
+            driver.lng = lng;
 
             return (
               <div key={driver.id}>
