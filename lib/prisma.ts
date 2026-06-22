@@ -361,14 +361,13 @@ function createCollectionAdapter(collectionName: string) {
     },
 
     update: async (options: { where: any; data: any; include?: any }) => {
-      // Find document id
-      const allDocs = await fetchCollectionDocs(collectionName);
-      const found = allDocs.find(doc => evaluateWhere(doc, options.where));
-      if (!found) {
-        throw new Error(`Record to update not found in ${collectionName}`);
+      if (!options.where || !options.where.id) {
+        throw new Error(`Optimized update requires where.id`);
       }
+      const docId = options.where.id;
+      // We don't fetch to check if exists to save reads.
+      // Firestore update() fails if it doesn't exist, which is what we want.
 
-      const docId = found.id;
       const cleanData: any = {};
       const relationCreates: Array<{ collection: string; data: any }> = [];
 
@@ -403,14 +402,23 @@ function createCollectionAdapter(collectionName: string) {
         });
       }
 
-      const updatedDoc = { ...found, ...cleanData };
+      const updatedDoc = { id: docId, ...cleanData };
       const items = [updatedDoc];
       await resolveIncludes(items, options.include);
       return items[0];
     },
 
     updateMany: async (options: { where: any; data: any }) => {
-      const allDocs = await fetchCollectionDocs(collectionName);
+      const queries: any[] = [];
+      if (options.where) {
+        for (const [k, v] of Object.entries(options.where)) {
+          if (v !== undefined && v !== null && typeof v !== 'object') {
+            queries.push({ field: k, operator: '==', value: v });
+            break; // Only use ONE filter to avoid composite index requirements
+          }
+        }
+      }
+      const allDocs = await fetchCollectionDocs(collectionName, queries);
       const matching = allDocs.filter(doc => evaluateWhere(doc, options.where));
       
       const batch = db.batch();
@@ -427,7 +435,15 @@ function createCollectionAdapter(collectionName: string) {
     },
 
     upsert: async (options: { where: any; update: any; create: any }) => {
-      const allDocs = await fetchCollectionDocs(collectionName);
+      const queries: any[] = [];
+      if (options.where) {
+        for (const [k, v] of Object.entries(options.where)) {
+          if (v !== undefined && v !== null && typeof v !== 'object') {
+            queries.push({ field: k, operator: '==', value: v });
+          }
+        }
+      }
+      const allDocs = await fetchCollectionDocs(collectionName, queries);
       const found = allDocs.find(doc => evaluateWhere(doc, options.where));
       if (found) {
         const docRef = db.collection(collectionName).doc(found.id);
@@ -459,17 +475,23 @@ function createCollectionAdapter(collectionName: string) {
     },
 
     delete: async (options: { where: any }) => {
-      const allDocs = await fetchCollectionDocs(collectionName);
-      const found = allDocs.find(doc => evaluateWhere(doc, options.where));
-      if (!found) {
-        throw new Error(`Record to delete not found in ${collectionName}`);
+      if (!options.where || !options.where.id) {
+         throw new Error(`Optimized delete requires where.id`);
       }
-      await db.collection(collectionName).doc(found.id).delete();
-      return found;
+      await db.collection(collectionName).doc(options.where.id).delete();
+      return { id: options.where.id };
     },
 
     deleteMany: async (options: { where?: any } = {}) => {
-      const allDocs = await fetchCollectionDocs(collectionName);
+      const queries: any[] = [];
+      if (options.where) {
+        for (const [k, v] of Object.entries(options.where)) {
+          if (v !== undefined && v !== null && typeof v !== 'object') {
+            queries.push({ field: k, operator: '==', value: v });
+          }
+        }
+      }
+      const allDocs = await fetchCollectionDocs(collectionName, queries);
       const matching = options.where ? allDocs.filter(doc => evaluateWhere(doc, options.where)) : allDocs;
 
       const batch = db.batch();
@@ -482,7 +504,15 @@ function createCollectionAdapter(collectionName: string) {
     },
 
     count: async (options: { where?: any } = {}) => {
-      const allDocs = await fetchCollectionDocs(collectionName);
+      const queries: any[] = [];
+      if (options.where) {
+        for (const [k, v] of Object.entries(options.where)) {
+          if (v !== undefined && v !== null && typeof v !== 'object') {
+            queries.push({ field: k, operator: '==', value: v });
+          }
+        }
+      }
+      const allDocs = await fetchCollectionDocs(collectionName, queries);
       const matching = options.where ? allDocs.filter(doc => evaluateWhere(doc, options.where)) : allDocs;
       return matching.length;
     }
