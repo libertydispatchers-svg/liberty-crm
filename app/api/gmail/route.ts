@@ -79,7 +79,7 @@ export async function GET(request: Request) {
 
       // Check if email is in the blacklist
       if (blacklistedEmails.includes(fromEmail.toLowerCase())) {
-        continue;
+        return null;
       }
 
       // Read snippet/body

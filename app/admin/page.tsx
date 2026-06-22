@@ -2364,7 +2364,22 @@ export default function CrmDashboard() {
                             (() => {
                               const docs = row.documents?.find((d: any) => d.name === 'Onboarding Material');
                               const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
-                              return (esignData.availabilityDays || []).join(', ') || row.availability || '-';
+                              
+                              let availText = '';
+                              if (esignData.availabilityDays && esignData.availabilityDays.length > 0) {
+                                availText = esignData.availabilityDays.join(', ');
+                              } else if (row.availability) {
+                                try {
+                                  const parsed = JSON.parse(row.availability);
+                                  const days = Object.entries(parsed).filter(([k,v]:any) => v && v.length > 0).map(([k]) => k.charAt(0).toUpperCase() + k.slice(1));
+                                  if (days.length > 0) {
+                                    availText = days.join(', ');
+                                  }
+                                } catch(e) {
+                                  if (row.availability !== '{}') availText = row.availability;
+                                }
+                              }
+                              return availText || '-';
                             })()
                           )}
                         </td>
