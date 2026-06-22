@@ -60,6 +60,20 @@ export default function EsignPage({ params }: { params: { id: string } }) {
           const data = await res.json();
           setApplicant(data);
           
+          // Pre-fill if data already exists
+          const onboardDoc = data.documents?.find((d: any) => d.name === 'Onboarding Material');
+          if (onboardDoc?.esignData) {
+            try {
+              const parsed = JSON.parse(onboardDoc.esignData);
+              setIntakeForm(prev => ({
+                ...prev,
+                vehicleType: parsed.vehicleType || prev.vehicleType,
+                coverageArea: parsed.coverageAddress || parsed.coverageArea || prev.coverageArea,
+                desiredDistance: parsed.coverageRadius ? parsed.coverageRadius.toString() : prev.desiredDistance
+              }));
+            } catch (e) {}
+          }
+
           // If applicant is already active, show they already completed onboarding
           if (data.status === 'ACTIVE') {
             setSubmitted(true);

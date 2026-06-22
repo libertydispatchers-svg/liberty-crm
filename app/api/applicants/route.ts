@@ -135,7 +135,7 @@ export async function POST(request: Request) {
           <p>Welcome to Liberty Dispatchers! We've successfully received your initial registration.</p>
           <p>Please log in to your portal to complete your onboarding documents so we can get you approved and added to the grid.</p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://liberty-crm-736433125033.europe-west1.run.app" style="background: linear-gradient(135deg, #d7b55f 0%, #a8262a 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Access Your Portal</a>
+            <a href="https://libertydispatch.xyz" style="background: linear-gradient(135deg, #d7b55f 0%, #a8262a 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Access Your Portal</a>
           </div>
         </div>
         `;

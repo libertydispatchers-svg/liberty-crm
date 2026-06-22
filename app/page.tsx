@@ -87,7 +87,7 @@ export default function LandingPage() {
       
       // Auto-logged in
       await fetchProfile();
-      window.location.href = `/esign/${data.applicant.id}`;
+      window.location.href = `/esign/${data.id}`;
     } catch (err: any) {
       setErrorMsg(err.message);
     } finally {
