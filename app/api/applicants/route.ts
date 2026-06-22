@@ -63,10 +63,46 @@ export async function GET(request: Request) {
 
     return NextResponse.json(applicants);
   } catch (error: any) {
+    const isQuota = error?.message?.includes('RESOURCE_EXHAUSTED') || error?.message?.includes('Quota');
+    if (isQuota) {
+      // Firebase reads are exhausted — fall back to Google Sheets
+      try {
+        const { getSheetsClient } = require('../../../lib/google');
+        const sheets = getSheetsClient();
+        const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+        if (!spreadsheetId) throw new Error('No sheet id');
+        const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId });
+        const targetSheet = sheetMeta.data.sheets?.[0]?.properties?.title || 'Sheet1';
+        const res = await sheets.spreadsheets.values.get({
+          spreadsheetId,
+          range: `${targetSheet}!A2:I500`,
+        });
+        const rows: string[][] = res.data.values || [];
+        // Map sheet columns: A=row#, B=id, C=name, D=phone, E=email, F=status, G=source, H=availability, I=date
+        const applicants = rows
+          .filter((r: string[]) => r[1] && r[1].trim() !== '')
+          .map((r: string[]) => ({
+            id: r[1] || '',
+            name: r[2] || '',
+            phone: r[3] || '',
+            email: r[4] || '',
+            status: r[5] || 'NEW',
+            source: r[6] || 'WEBSITE',
+            notes: [],
+            documents: [],
+            createdAt: r[8] ? new Date(r[8]).toISOString() : new Date().toISOString(),
+          }));
+        return NextResponse.json(applicants);
+      } catch (sheetErr) {
+        console.error('Sheets fallback also failed:', sheetErr);
+      }
+      return NextResponse.json({ error: 'Database temporarily unavailable. Quota resets at midnight.' }, { status: 503 });
+    }
     console.error('Prisma database connection failed in applicants API:', error);
     return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
   }
 }
+
 
 export async function POST(request: Request) {
   try {
@@ -116,10 +152,18 @@ export async function POST(request: Request) {
       });
 
       try {
-        const { syncToSheets } = require('../../../lib/sheets');
-        await syncToSheets();
+        const { appendApplicantToSheets } = require('../../../lib/sheets');
+        await appendApplicantToSheets({
+          id: applicant.id,
+          name: applicant.name,
+          phone: applicant.phone,
+          email: applicant.email,
+          status: applicant.status,
+          source: applicant.source,
+          createdAt: applicant.createdAt,
+        });
       } catch (err) {
-        console.error('Failed to sync to sheets in POST applicant:', err);
+        console.error('Failed to append to sheets in POST applicant:', err);
       }
 
       // Send Verification/Welcome Email

@@ -75,6 +75,74 @@ export async function syncToSheets() {
   }
 }
 
+// Append a single applicant row directly — NO Firebase reads needed.
+// Used right after a new applicant signs up so quota exhaustion can't block it.
+export async function appendApplicantToSheets(applicant: {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  status: string;
+  source: string;
+  createdAt: Date;
+}) {
+  try {
+    const hasCreds =
+      process.env.GOOGLE_CLIENT_ID &&
+      process.env.GOOGLE_CLIENT_SECRET &&
+      process.env.GOOGLE_REFRESH_TOKEN &&
+      process.env.GOOGLE_SHEET_ID;
+
+    if (!hasCreds) {
+      console.warn('Google Sheets append skipped: missing environment variables.');
+      return false;
+    }
+
+    const sheets = getSheetsClient();
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID!;
+
+    const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId });
+    const targetSheet = sheetMeta.data.sheets?.[0]?.properties?.title || 'Sheet1';
+
+    // Make sure headers exist in row 1 (safe no-op if already there)
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `${targetSheet}!A1:I1`,
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [['Row #', 'Applicant ID', 'Full Name', 'Phone', 'Email', 'Status', 'Source', 'Availability Hours', 'Applied Date']]
+      }
+    });
+
+    // Append the new row at the bottom of the sheet
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: `${targetSheet}!A2:I2`,
+      valueInputOption: 'RAW',
+      insertDataOption: 'INSERT_ROWS',
+      requestBody: {
+        values: [[
+          '', // Row # — auto-numbered by order
+          applicant.id,
+          applicant.name,
+          applicant.phone,
+          applicant.email,
+          applicant.status,
+          applicant.source,
+          'None', // Availability not set yet at signup
+          new Date(applicant.createdAt).toLocaleDateString()
+        ]]
+      }
+    });
+
+    console.log(`Appended new applicant ${applicant.name} to Google Sheets.`);
+    return true;
+  } catch (error) {
+    console.error('Failed to append applicant to Google Sheets:', error);
+    return false;
+  }
+}
+
 export async function pullFromSheets() {
   try {
     const hasCreds = 
