@@ -157,8 +157,45 @@ export async function POST(request: Request) {
           userId: 'me',
           requestBody: { raw: rawEmail }
         });
+
+        // 2. Send Admin Notification Email
+        const adminEmailResponse = await gmail.users.getProfile({ userId: 'me' }).catch(() => null);
+        const adminEmail = adminEmailResponse?.data?.emailAddress || 'libertydispatchers@gmail.com';
+        
+        const adminHtmlBody = `
+        <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+          <h2 style="color: #a8262a;">New Driver Signup Alert 🚨</h2>
+          <p>A new applicant has just registered via the website.</p>
+          <ul>
+            <li><strong>Name:</strong> ${name}</li>
+            <li><strong>Phone:</strong> ${phone}</li>
+            <li><strong>Email:</strong> ${email}</li>
+            <li><strong>Source:</strong> ${source || 'WEBSITE'}</li>
+          </ul>
+          <p>Log in to the CRM Admin Dashboard to view their profile and onboarding status.</p>
+        </div>
+        `;
+        const adminEmailLines = [
+          `To: ${adminEmail}`,
+          `Subject: New Driver Signup: ${name}`,
+          `Content-Type: text/html; charset=utf-8`,
+          `MIME-Version: 1.0`,
+          ``,
+          adminHtmlBody
+        ];
+        const rawAdminEmail = Buffer.from(adminEmailLines.join('\r\n'))
+          .toString('base64')
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+$/, '');
+
+        await gmail.users.messages.send({
+          userId: 'me',
+          requestBody: { raw: rawAdminEmail }
+        });
+
       } catch (emailErr) {
-        console.error('Failed to send welcome email:', emailErr);
+        console.error('Failed to send emails:', emailErr);
       }
 
       // Auto login after sign up
