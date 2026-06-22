@@ -116,7 +116,7 @@ export default function CrmDashboard() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editProfileForm, setEditProfileForm] = useState({ name: '', phone: '', email: '' });
   const [isSheetsExpanded, setIsSheetsExpanded] = useState(false);
-  const [mainView, setMainView] = useState<'crm' | 'map' | 'sheets' | 'jobs'>('crm'); // 'crm' | 'map' | 'sheets' | 'jobs'
+  const [mainView, setMainView] = useState<'crm' | 'map' | 'sheets' | 'jobs' | 'comms'>('crm'); // 'crm' | 'map' | 'sheets' | 'jobs' | 'comms'
   const [customEmailBody, setCustomEmailBody] = useState('');
   const [sendingCustomEmail, setSendingCustomEmail] = useState(false);
   const [editingCell, setEditingCell] = useState<{ id: string, field: string, value: string } | null>(null);
@@ -871,7 +871,7 @@ export default function CrmDashboard() {
             </div>
           </div>
 
-          {/* New Map, Sheets, Jobs Nav Cards */}
+          {/* New Map, Sheets, Jobs, Comms Nav Cards */}
           <div className="glass-panel" onClick={() => setMainView('map')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'map' ? 'rgba(168,85,247,0.15)' : 'rgba(0,0,0,0.02)', borderTop: mainView === 'map' ? '2px solid #a855f7' : '2px solid rgba(168,85,247,0.3)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
             <Map size={24} style={{ color: '#a855f7', marginBottom: '4px' }} />
             <span style={{ fontSize: '0.9rem', fontWeight: 700, color: mainView === 'map' ? '#c084fc' : 'var(--text-primary)' }}>Coverage Map</span>
@@ -879,6 +879,10 @@ export default function CrmDashboard() {
           <div className="glass-panel" onClick={() => setMainView('jobs')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'jobs' ? 'rgba(234,179,8,0.15)' : 'rgba(0,0,0,0.02)', borderTop: mainView === 'jobs' ? '2px solid #eab308' : '2px solid rgba(234,179,8,0.3)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
             <Briefcase size={24} style={{ color: '#eab308', marginBottom: '4px' }} />
             <span style={{ fontSize: '0.9rem', fontWeight: 700, color: mainView === 'jobs' ? '#fde047' : 'var(--text-primary)' }}>Job Dispatch</span>
+          </div>
+          <div className="glass-panel" onClick={() => setMainView('comms')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'comms' ? 'rgba(59,130,246,0.15)' : 'rgba(0,0,0,0.02)', borderTop: mainView === 'comms' ? '2px solid #3b82f6' : '2px solid rgba(59,130,246,0.3)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
+            <Phone size={24} style={{ color: '#3b82f6', marginBottom: '4px' }} />
+            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: mainView === 'comms' ? '#60a5fa' : 'var(--text-primary)' }}>Voice Comms</span>
           </div>
           <div className="glass-panel" onClick={() => setMainView('sheets')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px', background: mainView === 'sheets' ? 'rgba(15,157,88,0.15)' : 'rgba(0,0,0,0.02)', borderTop: mainView === 'sheets' ? '2px solid #0f9d58' : '2px solid rgba(15,157,88,0.3)', transition: 'all 0.2s', justifyContent: 'center', alignItems: 'center' }}>
             <Database size={24} style={{ color: '#0f9d58', marginBottom: '4px' }} />
@@ -2184,6 +2188,23 @@ export default function CrmDashboard() {
           </div>
         )}
 
+        {/* COMMS MAIN VIEW */}
+        {mainView === 'comms' && (
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: 'calc(100vh - 100px)', minHeight: '800px', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', background: 'var(--panel-bg-solid)' }}>
+            <div style={{ padding: '12px 20px', background: 'var(--accent-color)', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 'bold' }}>Google Voice Communicator</span>
+              <a href="https://voice.google.com/messages" target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'underline', fontSize: '0.85rem' }}>
+                Open in new tab (if blocked)
+              </a>
+            </div>
+            <iframe 
+              src="https://voice.google.com/messages" 
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              title="Google Voice"
+            />
+          </div>
+        )}
+
         {/* SHEETS MAIN VIEW */}
         {mainView === 'sheets' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '720px', padding: '24px', background: 'var(--panel-bg-solid)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
@@ -2446,7 +2467,16 @@ export default function CrmDashboard() {
                           )}
                         </td>
                         <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb', color: '#4b5563' }}>{row.appliedDate}</td>
-                        <td style={{ padding: '10px 16px', color: '#4b5563', textAlign: 'center' }}>
+                        <td style={{ padding: '10px 16px', color: '#4b5563', textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                          <a href={`tel:${row.phone.replace(/[^0-9+]/g, '')}`} style={{ padding: '6px', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', background: 'rgba(16,185,129,0.1)' }} title="Call Driver">
+                            <Phone size={14} />
+                          </a>
+                          <a href={`sms:${row.phone.replace(/[^0-9+]/g, '')}`} style={{ padding: '6px', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', background: 'rgba(59,130,246,0.1)' }} title="Text Driver">
+                            <MessageSquare size={14} />
+                          </a>
+                          <a href={`mailto:${row.email}`} style={{ padding: '6px', color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', background: 'rgba(99,102,241,0.1)' }} title="Email Driver">
+                            <Mail size={14} />
+                          </a>
                           <button onClick={(e) => handleDeleteApplicant(row.id, e)} className="button" style={{ padding: '6px', color: 'var(--status-rejected)' }} title="Delete Record">
                             <Trash2 size={16} />
                           </button>

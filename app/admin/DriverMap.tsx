@@ -28,7 +28,7 @@ const REGION_MAP: Record<string, [number, number, number]> = {
   'Metro': [39.2904, -76.6122, 25000], // Huge radius for full metro
 };
 
-const defaultPosition: [number, number] = [39.2904, -76.6122];
+const defaultPosition: [number, number] = [40.7128, -74.0060]; // New York
 
 function MapUpdater({ selectedDriver }: { selectedDriver: any }) {
   const map = useMap();
