@@ -166,24 +166,82 @@ export async function POST(request: Request) {
 
       // Send Email Verification Magic Link
       try {
-        const verifyUrl = `https://libertydispatch.xyz/verify-email?token=${applicant.verificationToken}&id=${applicant.id}`;
+        const verifyUrl = `https://libertydispatch.xyz/api/auth/verify?token=${(applicant as any).verificationToken}&id=${applicant.id}`;
         const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_iYXGPDLy_D8qB1XdZeZjrMtGxFKZnukLa';
 
-        const htmlBody = `
-        <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b131e; color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #d7b55f;">
-          <div style="text-align: center; margin-bottom: 24px;">
-            <h1 style="color: #ffffff; margin: 0;">Liberty Dispatchers</h1>
-          </div>
-          <h2 style="color: #d7b55f; text-align: center;">Confirm Your Email Address</h2>
-          <p>Hi ${name},</p>
-          <p>Thanks for applying! One quick step — please confirm your email address to unlock your onboarding documents.</p>
-          <p>This link expires in <strong>24 hours</strong>.</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${verifyUrl}" style="background: linear-gradient(135deg, #d7b55f 0%, #a8262a 100%); color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 1rem;">✅ Verify My Email &amp; Start Onboarding</a>
-          </div>
-          <p style="font-size: 0.85rem; color: #94a3b8;">If you didn't sign up, you can safely ignore this email.</p>
-        </div>
-        `;
+        const htmlBody = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0f172a;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;padding:32px 16px;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#0b131e;border-radius:14px;border:1px solid #d7b55f;overflow:hidden;font-family:'Helvetica Neue',Arial,sans-serif;">
+      
+      <!-- Header with logo -->
+      <tr>
+        <td style="background:linear-gradient(135deg,#0b131e 0%,#1a2332 100%);padding:28px 30px;text-align:center;border-bottom:2px solid #d7b55f;">
+          <img src="https://libertydispatch.xyz/logo.png" alt="Liberty Dispatchers" style="max-height:60px;max-width:220px;object-fit:contain;display:block;margin:0 auto;" />
+        </td>
+      </tr>
+
+      <!-- Body -->
+      <tr>
+        <td style="padding:32px 36px;color:#f8fafc;">
+          <h2 style="color:#d7b55f;margin:0 0 10px;font-size:1.4rem;text-align:center;">Confirm Your Email Address</h2>
+          <p style="color:#94a3b8;text-align:center;margin:0 0 28px;font-size:0.9rem;">One quick step to unlock your driver application</p>
+          
+          <p style="color:#cbd5e1;margin:0 0 6px;">Hi <strong style="color:#fff;">${name}</strong>,</p>
+          <p style="color:#94a3b8;line-height:1.7;margin:0 0 28px;">
+            Thanks for applying to Liberty Dispatchers! Click the button below to verify your email and access your onboarding documents. This link expires in <strong style="color:#d7b55f;">24 hours</strong>.
+          </p>
+
+          <!-- CTA Button -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+            <tr>
+              <td align="center">
+                <a href="${verifyUrl}" style="display:inline-block;background:linear-gradient(135deg,#d7b55f 0%,#a8262a 100%);color:#ffffff;padding:15px 36px;text-decoration:none;border-radius:8px;font-weight:800;font-size:1rem;letter-spacing:0.02em;">
+                  ✅ Verify My Email &amp; Start Onboarding
+                </a>
+              </td>
+            </tr>
+          </table>
+
+          <!-- What to expect -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-bottom:24px;">
+            <tr><td style="padding:16px 20px;">
+              <p style="color:#d7b55f;font-weight:700;margin:0 0 12px;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;">What happens next</p>
+              <table cellpadding="0" cellspacing="0">
+                <tr><td style="padding:4px 0;color:#94a3b8;font-size:0.88rem;">📋 &nbsp;Review and sign your Driver Agreement</td></tr>
+                <tr><td style="padding:4px 0;color:#94a3b8;font-size:0.88rem;">📍 &nbsp;Set your coverage area and availability</td></tr>
+                <tr><td style="padding:4px 0;color:#94a3b8;font-size:0.88rem;">🚗 &nbsp;Tell us about your vehicle and experience</td></tr>
+                <tr><td style="padding:4px 0;color:#94a3b8;font-size:0.88rem;">🎉 &nbsp;Get added to the dispatch grid!</td></tr>
+              </table>
+            </td></tr>
+          </table>
+
+          <!-- Fallback link -->
+          <p style="color:#64748b;font-size:0.78rem;line-height:1.6;margin:0;">
+            If the button doesn't work, copy and paste this link into your browser:<br>
+            <a href="${verifyUrl}" style="color:#d7b55f;word-break:break-all;">${verifyUrl}</a>
+          </p>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="padding:18px 36px;border-top:1px solid rgba(255,255,255,0.07);text-align:center;">
+          <p style="margin:0;font-size:0.75rem;color:#475569;">
+            Liberty Dispatchers &nbsp;·&nbsp; <a href="mailto:apply@libertydispatch.xyz" style="color:#64748b;text-decoration:none;">apply@libertydispatch.xyz</a>
+          </p>
+          <p style="margin:6px 0 0;font-size:0.7rem;color:#334155;">If you didn't sign up for Liberty Dispatchers, you can safely ignore this email.</p>
+        </td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
 
         // Send verification email to applicant
         await fetch('https://api.resend.com/emails', {
