@@ -4,6 +4,7 @@ import { MOCK_APPLICANTS } from '../../../lib/mockApplicants';
 import bcrypt from 'bcryptjs';
 import { SignJWT } from 'jose';
 import { getGmailClient } from '../../../lib/google';
+import { randomBytes } from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -123,6 +124,8 @@ export async function POST(request: Request) {
             passwordHash,
             source: source || 'WEBSITE',
             status: 'NEW',
+            emailVerified: false,
+            verificationToken: randomBytes(32).toString('hex'),
             availability: JSON.stringify({
               monday: [], tuesday: [], wednesday: [], thursday: [], friday: [], saturday: [], sunday: []
             }),
@@ -161,37 +164,36 @@ export async function POST(request: Request) {
         console.error('Failed to append to sheets in POST applicant:', err);
       }
 
-      // Send Verification/Welcome Email
+      // Send Email Verification Magic Link
       try {
+        const verifyUrl = `https://libertydispatch.xyz/verify-email?token=${applicant.verificationToken}&id=${applicant.id}`;
+        const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_iYXGPDLy_D8qB1XdZeZjrMtGxFKZnukLa';
+
         const htmlBody = `
         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b131e; color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #d7b55f;">
           <div style="text-align: center; margin-bottom: 24px;">
             <h1 style="color: #ffffff; margin: 0;">Liberty Dispatchers</h1>
           </div>
-          <h2 style="color: #d7b55f; text-align: center;">Verify Your Email & Complete Onboarding</h2>
+          <h2 style="color: #d7b55f; text-align: center;">Confirm Your Email Address</h2>
           <p>Hi ${name},</p>
-          <p>Welcome to Liberty Dispatchers! We've successfully received your initial registration.</p>
-          <p>Please log in to your portal to complete your onboarding documents so we can get you approved and added to the grid.</p>
+          <p>Thanks for applying! One quick step — please confirm your email address to unlock your onboarding documents.</p>
+          <p>This link expires in <strong>24 hours</strong>.</p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://libertydispatch.xyz" style="background: linear-gradient(135deg, #d7b55f 0%, #a8262a 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Access Your Portal</a>
+            <a href="${verifyUrl}" style="background: linear-gradient(135deg, #d7b55f 0%, #a8262a 100%); color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 1rem;">✅ Verify My Email &amp; Start Onboarding</a>
           </div>
+          <p style="font-size: 0.85rem; color: #94a3b8;">If you didn't sign up, you can safely ignore this email.</p>
         </div>
         `;
 
-        const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_iYXGPDLy_D8qB1XdZeZjrMtGxFKZnukLa';
-
-        // Send to applicant
+        // Send verification email to applicant
         await fetch('https://api.resend.com/emails', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${RESEND_API_KEY}`
-          },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_API_KEY}` },
           body: JSON.stringify({
             from: 'Liberty Dispatchers <apply@libertydispatch.xyz>',
             to: [email],
             reply_to: 'libertydispatchers@gmail.com',
-            subject: 'Verify Email - Welcome to Liberty Dispatchers!',
+            subject: '✅ Confirm your email — Liberty Dispatchers',
             html: htmlBody
           })
         });

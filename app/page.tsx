@@ -85,9 +85,8 @@ export default function LandingPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to register');
       
-      // Auto-logged in
-      await fetchProfile();
-      window.location.href = `/esign/${data.id}`;
+      // Redirect to email verification holding page
+      window.location.href = '/verify-email';
     } catch (err: any) {
       setErrorMsg(err.message);
     } finally {
