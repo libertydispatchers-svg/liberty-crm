@@ -103,7 +103,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, phone, email, source, password } = body;
+    const { name, phone, whatsapp, email, source, password } = body;
 
     if (!name || !phone || !email || !password) {
       return NextResponse.json({ error: 'Name, phone, email, and password are required' }, { status: 400 });
@@ -120,6 +120,7 @@ export async function POST(request: Request) {
           data: {
             name,
             phone,
+            whatsapp: whatsapp || null,
             email,
             passwordHash,
             source: source || 'WEBSITE',

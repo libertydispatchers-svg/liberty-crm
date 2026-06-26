@@ -1,24 +1,120 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { User, LogOut, CheckCircle, MapPin, Truck, Phone, Mail } from 'lucide-react';
+import { User, LogOut, CheckCircle, MapPin, Truck, Phone, Mail, Globe } from 'lucide-react';
 
 const MiniMap = dynamic(() => import('./components/MiniMap'), { ssr: false });
+
+// ── Language definitions ──────────────────────────────────────────────────────
+const LANGUAGES = [
+  { code: 'en',  label: 'English',    flag: '🇺🇸', dir: 'ltr' },
+  { code: 'es',  label: 'Español',    flag: '🇪🇸', dir: 'ltr' },
+  { code: 'ar',  label: 'عربي',       flag: '🇸🇦', dir: 'rtl' },
+  { code: 'fr',  label: 'Français',   flag: '🇭🇹', dir: 'ltr' },  // Haitian Creole/French
+  { code: 'zh',  label: '中文',        flag: '🇨🇳', dir: 'ltr' },
+  { code: 'bn',  label: 'বাংলা',       flag: '🇧🇩', dir: 'ltr' },
+  { code: 'he',  label: 'עברית',      flag: '🇮🇱', dir: 'rtl' },
+  { code: 'am',  label: 'አማርኛ',       flag: '🇪🇹', dir: 'ltr' },
+  { code: 'yo',  label: 'Yorùbá',     flag: '🇳🇬', dir: 'ltr' },
+  { code: 'ru',  label: 'Русский',    flag: '🇷🇺', dir: 'ltr' },
+];
+
+const T: Record<string, Record<string, string>> = {
+  tagline: {
+    en: 'Bringing true liberty to the courier lifestyle. Join the dispatch revolution and take control of your route.',
+    es: 'Libertad real para el estilo de vida del mensajero. Únete a la revolución del despacho.',
+    ar: 'أحضر الحرية الحقيقية لأسلوب حياة الساعي. انضم إلى ثورة الإرسال.',
+    fr: 'La vraie liberté pour le style de vie du coursier. Rejoignez la révolution.',
+    zh: '为快递员带来真正的自由。加入调度革命，掌控你的路线。',
+    bn: 'কুরিয়ার জীবনধারায় সত্যিকারের স্বাধীনতা। ডিসপ্যাচ বিপ্লবে যোগ দিন।',
+    he: 'חירות אמיתית לחיי השליח. הצטרף למהפכת השיגור.',
+    am: 'ለኩሪየር ኑሮ እውነተኛ ነጻነት። የላኪ አብዮቱን ይቀላቀሉ።',
+    yo: 'Ominira gidi fun igbesi aye olufin. Darapọ mọ iyipada fifiranṣẹ.',
+    ru: 'Настоящая свобода для курьера. Присоединяйтесь к революции диспетчеризации.',
+  },
+  applyBtn: {
+    en: 'Apply Now', es: 'Aplicar Ahora', ar: 'قدم الآن', fr: 'Postuler',
+    zh: '立即申请', bn: 'এখন আবেদন করুন', he: 'הגש עכשיו', am: 'አሁን ያመልክቱ', yo: 'Wọle Bayi', ru: 'Подать заявку',
+  },
+  signIn: {
+    en: 'Sign In', es: 'Iniciar Sesión', ar: 'تسجيل الدخول', fr: 'Connexion',
+    zh: '登录', bn: 'সাইন ইন', he: 'כניסה', am: 'ግባ', yo: 'Wọle', ru: 'Войти',
+  },
+  fullName: {
+    en: 'Full Name', es: 'Nombre Completo', ar: 'الاسم الكامل', fr: 'Nom Complet',
+    zh: '全名', bn: 'পুরো নাম', he: 'שם מלא', am: 'ሙሉ ስም', yo: 'Orukọ Ni kikun', ru: 'Полное имя',
+  },
+  phone: {
+    en: 'Phone Number', es: 'Número de Teléfono', ar: 'رقم الهاتف', fr: 'Numéro de Téléphone',
+    zh: '电话号码', bn: 'ফোন নম্বর', he: 'מספר טלפון', am: 'ስልክ ቁጥር', yo: 'Nọmba Foonu', ru: 'Номер телефона',
+  },
+  whatsapp: {
+    en: 'WhatsApp Number (optional)', es: 'Número de WhatsApp (opcional)', ar: 'رقم واتساب (اختياري)',
+    fr: 'Numéro WhatsApp (optionnel)', zh: 'WhatsApp 号码（可选）', bn: 'হোয়াটসঅ্যাপ নম্বর (ঐচ্ছিক)',
+    he: 'מספר וואטסאפ (אופציונלי)', am: 'የዋትስአፕ ቁጥር (አማራጭ)', yo: 'Nọmba WhatsApp (aṣayan)', ru: 'Номер WhatsApp (необязательно)',
+  },
+  email: {
+    en: 'Email Address', es: 'Correo Electrónico', ar: 'البريد الإلكتروني', fr: 'Adresse e-mail',
+    zh: '电子邮件', bn: 'ইমেইল ঠিকানা', he: 'כתובת אימייל', am: 'ኢሜይል አድራሻ', yo: 'Àdírẹ́sì Ímeèlì', ru: 'Электронная почта',
+  },
+  password: {
+    en: 'Create Password', es: 'Crear Contraseña', ar: 'إنشاء كلمة مرور', fr: 'Créer un mot de passe',
+    zh: '创建密码', bn: 'পাসওয়ার্ড তৈরি করুন', he: 'צור סיסמה', am: 'የይለፍ ቃል ፍጠር', yo: 'Ṣẹda Ọrọ Aṣina', ru: 'Создать пароль',
+  },
+  submit: {
+    en: 'Submit Application', es: 'Enviar Solicitud', ar: 'تقديم الطلب', fr: 'Soumettre',
+    zh: '提交申请', bn: 'আবেদন জমা দিন', he: 'שלח בקשה', am: 'ማመልከቻ ያስገቡ', yo: 'Fi Ìbéèrè Sí', ru: 'Отправить заявку',
+  },
+  submitting: {
+    en: 'Creating Profile...', es: 'Creando perfil...', ar: 'جارٍ إنشاء الملف...', fr: 'Création...',
+    zh: '正在创建...', bn: 'প্রোফাইল তৈরি হচ্ছে...', he: 'יוצר פרופיל...', am: 'መገለጫ እየፈጠረ...', yo: 'Ṣiṣẹ...', ru: 'Создание...',
+  },
+};
+
+function t(key: string, lang: string): string {
+  return T[key]?.[lang] || T[key]?.['en'] || key;
+}
 
 export default function LandingPage() {
   const [view, setView] = useState<'login' | 'register' | 'dashboard'>('register');
   const [isLoading, setIsLoading] = useState(true);
-  
+
+  // Language
+  const [lang, setLang] = useState('en');
+  const [autoLang, setAutoLang] = useState(true); // auto-cycle off when user picks manually
+  const autoRef = useRef(true);
+
+  // Auto-cycle through languages every 4 seconds when user hasn't picked one
+  useEffect(() => {
+    if (!autoRef.current) return;
+    const cycle = LANGUAGES.map(l => l.code);
+    let idx = 0;
+    const interval = setInterval(() => {
+      if (!autoRef.current) { clearInterval(interval); return; }
+      idx = (idx + 1) % cycle.length;
+      setLang(cycle[idx]);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [autoLang]);
+
+  const selectLang = (code: string) => {
+    autoRef.current = false;
+    setAutoLang(false);
+    setLang(code);
+  };
+
+  const currentLangDir = LANGUAGES.find(l => l.code === lang)?.dir || 'ltr';
+
   // Register Form
-  const [regForm, setRegForm] = useState({ name: '', phone: '', email: '', password: '' });
+  const [regForm, setRegForm] = useState({ name: '', phone: '', whatsapp: '', email: '', password: '' });
   // Login Form
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   // Dashboard Form
   const [profile, setProfile] = useState<any>(null);
   const [editForm, setEditForm] = useState({ name: '', phone: '', coverageAddress: '', coverageRadius: '25', vehicleType: '' });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -44,7 +140,6 @@ export default function LandingPage() {
       const data = await res.json();
       if (data.id) {
         setProfile(data);
-        
         let coverageAddress = '';
         let coverageRadius = '25';
         let vehicle = '';
@@ -57,18 +152,9 @@ export default function LandingPage() {
             vehicle = parsed.vehicleType || '';
           } catch(e){}
         }
-
-        setEditForm({
-          name: data.name || '',
-          phone: data.phone || '',
-          coverageAddress,
-          coverageRadius,
-          vehicleType: vehicle
-        });
+        setEditForm({ name: data.name || '', phone: data.phone || '', coverageAddress, coverageRadius, vehicleType: vehicle });
       }
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
     setIsLoading(false);
   };
 
@@ -84,8 +170,6 @@ export default function LandingPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to register');
-      
-      // Redirect to email verification holding page
       window.location.href = '/verify-email';
     } catch (err: any) {
       setErrorMsg(err.message);
@@ -106,7 +190,6 @@ export default function LandingPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed');
-      
       await fetchProfile();
       setView('dashboard');
     } catch (err: any) {
@@ -145,6 +228,17 @@ export default function LandingPage() {
     setView('login');
   };
 
+  const inputStyle: React.CSSProperties = {
+    padding: '12px',
+    borderRadius: '8px',
+    border: '1px solid rgba(255,255,255,0.2)',
+    background: 'rgba(0,0,0,0.25)',
+    color: '#fff',
+    fontSize: '1rem',
+    outline: 'none',
+    direction: currentLangDir as any,
+  };
+
   if (isLoading) {
     return <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#fff' }}>Loading...</div>;
   }
@@ -161,22 +255,83 @@ export default function LandingPage() {
       alignItems: 'center',
       padding: '2rem',
     }}>
-      <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <img 
-          src="/logo.png" 
-          alt="Liberty Dispatchers Logo" 
-          style={{ maxWidth: '280px', height: 'auto', objectFit: 'contain', marginBottom: '1rem' }} 
+
+      {/* Language Selector Bar */}
+      {view !== 'dashboard' && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0,
+          background: 'rgba(11,19,30,0.95)',
+          borderBottom: '1px solid rgba(215,181,95,0.2)',
+          backdropFilter: 'blur(10px)',
+          padding: '8px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          zIndex: 100,
+          overflowX: 'auto',
+          flexWrap: 'nowrap',
+        }}>
+          <Globe size={14} style={{ color: '#d7b55f', flexShrink: 0 }} />
+          <span style={{ fontSize: '0.72rem', color: '#64748b', marginRight: '4px', flexShrink: 0 }}>Language:</span>
+          {LANGUAGES.map(l => (
+            <button
+              key={l.code}
+              onClick={() => selectLang(l.code)}
+              style={{
+                padding: '3px 10px',
+                borderRadius: '20px',
+                border: `1px solid ${lang === l.code ? '#d7b55f' : 'rgba(255,255,255,0.1)'}`,
+                background: lang === l.code ? 'rgba(215,181,95,0.15)' : 'transparent',
+                color: lang === l.code ? '#d7b55f' : '#94a3b8',
+                fontSize: '0.72rem',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                fontWeight: lang === l.code ? 700 : 400,
+                transition: 'all 0.2s',
+                flexShrink: 0,
+              }}
+            >
+              {l.flag} {l.label}
+            </button>
+          ))}
+          {!autoRef.current && (
+            <button
+              onClick={() => { autoRef.current = true; setAutoLang(a => !a); }}
+              style={{ fontSize: '0.65rem', color: '#475569', background: 'none', border: 'none', cursor: 'pointer', marginLeft: 'auto', flexShrink: 0 }}
+            >
+              auto
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Logo + tagline */}
+      <div style={{ marginBottom: '2rem', textAlign: 'center', marginTop: view !== 'dashboard' ? '56px' : '0' }}>
+        <img
+          src="/logo.png"
+          alt="Liberty Dispatchers Logo"
+          style={{ maxWidth: '280px', height: 'auto', objectFit: 'contain', marginBottom: '1rem' }}
         />
         {view !== 'dashboard' && (
-          <p style={{ fontSize: '1.1rem', color: '#94a3b8', maxWidth: '500px', lineHeight: '1.6' }}>
-            Bringing true liberty to the courier lifestyle. Join the dispatch revolution and take control of your route.
+          <p
+            key={lang}
+            style={{
+              fontSize: '1.05rem', color: '#94a3b8', maxWidth: '500px', lineHeight: '1.6',
+              direction: currentLangDir as any,
+              animation: 'fadeIn 0.4s ease',
+            }}
+          >
+            {t('tagline', lang)}
           </p>
         )}
       </div>
 
+      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+
+      {/* ── Dashboard ── */}
       {view === 'dashboard' && profile ? (
         <div style={{ width: '100%', maxWidth: '600px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-          {/* Dashboard Header */}
           <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 'bold' }}>
@@ -198,51 +353,46 @@ export default function LandingPage() {
             const onboardDoc = profile.documents?.find((d: any) => d.name === 'Onboarding Material');
             if (onboardDoc && onboardDoc.status !== 'SIGNED') {
               return (
-                <div style={{ padding: '24px', background: 'rgba(239, 68, 68, 0.1)', borderBottom: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
-                  <h3 style={{ color: '#fca5a5', marginBottom: '12px', fontSize: '1.1rem' }}>⚠️ Onboarding Incomplete</h3>
-                  <p style={{ color: '#e2e8f0', marginBottom: '16px', fontSize: '0.9rem' }}>Please complete your onboarding questionnaire so we can approve your account.</p>
-                  <button 
-                    onClick={() => window.location.href = `/esign/${profile.id}`}
-                    style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
-                  >
-                    Complete Questionnaire Now
-                  </button>
+                <div style={{ padding: '24px', textAlign: 'center' }}>
+                  <p style={{ color: '#94a3b8', marginBottom: '16px' }}>Complete your onboarding to get started.</p>
+                  <a href={`/esign/${profile.id}`} style={{ background: 'linear-gradient(135deg, #d7b55f, #a8262a)', color: '#fff', padding: '12px 24px', borderRadius: '8px', textDecoration: 'none', fontWeight: 700 }}>
+                    Complete Onboarding →
+                  </a>
                 </div>
               );
             }
             return null;
           })()}
 
-          {/* Dashboard Form */}
           <form onSubmit={handleUpdateProfile} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
               <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#e2e8f0' }}>
-                <User size={18} /> Personal Details
+                <User size={18} /> Personal Info
               </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Full Name</label>
-                  <input type="text" required value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
+                  <input type="text" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} style={inputStyle} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Phone Number</label>
-                  <input type="tel" required value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
+                  <input type="tel" value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} style={inputStyle} />
                 </div>
               </div>
             </div>
 
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
               <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#e2e8f0' }}>
-                <MapPin size={18} /> Coverage & Vehicle
+                <MapPin size={18} /> Coverage &amp; Vehicle
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Coverage Address / City / Zip</label>
-                  <input type="text" placeholder="e.g. Dallas, TX or 75201" value={editForm.coverageAddress} onChange={e => setEditForm({...editForm, coverageAddress: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
+                  <input type="text" placeholder="e.g. Queens NY or 11207" value={editForm.coverageAddress} onChange={e => setEditForm({...editForm, coverageAddress: e.target.value})} style={inputStyle} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Radius (Miles)</label>
-                  <select value={editForm.coverageRadius} onChange={e => setEditForm({...editForm, coverageRadius: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: '#1e293b', color: '#fff' }}>
+                  <select value={editForm.coverageRadius} onChange={e => setEditForm({...editForm, coverageRadius: e.target.value})} style={{ ...inputStyle, background: '#1e293b' }}>
                     <option value="3">3 Miles</option>
                     <option value="5">5 Miles</option>
                     <option value="10">10 Miles</option>
@@ -255,7 +405,7 @@ export default function LandingPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Vehicle Type</label>
-                  <select value={editForm.vehicleType} onChange={e => setEditForm({...editForm, vehicleType: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: '#1e293b', color: '#fff' }}>
+                  <select value={editForm.vehicleType} onChange={e => setEditForm({...editForm, vehicleType: e.target.value})} style={{ ...inputStyle, background: '#1e293b' }}>
                     <option value="">Select vehicle...</option>
                     <option value="Sedan">Sedan</option>
                     <option value="SUV">SUV</option>
@@ -273,69 +423,88 @@ export default function LandingPage() {
             {errorMsg && <div style={{ color: '#ef4444', fontSize: '0.9rem', padding: '10px', background: 'rgba(239,68,68,0.1)', borderRadius: '6px' }}>{errorMsg}</div>}
             {successMsg && <div style={{ color: '#10b981', fontSize: '0.9rem', padding: '10px', background: 'rgba(16,185,129,0.1)', borderRadius: '6px' }}>{successMsg}</div>}
 
-            <button type="submit" disabled={isSubmitting} style={{
-              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-              color: '#ffffff',
-              padding: '12px',
-              borderRadius: '8px',
-              fontSize: '1rem',
-              fontWeight: 600,
-              border: 'none',
-              cursor: isSubmitting ? 'wait' : 'pointer',
-              opacity: isSubmitting ? 0.8 : 1,
-              marginTop: '10px'
-            }}>
+            <button type="submit" disabled={isSubmitting} style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', color: '#ffffff', padding: '12px', borderRadius: '8px', fontSize: '1rem', fontWeight: 600, border: 'none', cursor: isSubmitting ? 'wait' : 'pointer', opacity: isSubmitting ? 0.8 : 1, marginTop: '10px' }}>
               {isSubmitting ? 'Saving...' : 'Save Profile Details'}
             </button>
           </form>
         </div>
+
       ) : (
+        /* ── Auth Card ── */
         <div style={{ width: '100%', maxWidth: '400px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', padding: '2rem' }}>
-          
+
+          {/* Tab switcher */}
           <div style={{ display: 'flex', marginBottom: '24px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '4px' }}>
-            <button 
-              onClick={() => setView('register')}
-              style={{ flex: 1, padding: '8px', border: 'none', background: view === 'register' ? '#2563eb' : 'transparent', color: view === 'register' ? '#fff' : '#94a3b8', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
-            >
-              Apply Now
+            <button onClick={() => setView('register')} style={{ flex: 1, padding: '8px', border: 'none', background: view === 'register' ? '#2563eb' : 'transparent', color: view === 'register' ? '#fff' : '#94a3b8', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+              {t('applyBtn', lang)}
             </button>
-            <button 
-              onClick={() => setView('login')}
-              style={{ flex: 1, padding: '8px', border: 'none', background: view === 'login' ? '#2563eb' : 'transparent', color: view === 'login' ? '#fff' : '#94a3b8', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
-            >
-              Sign In
+            <button onClick={() => setView('login')} style={{ flex: 1, padding: '8px', border: 'none', background: view === 'login' ? '#2563eb' : 'transparent', color: view === 'login' ? '#fff' : '#94a3b8', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+              {t('signIn', lang)}
             </button>
           </div>
 
           {view === 'register' ? (
-            <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <input type="text" required placeholder="Full Name" value={regForm.name} onChange={e => setRegForm({...regForm, name: e.target.value})} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: '1rem' }} />
-              <input type="tel" required placeholder="Phone Number" value={regForm.phone} onChange={e => setRegForm({...regForm, phone: e.target.value})} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: '1rem' }} />
-              <input type="email" required placeholder="Email Address" value={regForm.email} onChange={e => setRegForm({...regForm, email: e.target.value})} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: '1rem' }} />
-              <input type="password" required placeholder="Create Password" value={regForm.password} onChange={e => setRegForm({...regForm, password: e.target.value})} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: '1rem' }} />
-              
+            <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }} dir={currentLangDir}>
+              <input
+                type="text" required
+                placeholder={t('fullName', lang)}
+                value={regForm.name}
+                onChange={e => setRegForm({...regForm, name: e.target.value})}
+                style={inputStyle}
+              />
+              <input
+                type="tel" required
+                placeholder={t('phone', lang)}
+                value={regForm.phone}
+                onChange={e => setRegForm({...regForm, phone: e.target.value})}
+                style={inputStyle}
+              />
+              {/* WhatsApp field */}
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '1.1rem' }}>💬</span>
+                <input
+                  type="tel"
+                  placeholder={t('whatsapp', lang)}
+                  value={regForm.whatsapp}
+                  onChange={e => setRegForm({...regForm, whatsapp: e.target.value})}
+                  style={{ ...inputStyle, paddingLeft: '34px', width: '100%', boxSizing: 'border-box' }}
+                />
+              </div>
+              <input
+                type="email" required
+                placeholder={t('email', lang)}
+                value={regForm.email}
+                onChange={e => setRegForm({...regForm, email: e.target.value})}
+                style={inputStyle}
+              />
+              <input
+                type="password" required
+                placeholder={t('password', lang)}
+                value={regForm.password}
+                onChange={e => setRegForm({...regForm, password: e.target.value})}
+                style={inputStyle}
+              />
+
               {errorMsg && <div style={{ color: '#ef4444', fontSize: '0.9rem', marginTop: '-4px' }}>{errorMsg}</div>}
 
-              <button type="submit" disabled={isSubmitting} style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '12px', borderRadius: '8px', fontSize: '1.05rem', fontWeight: 600, border: 'none', cursor: isSubmitting ? 'wait' : 'pointer', opacity: isSubmitting ? 0.7 : 1, marginTop: '8px' }}>
-                {isSubmitting ? 'Creating Profile...' : 'Submit Application'}
+              <button type="submit" disabled={isSubmitting} style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '13px', borderRadius: '8px', fontSize: '1.05rem', fontWeight: 700, border: 'none', cursor: isSubmitting ? 'wait' : 'pointer', opacity: isSubmitting ? 0.7 : 1, marginTop: '4px', letterSpacing: '0.01em' }}>
+                {isSubmitting ? t('submitting', lang) : t('submit', lang)}
               </button>
             </form>
           ) : (
-            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <input type="email" required placeholder="Email Address" value={loginForm.email} onChange={e => setLoginForm({...loginForm, email: e.target.value})} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: '1rem' }} />
-              <input type="password" required placeholder="Password" value={loginForm.password} onChange={e => setLoginForm({...loginForm, password: e.target.value})} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: '1rem' }} />
-              
+            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }} dir={currentLangDir}>
+              <input type="email" required placeholder={t('email', lang)} value={loginForm.email} onChange={e => setLoginForm({...loginForm, email: e.target.value})} style={inputStyle} />
+              <input type="password" required placeholder="Password" value={loginForm.password} onChange={e => setLoginForm({...loginForm, password: e.target.value})} style={inputStyle} />
               {errorMsg && <div style={{ color: '#ef4444', fontSize: '0.9rem', marginTop: '-4px' }}>{errorMsg}</div>}
-
               <button type="submit" disabled={isSubmitting} style={{ backgroundColor: '#10b981', color: '#ffffff', padding: '12px', borderRadius: '8px', fontSize: '1.05rem', fontWeight: 600, border: 'none', cursor: isSubmitting ? 'wait' : 'pointer', opacity: isSubmitting ? 0.7 : 1, marginTop: '8px' }}>
-                {isSubmitting ? 'Signing in...' : 'Sign In'}
+                {isSubmitting ? 'Signing in...' : t('signIn', lang)}
               </button>
             </form>
           )}
         </div>
       )}
 
-      <div style={{ marginTop: '4rem', display: 'flex', gap: '2rem', fontSize: '0.85rem' }}>
+      <div style={{ marginTop: '3rem', display: 'flex', gap: '2rem', fontSize: '0.85rem' }}>
         <Link href="/privacy" style={{ color: '#64748b', textDecoration: 'none' }}>Privacy Policy</Link>
         <Link href="/terms" style={{ color: '#64748b', textDecoration: 'none' }}>Terms &amp; Conditions</Link>
       </div>

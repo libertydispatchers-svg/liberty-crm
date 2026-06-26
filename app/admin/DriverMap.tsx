@@ -28,7 +28,7 @@ const REGION_MAP: Record<string, [number, number, number]> = {
   'Metro': [39.2904, -76.6122, 25000],
 };
 
-const defaultPosition: [number, number] = [40.7128, -74.0060]; // New York
+const defaultPosition: [number, number] = [40.7128, -74.0060]; // NYC center
 
 // Colors for different drivers
 const DRIVER_COLORS = [
@@ -130,7 +130,9 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
               : `${rawAddress.trim()}, USA`;
 
           // countrycodes=us forces results to the United States only
-          const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=3&countrycodes=us&addressdetails=1`;
+          // viewbox biases toward NYC/East Coast (most drivers) — bounded=0 allows fallback outside box
+          const nycViewbox = '-74.26,40.49,-73.70,40.92'; // NYC bounding box
+          const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=3&countrycodes=us&viewbox=${nycViewbox}&bounded=0&addressdetails=1`;
           const res = await fetch(url, { headers: { 'Accept-Language': 'en-US' } });
           const data = await res.json();
 
@@ -274,8 +276,8 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
       {/* The actual Map */}
       <div style={{ flex: 1, position: 'relative', minHeight: '100%' }}>
         <MapContainer 
-          center={defaultPosition} 
-          zoom={10} 
+          center={[40.7128, -74.0060]} 
+          zoom={11} 
           scrollWheelZoom={true} 
           style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
         >
