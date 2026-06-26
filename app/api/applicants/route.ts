@@ -103,7 +103,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, phone, whatsapp, email, source, password } = body;
+    const { name, phone, whatsapp, email, source, password, language } = body;
 
     if (!name || !phone || !email || !password) {
       return NextResponse.json({ error: 'Name, phone, email, and password are required' }, { status: 400 });
@@ -123,6 +123,7 @@ export async function POST(request: Request) {
             whatsapp: whatsapp || null,
             email,
             passwordHash,
+            language: language || 'en',
             source: source || 'WEBSITE',
             status: 'NEW',
             emailVerified: false,
@@ -169,6 +170,8 @@ export async function POST(request: Request) {
       try {
         const verifyUrl = `https://libertydispatch.xyz/api/auth/verify?token=${(applicant as any).verificationToken}&id=${applicant.id}`;
         const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_iYXGPDLy_D8qB1XdZeZjrMtGxFKZnukLa';
+        const { tEmail } = require('../../../lib/i18nEmails');
+        const lang = (applicant as any).language || 'en';
 
         const htmlBody = `<!DOCTYPE html>
 <html lang="en">
@@ -188,12 +191,12 @@ export async function POST(request: Request) {
       <!-- Body -->
       <tr>
         <td style="padding:32px 36px;color:#f8fafc;">
-          <h2 style="color:#0a84ff;margin:0 0 10px;font-size:1.4rem;text-align:center;">Confirm Your Email Address</h2>
-          <p style="color:#94a3b8;text-align:center;margin:0 0 28px;font-size:0.9rem;">One quick step to unlock your driver application</p>
+          <h2 style="color:#0a84ff;margin:0 0 10px;font-size:1.4rem;text-align:center;">${tEmail('verifyTitle', lang)}</h2>
+          <p style="color:#94a3b8;text-align:center;margin:0 0 28px;font-size:0.9rem;">${tEmail('verifySubtitle', lang)}</p>
           
-          <p style="color:#cbd5e1;margin:0 0 6px;">Hi <strong style="color:#fff;">${name}</strong>,</p>
+          <p style="color:#cbd5e1;margin:0 0 6px;">${tEmail('hi', lang)} <strong style="color:#fff;">${name}</strong>,</p>
           <p style="color:#94a3b8;line-height:1.7;margin:0 0 28px;">
-            Thanks for applying to Liberty Dispatchers! Click the button below to verify your email and access your onboarding documents. This link expires in <strong style="color:#0a84ff;">24 hours</strong>.
+            ${tEmail('verifyBody', lang)}
           </p>
 
           <!-- CTA Button -->
@@ -201,7 +204,7 @@ export async function POST(request: Request) {
             <tr>
               <td align="center">
                 <a href="${verifyUrl}" style="display:inline-block;background:linear-gradient(135deg,#0a84ff 0%,#e30022 100%);color:#ffffff;padding:15px 36px;text-decoration:none;border-radius:8px;font-weight:800;font-size:1rem;letter-spacing:0.02em;">
-                  ✅ Verify My Email &amp; Start Onboarding
+                  ✅ ${tEmail('verifyBtn', lang)}
                 </a>
               </td>
             </tr>
@@ -210,12 +213,12 @@ export async function POST(request: Request) {
           <!-- What to expect -->
           <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-bottom:24px;">
             <tr><td style="padding:16px 20px;">
-              <p style="color:#0a84ff;font-weight:700;margin:0 0 12px;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;">What happens next</p>
+              <p style="color:#0a84ff;font-weight:700;margin:0 0 12px;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;">${tEmail('whatNext', lang)}</p>
               <table cellpadding="0" cellspacing="0">
-                <tr><td style="padding:4px 0;color:#94a3b8;font-size:0.88rem;">📋 &nbsp;Review and sign your Driver Agreement</td></tr>
-                <tr><td style="padding:4px 0;color:#94a3b8;font-size:0.88rem;">📍 &nbsp;Set your coverage area and availability</td></tr>
-                <tr><td style="padding:4px 0;color:#94a3b8;font-size:0.88rem;">🚗 &nbsp;Tell us about your vehicle and experience</td></tr>
-                <tr><td style="padding:4px 0;color:#94a3b8;font-size:0.88rem;">🎉 &nbsp;Get added to the dispatch grid!</td></tr>
+                <tr><td style="padding:4px 0;color:#94a3b8;font-size:0.88rem;">📋 &nbsp;${tEmail('step1', lang)}</td></tr>
+                <tr><td style="padding:4px 0;color:#94a3b8;font-size:0.88rem;">📍 &nbsp;${tEmail('step2', lang)}</td></tr>
+                <tr><td style="padding:4px 0;color:#94a3b8;font-size:0.88rem;">🚗 &nbsp;${tEmail('step3', lang)}</td></tr>
+                <tr><td style="padding:4px 0;color:#94a3b8;font-size:0.88rem;">🎉 &nbsp;${tEmail('step4', lang)}</td></tr>
               </table>
             </td></tr>
           </table>

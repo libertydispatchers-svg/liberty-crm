@@ -122,19 +122,21 @@ export async function PUT(
 
             // Dispatch HTML Email with Gmail API
             if (existing.email) {
+              const { tEmail } = require('../../../../lib/i18nEmails');
+              const lang = (existing as any).language || 'en';
               const htmlBody = `
               <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b131e; color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #0a84ff;">
                 <div style="text-align: center; margin-bottom: 24px;">
                   <!-- Use placeholder or public logo URL for emails -->
                   <h1 style="color: #ffffff; margin: 0;">Liberty Dispatchers</h1>
                 </div>
-                <h2 style="color: #0a84ff; text-align: center;">Onboarding Document Request</h2>
-                <p>Hi ${existing.name || 'there'},</p>
-                <p>We are requesting your signature on the following document: <strong>${docName}</strong>.</p>
+                <h2 style="color: #0a84ff; text-align: center;">${tEmail('docRequestTitle', lang)}</h2>
+                <p>${tEmail('hi', lang)} ${existing.name || 'there'},</p>
+                <p>${tEmail('docRequestBody', lang)} <strong>${docName}</strong>.</p>
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="https://liberty-crm-736433125033.europe-west1.run.app/esign/${existing.id}" style="background: linear-gradient(135deg, #0a84ff 0%, #e30022 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Review and Sign Document</a>
+                  <a href="https://liberty-crm-736433125033.europe-west1.run.app/esign/${existing.id}" style="background: linear-gradient(135deg, #0a84ff 0%, #e30022 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">${tEmail('reviewSignBtn', lang)}</a>
                 </div>
-                <p style="color: #94a3b8; font-size: 12px; text-align: center;">If you have any questions, please reply to this email.</p>
+                <p style="color: #94a3b8; font-size: 12px; text-align: center;">${tEmail('questionsFooter', lang)}</p>
               </div>
               `;
 
@@ -142,7 +144,7 @@ export async function PUT(
                 const gmail = getGmailClient();
                 const emailLines = [
                   `To: ${existing.email}`,
-                  `Subject: Action Required: Sign your ${docName}`,
+                  `Subject: ${tEmail('docActionReq', lang)} ${docName}`,
                   `Content-Type: text/html; charset=utf-8`,
                   `MIME-Version: 1.0`,
                   ``,

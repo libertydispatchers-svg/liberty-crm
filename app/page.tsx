@@ -83,26 +83,11 @@ export default function LandingPage() {
 
   // Language
   const [lang, setLang] = useState('en');
-  const [autoLang, setAutoLang] = useState(true); // auto-cycle off when user picks manually
-  const autoRef = useRef(true);
-
-  // Auto-cycle through languages every 4 seconds when user hasn't picked one
-  useEffect(() => {
-    if (!autoRef.current) return;
-    const cycle = LANGUAGES.map(l => l.code);
-    let idx = 0;
-    const interval = setInterval(() => {
-      if (!autoRef.current) { clearInterval(interval); return; }
-      idx = (idx + 1) % cycle.length;
-      setLang(cycle[idx]);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [autoLang]);
+  const [showLangModal, setShowLangModal] = useState(true);
 
   const selectLang = (code: string) => {
-    autoRef.current = false;
-    setAutoLang(false);
     setLang(code);
+    setShowLangModal(false);
   };
 
   const currentLangDir = LANGUAGES.find(l => l.code === lang)?.dir || 'ltr';
@@ -166,7 +151,7 @@ export default function LandingPage() {
       const res = await fetch('/api/applicants', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...regForm, source: 'WEBSITE' })
+        body: JSON.stringify({ ...regForm, source: 'WEBSITE', language: lang })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to register');
@@ -256,54 +241,47 @@ export default function LandingPage() {
       padding: '2rem',
     }}>
 
-      {/* Language Selector Bar */}
-      {view !== 'dashboard' && (
+      {/* Language Modal */}
+      {showLangModal && view !== 'dashboard' && (
         <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0,
-          background: 'rgba(11,19,30,0.95)',
-          borderBottom: '1px solid rgba(215,181,95,0.2)',
-          backdropFilter: 'blur(10px)',
-          padding: '8px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          zIndex: 100,
-          overflowX: 'auto',
-          flexWrap: 'nowrap',
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(11,19,30,0.9)', backdropFilter: 'blur(10px)',
+          display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+          zIndex: 9999, padding: '20px'
         }}>
-          <Globe size={14} style={{ color: '#0a84ff', flexShrink: 0 }} />
-          <span style={{ fontSize: '0.72rem', color: '#64748b', marginRight: '4px', flexShrink: 0 }}>Language:</span>
-          {LANGUAGES.map(l => (
-            <button
-              key={l.code}
-              onClick={() => selectLang(l.code)}
-              style={{
-                padding: '3px 10px',
-                borderRadius: '20px',
-                border: `1px solid ${lang === l.code ? '#0a84ff' : 'rgba(255,255,255,0.1)'}`,
-                background: lang === l.code ? 'rgba(10,132,255,0.15)' : 'transparent',
-                color: lang === l.code ? '#0a84ff' : '#94a3b8',
-                fontSize: '0.72rem',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                fontWeight: lang === l.code ? 700 : 400,
-                transition: 'all 0.2s',
-                flexShrink: 0,
-              }}
-            >
-              {l.flag} {l.label}
-            </button>
-          ))}
-          {!autoRef.current && (
-            <button
-              onClick={() => { autoRef.current = true; setAutoLang(a => !a); }}
-              style={{ fontSize: '0.65rem', color: '#475569', background: 'none', border: 'none', cursor: 'pointer', marginLeft: 'auto', flexShrink: 0 }}
-            >
-              auto
-            </button>
-          )}
+          <img src="/logo.jpg" alt="Logo" style={{ maxWidth: '200px', marginBottom: '30px', borderRadius: '12px' }} />
+          <h2 style={{ color: '#fff', marginBottom: '20px' }}>Select Your Language</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', width: '100%', maxWidth: '600px' }}>
+            {LANGUAGES.map(l => (
+              <button
+                key={l.code}
+                onClick={() => selectLang(l.code)}
+                style={{
+                  padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '1rem',
+                  cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '10px'
+                }}
+              >
+                <span style={{ fontSize: '1.4rem' }}>{l.flag}</span> {l.label}
+              </button>
+            ))}
+          </div>
         </div>
+      )}
+
+      {/* Change Language Button (Top Right) */}
+      {!showLangModal && view !== 'dashboard' && (
+        <button
+          onClick={() => setShowLangModal(true)}
+          style={{
+            position: 'fixed', top: '16px', right: '16px', zIndex: 100,
+            background: 'rgba(11,19,30,0.8)', border: '1px solid rgba(10,132,255,0.3)',
+            borderRadius: '20px', padding: '6px 12px', color: '#0a84ff',
+            display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer'
+          }}
+        >
+          <Globe size={14} /> {LANGUAGES.find(l => l.code === lang)?.label}
+        </button>
       )}
 
       {/* Logo + tagline */}

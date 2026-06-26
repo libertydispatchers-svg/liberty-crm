@@ -123,16 +123,19 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
         try {
           // Detect if it's a zip code (5 digits) and append USA for precision
           const isZip = /^\d{5}(-\d{4})?$/.test(rawAddress.trim());
+          const cleanQuery = rawAddress.trim().toLowerCase();
           const query = isZip
-            ? `${rawAddress.trim()}, USA`
-            : rawAddress.trim().toLowerCase().endsWith('usa') || rawAddress.trim().toLowerCase().endsWith('us')
+            ? `${rawAddress.trim()}`
+            : cleanQuery.endsWith('usa') || cleanQuery.endsWith('us')
               ? rawAddress.trim()
               : `${rawAddress.trim()}, USA`;
 
           // countrycodes=us forces results to the United States only
           // viewbox biases toward NYC/East Coast (most drivers) — bounded=0 allows fallback outside box
           const nycViewbox = '-74.26,40.49,-73.70,40.92'; // NYC bounding box
-          const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=3&countrycodes=us&viewbox=${nycViewbox}&bounded=0&addressdetails=1`;
+          const url = isZip 
+            ? `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(query)}&countrycodes=us&format=json&limit=1`
+            : `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=3&countrycodes=us&viewbox=${nycViewbox}&bounded=0&addressdetails=1`;
           const res = await fetch(url, { headers: { 'Accept-Language': 'en-US' } });
           const data = await res.json();
 

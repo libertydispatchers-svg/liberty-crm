@@ -25,7 +25,19 @@ export default function MiniMap({ address, radiusStr }: { address: string, radiu
     let isMounted = true;
     const fetchGeocode = async () => {
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`);
+        const isZip = /^\d{5}(-\d{4})?$/.test(address.trim());
+        const cleanQuery = address.trim().toLowerCase();
+        const query = isZip
+          ? `${address.trim()}`
+          : cleanQuery.endsWith('usa') || cleanQuery.endsWith('us')
+            ? address.trim()
+            : `${address.trim()}, USA`;
+            
+        const url = isZip 
+            ? `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(query)}&countrycodes=us&format=json&limit=1`
+            : `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
+            
+        const res = await fetch(url);
         const data = await res.json();
         if (isMounted && data && data.length > 0) {
           setPosition([parseFloat(data[0].lat), parseFloat(data[0].lon)]);

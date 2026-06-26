@@ -273,6 +273,30 @@ export default function EsignPage({ params }: { params: { id: string } }) {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '32px 16px', justifyContent: 'center', alignItems: 'center' }}>
       
+      {/* Google Translate Init */}
+      <div id="google_translate_element" style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 100 }}></div>
+      <script type="text/javascript" dangerouslySetInnerHTML={{
+        __html: `
+          function setGoogTransCookie() {
+            var applicantLang = "${applicant?.language || 'en'}";
+            if (applicantLang !== 'en' && document.cookie.indexOf('googtrans') === -1) {
+              document.cookie = 'googtrans=/en/' + applicantLang + '; path=/; domain=' + window.location.hostname;
+              document.cookie = 'googtrans=/en/' + applicantLang + '; path=/;';
+            }
+          }
+          setGoogTransCookie();
+          
+          function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+              pageLanguage: 'en',
+              layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+              autoDisplay: false
+            }, 'google_translate_element');
+          }
+        `
+      }}></script>
+      <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
       {/* Container Card */}
       <div className="glass-panel" style={{ maxWidth: '640px', width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
@@ -280,7 +304,7 @@ export default function EsignPage({ params }: { params: { id: string } }) {
         <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
-              <img src="/logo.png?v=1" alt="Liberty Dispatchers" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
+              <img src="/logo.jpg" alt="Liberty Dispatchers" style={{ height: '100%', width: 'auto', objectFit: 'contain', borderRadius: '4px' }} />
             </div>
             <div>
               <span style={{ fontSize: '0.75rem', color: 'var(--accent-color)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Driver Onboarding</span>

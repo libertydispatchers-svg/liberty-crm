@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Liberty Dispatchers Command System',
-  description: 'Google Workspace powered driver hiring, managing, onboarding, and dispatch system',
+  title: 'Liberty Dispatchers | Join the Courier Revolution',
+  description: 'Join the revolution of choosing your work scheduling, access to charging stations, storage help, and locked in rates per mile. E-bikes, bikes, and couriers wanted!',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
