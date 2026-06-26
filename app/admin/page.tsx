@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, Plus, Phone, MessageSquare, Mail, Database, FileText, 
   CheckCircle2, AlertCircle, Trash2, Send, Clock, User, 
-  ShieldCheck, RefreshCw, X, PhoneCall, Check, Calendar, ExternalLink, Settings, Map, Lock, Briefcase
+  ShieldCheck, RefreshCw, X, PhoneCall, Check, Calendar, ExternalLink, Settings, Map, Lock, Briefcase, Building2
 } from 'lucide-react';
 import { IS_PRODUCTION, BASE_URL } from '../../lib/config';
 import dynamic from 'next/dynamic';
@@ -795,6 +795,9 @@ export default function CrmDashboard() {
               </div>
             <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent-cyan)' }}>{BASE_URL}</p>
           </div>
+          <a href="/admin/vendors" className="button" style={{ padding: '8px 12px', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
+            <Building2 size={14} /> Vendors
+          </a>
           <button onClick={() => setShowSettingsModal(true)} className="button" style={{ padding: '8px 12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             <Settings size={14} /> Settings
           </button>

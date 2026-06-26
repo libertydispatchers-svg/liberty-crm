@@ -108,3 +108,16 @@ model Job {
   assignedDriverId String?
   assignedDriver   Applicant? @relation(fields: [assignedDriverId], references: [id], onDelete: SetNull)
 }
+
+model Vendor {
+  id           String     @id @default(cuid())
+  businessName String
+  contactName  String
+  phone        String
+  whatsapp     String?
+  email        String
+  businessType String     @default("OTHER")
+  status       String     @default("NEW")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
