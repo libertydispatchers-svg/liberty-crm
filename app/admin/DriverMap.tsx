@@ -117,27 +117,48 @@ export default function DriverMap({ activeDrivers }: { activeDrivers: any[] }) {
       for (const d of filteredDrivers) {
         const docs = d.documents?.find((doc: any) => doc.name === 'Onboarding Material');
         const esignData = docs?.esignData ? JSON.parse(docs.esignData) : {};
-        const address = esignData.coverageAddress || esignData.coverageArea;
-        if (address && !newLocs[address] && !REGION_MAP[address]) {
-          try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`);
-            const data = await res.json();
-            if (data && data.length > 0) {
-              newLocs[address] = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-              changed = true;
+        const rawAddress = esignData.coverageAddress || esignData.coverageArea;
+        if (!rawAddress || newLocs[rawAddress] || REGION_MAP[rawAddress]) continue;
+
+        try {
+          // Detect if it's a zip code (5 digits) and append USA for precision
+          const isZip = /^\d{5}(-\d{4})?$/.test(rawAddress.trim());
+          const query = isZip
+            ? `${rawAddress.trim()}, USA`
+            : rawAddress.trim().toLowerCase().endsWith('usa') || rawAddress.trim().toLowerCase().endsWith('us')
+              ? rawAddress.trim()
+              : `${rawAddress.trim()}, USA`;
+
+          // countrycodes=us forces results to the United States only
+          const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=3&countrycodes=us&addressdetails=1`;
+          const res = await fetch(url, { headers: { 'Accept-Language': 'en-US' } });
+          const data = await res.json();
+
+          if (data && data.length > 0) {
+            const lat = parseFloat(data[0].lat);
+            const lon = parseFloat(data[0].lon);
+            // Sanity check: must be within rough continental US / territories bounding box
+            if (lat >= 17 && lat <= 72 && lon >= -180 && lon <= -65) {
+              newLocs[rawAddress] = [lat, lon];
             } else {
-              newLocs[address] = [39.8283, -98.5795];
-              changed = true;
+              // Result outside US bounds — try fallback query without the address detail
+              console.warn(`Geocode result for "${rawAddress}" was outside US bounds (${lat}, ${lon}). Trying fallback.`);
+              newLocs[rawAddress] = [40.7128, -74.0060]; // Default to NYC
             }
-          } catch(e) {
-            console.error('Geocode error', e);
+          } else {
+            // No result — default to geographic center of US
+            newLocs[rawAddress] = [39.8283, -98.5795];
           }
+          changed = true;
+        } catch(e) {
+          console.error('Geocode error', e);
         }
       }
       if (changed) setGeocodedLocations(newLocs);
     };
     geocode();
   }, [filteredDrivers]);
+
 
   return (
     <div style={{ 
