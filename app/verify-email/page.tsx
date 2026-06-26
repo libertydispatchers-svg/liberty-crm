@@ -36,7 +36,7 @@ export default function VerifyEmailPage() {
         maxWidth: '480px',
         width: '100%',
         background: 'rgba(255,255,255,0.04)',
-        border: '1px solid #d7b55f55',
+        border: '1px solid #0a84ff55',
         borderRadius: '16px',
         padding: '48px 40px',
         textAlign: 'center',
@@ -48,7 +48,7 @@ export default function VerifyEmailPage() {
           height: '72px',
           borderRadius: '50%',
           background: isError ? 'rgba(239,68,68,0.15)' : 'rgba(215,181,95,0.15)',
-          border: `2px solid ${isError ? '#ef4444' : '#d7b55f'}`,
+          border: `2px solid ${isError ? '#ef4444' : '#0a84ff'}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -56,7 +56,7 @@ export default function VerifyEmailPage() {
         }}>
           {isError
             ? <AlertCircle size={36} color="#ef4444" />
-            : <Mail size={36} color="#d7b55f" />
+            : <Mail size={36} color="#0a84ff" />
           }
         </div>
 
@@ -75,7 +75,7 @@ export default function VerifyEmailPage() {
               href="/"
               style={{
                 display: 'inline-block',
-                background: 'linear-gradient(135deg, #d7b55f 0%, #a8262a 100%)',
+                background: 'linear-gradient(135deg, #0a84ff 0%, #e30022 100%)',
                 color: '#fff',
                 padding: '12px 28px',
                 borderRadius: '8px',
@@ -93,7 +93,7 @@ export default function VerifyEmailPage() {
               We sent a confirmation link to your email address.
             </p>
             <p style={{ color: '#cbd5e1', lineHeight: 1.7, marginBottom: '32px' }}>
-              Click <strong style={{ color: '#d7b55f' }}>"Verify My Email & Start Onboarding"</strong> in that email to continue. Check your spam folder if you don't see it within a minute.
+              Click <strong style={{ color: '#0a84ff' }}>"Verify My Email & Start Onboarding"</strong> in that email to continue. Check your spam folder if you don't see it within a minute.
             </p>
 
             {/* Steps */}
@@ -116,7 +116,7 @@ export default function VerifyEmailPage() {
                     width: '26px',
                     height: '26px',
                     borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #d7b55f, #a8262a)',
+                    background: 'linear-gradient(135deg, #0a84ff, #e30022)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -134,7 +134,7 @@ export default function VerifyEmailPage() {
 
             <p style={{ fontSize: '0.8rem', color: '#64748b' }}>
               Wrong email?{' '}
-              <a href="/" style={{ color: '#d7b55f', textDecoration: 'none', fontWeight: 600 }}>
+              <a href="/" style={{ color: '#0a84ff', textDecoration: 'none', fontWeight: 600 }}>
                 Go back and re-register
               </a>
             </p>

@@ -176,31 +176,31 @@ export async function POST(request: Request) {
 <body style="margin:0;padding:0;background:#0f172a;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;padding:32px 16px;">
   <tr><td align="center">
-    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#0b131e;border-radius:14px;border:1px solid #d7b55f;overflow:hidden;font-family:'Helvetica Neue',Arial,sans-serif;">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#0b131e;border-radius:14px;border:1px solid #0a84ff;overflow:hidden;font-family:'Helvetica Neue',Arial,sans-serif;">
       
       <!-- Header with logo -->
       <tr>
-        <td style="background:linear-gradient(135deg,#0b131e 0%,#1a2332 100%);padding:28px 30px;text-align:center;border-bottom:2px solid #d7b55f;">
-          <img src="https://libertydispatch.xyz/logo.png" alt="Liberty Dispatchers" style="max-height:60px;max-width:220px;object-fit:contain;display:block;margin:0 auto;" />
+        <td style="background:linear-gradient(135deg,#0b131e 0%,#1a2332 100%);padding:28px 30px;text-align:center;border-bottom:2px solid #0a84ff;">
+          <img src="https://libertydispatch.xyz/logo.jpg" alt="Liberty Dispatchers" style="max-height:60px;max-width:220px;object-fit:contain;display:block;margin:0 auto;" />
         </td>
       </tr>
 
       <!-- Body -->
       <tr>
         <td style="padding:32px 36px;color:#f8fafc;">
-          <h2 style="color:#d7b55f;margin:0 0 10px;font-size:1.4rem;text-align:center;">Confirm Your Email Address</h2>
+          <h2 style="color:#0a84ff;margin:0 0 10px;font-size:1.4rem;text-align:center;">Confirm Your Email Address</h2>
           <p style="color:#94a3b8;text-align:center;margin:0 0 28px;font-size:0.9rem;">One quick step to unlock your driver application</p>
           
           <p style="color:#cbd5e1;margin:0 0 6px;">Hi <strong style="color:#fff;">${name}</strong>,</p>
           <p style="color:#94a3b8;line-height:1.7;margin:0 0 28px;">
-            Thanks for applying to Liberty Dispatchers! Click the button below to verify your email and access your onboarding documents. This link expires in <strong style="color:#d7b55f;">24 hours</strong>.
+            Thanks for applying to Liberty Dispatchers! Click the button below to verify your email and access your onboarding documents. This link expires in <strong style="color:#0a84ff;">24 hours</strong>.
           </p>
 
           <!-- CTA Button -->
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
             <tr>
               <td align="center">
-                <a href="${verifyUrl}" style="display:inline-block;background:linear-gradient(135deg,#d7b55f 0%,#a8262a 100%);color:#ffffff;padding:15px 36px;text-decoration:none;border-radius:8px;font-weight:800;font-size:1rem;letter-spacing:0.02em;">
+                <a href="${verifyUrl}" style="display:inline-block;background:linear-gradient(135deg,#0a84ff 0%,#e30022 100%);color:#ffffff;padding:15px 36px;text-decoration:none;border-radius:8px;font-weight:800;font-size:1rem;letter-spacing:0.02em;">
                   ✅ Verify My Email &amp; Start Onboarding
                 </a>
               </td>
@@ -210,7 +210,7 @@ export async function POST(request: Request) {
           <!-- What to expect -->
           <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-bottom:24px;">
             <tr><td style="padding:16px 20px;">
-              <p style="color:#d7b55f;font-weight:700;margin:0 0 12px;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;">What happens next</p>
+              <p style="color:#0a84ff;font-weight:700;margin:0 0 12px;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;">What happens next</p>
               <table cellpadding="0" cellspacing="0">
                 <tr><td style="padding:4px 0;color:#94a3b8;font-size:0.88rem;">📋 &nbsp;Review and sign your Driver Agreement</td></tr>
                 <tr><td style="padding:4px 0;color:#94a3b8;font-size:0.88rem;">📍 &nbsp;Set your coverage area and availability</td></tr>
@@ -223,7 +223,7 @@ export async function POST(request: Request) {
           <!-- Fallback link -->
           <p style="color:#64748b;font-size:0.78rem;line-height:1.6;margin:0;">
             If the button doesn't work, copy and paste this link into your browser:<br>
-            <a href="${verifyUrl}" style="color:#d7b55f;word-break:break-all;">${verifyUrl}</a>
+            <a href="${verifyUrl}" style="color:#0a84ff;word-break:break-all;">${verifyUrl}</a>
           </p>
         </td>
       </tr>
@@ -270,8 +270,8 @@ export async function POST(request: Request) {
         }
         
         const adminHtmlBody = `
-        <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-          <h2 style="color: #a8262a;">New Driver Signup Alert 🚨</h2>
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2 style="color: #0a84ff;">New Driver Signup Alert 🚨</h2>
           <p>A new applicant has just registered via the website.</p>
           <ul>
             <li><strong>Name:</strong> ${name}</li>

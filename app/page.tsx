@@ -272,7 +272,7 @@ export default function LandingPage() {
           overflowX: 'auto',
           flexWrap: 'nowrap',
         }}>
-          <Globe size={14} style={{ color: '#d7b55f', flexShrink: 0 }} />
+          <Globe size={14} style={{ color: '#0a84ff', flexShrink: 0 }} />
           <span style={{ fontSize: '0.72rem', color: '#64748b', marginRight: '4px', flexShrink: 0 }}>Language:</span>
           {LANGUAGES.map(l => (
             <button
@@ -281,9 +281,9 @@ export default function LandingPage() {
               style={{
                 padding: '3px 10px',
                 borderRadius: '20px',
-                border: `1px solid ${lang === l.code ? '#d7b55f' : 'rgba(255,255,255,0.1)'}`,
-                background: lang === l.code ? 'rgba(215,181,95,0.15)' : 'transparent',
-                color: lang === l.code ? '#d7b55f' : '#94a3b8',
+                border: `1px solid ${lang === l.code ? '#0a84ff' : 'rgba(255,255,255,0.1)'}`,
+                background: lang === l.code ? 'rgba(10,132,255,0.15)' : 'transparent',
+                color: lang === l.code ? '#0a84ff' : '#94a3b8',
                 fontSize: '0.72rem',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
@@ -309,7 +309,7 @@ export default function LandingPage() {
       {/* Logo + tagline */}
       <div style={{ marginBottom: '2rem', textAlign: 'center', marginTop: view !== 'dashboard' ? '56px' : '0' }}>
         <img
-          src="/logo.png"
+          src="/logo.jpg"
           alt="Liberty Dispatchers Logo"
           style={{ maxWidth: '280px', height: 'auto', objectFit: 'contain', marginBottom: '1rem' }}
         />
@@ -355,7 +355,7 @@ export default function LandingPage() {
               return (
                 <div style={{ padding: '24px', textAlign: 'center' }}>
                   <p style={{ color: '#94a3b8', marginBottom: '16px' }}>Complete your onboarding to get started.</p>
-                  <a href={`/esign/${profile.id}`} style={{ background: 'linear-gradient(135deg, #d7b55f, #a8262a)', color: '#fff', padding: '12px 24px', borderRadius: '8px', textDecoration: 'none', fontWeight: 700 }}>
+                  <a href={`/esign/${profile.id}`} style={{ background: 'linear-gradient(135deg, #0a84ff, #e30022)', color: '#fff', padding: '12px 24px', borderRadius: '8px', textDecoration: 'none', fontWeight: 700 }}>
                     Complete Onboarding →
                   </a>
                 </div>

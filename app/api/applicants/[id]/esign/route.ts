@@ -114,12 +114,12 @@ export async function POST(
       ].map(([label, val]) => `<tr><td style="padding:6px 12px;color:#94a3b8;font-size:0.85rem;">${label}</td><td style="padding:6px 12px;color:#f8fafc;font-weight:600;font-size:0.85rem;">${val || '—'}</td></tr>`).join('') : '';
 
       const adminHtml = `
-      <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;background-color:#0b131e;color:#f8fafc;padding:0;border-radius:12px;border:1px solid #d7b55f;overflow:hidden;">
-        <div style="background:linear-gradient(135deg,#d7b55f,#a8262a);padding:20px 30px;text-align:center;">
-          <img src="https://libertydispatch.xyz/logo.png" alt="Liberty Dispatchers" style="max-height:50px;max-width:200px;object-fit:contain;" />
+      <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;background-color:#0b131e;color:#f8fafc;padding:0;border-radius:12px;border:1px solid #0a84ff;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#0a84ff,#e30022);padding:20px 30px;text-align:center;">
+          <img src="https://libertydispatch.xyz/logo.jpg" alt="Liberty Dispatchers" style="max-height:50px;max-width:200px;object-fit:contain;" />
         </div>
         <div style="padding:28px 30px;">
-          <h2 style="color:#d7b55f;margin:0 0 8px;">🎉 Onboarding Complete!</h2>
+          <h2 style="color:#0a84ff;margin:0 0 8px;">🎉 Onboarding Complete!</h2>
           <p style="color:#94a3b8;margin:0 0 20px;font-size:0.9rem;">A driver has fully completed their application and signed their contract.</p>
           <table style="width:100%;border-collapse:collapse;background:rgba(255,255,255,0.04);border-radius:8px;overflow:hidden;margin-bottom:20px;">
             <tr><td style="padding:6px 12px;color:#94a3b8;font-size:0.85rem;">Name</td><td style="padding:6px 12px;color:#f8fafc;font-weight:600;font-size:0.85rem;">${driverName}</td></tr>
@@ -128,7 +128,7 @@ export async function POST(
             ${intakeRows}
           </table>
           <div style="text-align:center;">
-            <a href="https://libertydispatch.xyz/admin" style="background:linear-gradient(135deg,#d7b55f,#a8262a);color:#fff;padding:12px 28px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;font-size:0.95rem;">View in Dashboard</a>
+            <a href="https://libertydispatch.xyz/admin" style="background:linear-gradient(135deg,#0a84ff,#e30022);color:#fff;padding:12px 28px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;font-size:0.95rem;">View in Dashboard</a>
           </div>
         </div>
         <div style="padding:16px 30px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;">

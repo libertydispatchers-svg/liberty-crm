@@ -15,11 +15,12 @@
   --text-muted: #526f8c; /* Muted cool slate text */
   
   /* Liberty Dispatchers Colors */
-  --accent-color: #d7b55f; /* Gold */
-  --accent-glow: rgba(215, 181, 95, 0.25);
-  --accent-cyan: #0b3c73; /* Vibrant blue instead of red */
+  --accent-color: #0a84ff; /* Electric Blue */
+  --accent-glow: rgba(10, 132, 255, 0.25);
+  --accent-cyan: #0b3c73; /* Navy blue */
   --accent-cyan-glow: rgba(11, 60, 115, 0.2);
-  --navy-blue: #0b3c73; /* Solid blue accent */
+  --navy-blue: #0b3c73; /* Solid navy blue */
+  --accent-red: #e30022; /* Flag Red */
   
   --status-new: #0b3c73; /* Blue */
   --status-contacted: #d97706; /* Amber */
