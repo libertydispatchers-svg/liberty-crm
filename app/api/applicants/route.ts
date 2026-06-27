@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { SignJWT } from 'jose';
 import { getGmailClient } from '../../../lib/google';
 import { randomBytes } from 'crypto';
+import { tEmail } from '../../../lib/i18nEmails';
 
 export const dynamic = 'force-dynamic';
 
@@ -170,7 +171,6 @@ export async function POST(request: Request) {
       try {
         const verifyUrl = `https://libertydispatch.xyz/api/auth/verify?token=${(applicant as any).verificationToken}&id=${applicant.id}`;
         const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_iYXGPDLy_D8qB1XdZeZjrMtGxFKZnukLa';
-        const { tEmail } = require('../../../lib/i18nEmails');
         const lang = (applicant as any).language || 'en';
 
         const htmlBody = `<!DOCTYPE html>

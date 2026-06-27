@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
 import { getGmailClient } from '../../../../lib/google';
 import { MOCK_APPLICANTS } from '../../../../lib/mockApplicants';
+import { tEmail } from '../../../../lib/i18nEmails';
 
 export async function GET(
   request: Request,
@@ -122,7 +123,6 @@ export async function PUT(
 
             // Dispatch HTML Email with Gmail API
             if (existing.email) {
-              const { tEmail } = require('../../../../lib/i18nEmails');
               const lang = (existing as any).language || 'en';
               const htmlBody = `
               <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b131e; color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #0a84ff;">

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element, @next/next/no-sync-scripts */
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
