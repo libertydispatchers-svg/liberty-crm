@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Mail, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
   const [resending, setResending] = useState(false);
@@ -81,53 +81,30 @@ export default function VerifyEmailPage() {
                 borderRadius: '8px',
                 textDecoration: 'none',
                 fontWeight: 700,
-                fontSize: '0.95rem',
+                fontSize: '1rem',
+                boxShadow: '0 8px 16px rgba(10, 132, 255, 0.3)',
               }}
             >
-              Back to Sign Up
+              Return to Website
             </a>
           </>
         ) : (
           <>
-            <p style={{ color: '#94a3b8', lineHeight: 1.7, marginBottom: '8px' }}>
-              We sent a confirmation link to your email address.
+            <p style={{ color: '#94a3b8', lineHeight: 1.7, marginBottom: '32px' }}>
+              We've just sent a secure magic link to your email address. 
+              Please click the link inside to verify your account and continue.
             </p>
-            <p style={{ color: '#cbd5e1', lineHeight: 1.7, marginBottom: '32px' }}>
-              Click <strong style={{ color: '#0a84ff' }}>"Verify My Email & Start Onboarding"</strong> in that email to continue. Check your spam folder if you don't see it within a minute.
-            </p>
-
-            {/* Steps */}
-            <div style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '10px',
-              padding: '20px',
-              textAlign: 'left',
-              marginBottom: '28px',
-            }}>
+            
+            {/* Checklist */}
+            <div style={{ textAlign: 'left', background: 'rgba(0,0,0,0.2)', padding: '24px', borderRadius: '12px', marginBottom: '24px' }}>
               {[
-                { num: '1', text: 'Open your email inbox' },
-                { num: '2', text: 'Find the email from apply@libertydispatch.xyz' },
-                { num: '3', text: 'Click "Verify My Email & Start Onboarding"' },
-                { num: '4', text: "You'll be taken straight to your application" },
-              ].map(step => (
-                <div key={step.num} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                  <div style={{
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #0a84ff, #e30022)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.75rem',
-                    fontWeight: 800,
-                    flexShrink: 0,
-                    color: '#fff',
-                  }}>
-                    {step.num}
-                  </div>
-                  <span style={{ fontSize: '0.88rem', color: '#cbd5e1' }}>{step.text}</span>
+                "Check your spam or junk folder.",
+                "Make sure you entered the correct email.",
+                "The link will expire in 2 hours."
+              ].map((text, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: i === 2 ? 0 : '16px' }}>
+                  <CheckCircle size={18} color="#22c55e" style={{ marginTop: '2px', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.88rem', color: '#cbd5e1' }}>{text}</span>
                 </div>
               ))}
             </div>
@@ -149,5 +126,13 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

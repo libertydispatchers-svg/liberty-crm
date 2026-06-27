@@ -47,13 +47,13 @@ export async function POST(request: Request) {
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
-          'Authorization': \`Bearer \${RESEND_API_KEY}\`,
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           from: 'Liberty Dispatchers <onboarding@libertydispatch.xyz>',
           to: 'libertydispatchers@gmail.com',
-          subject: \`🚨 New Vendor Signup: \${businessName}\`,
+          subject: `🚨 New Vendor Signup: ${businessName}`,
           html: adminHtmlBody
         })
       });
