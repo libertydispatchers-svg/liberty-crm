@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap');
 
 :root {
-  --bg-color: #070f1e; /* Deep navy/black background */
-  --bg-gradient: linear-gradient(180deg, #070f1e 0%, #0b2848 100%);
-  --panel-bg: #112238; /* Darker cool gray-blue card background */
+  --bg-color: #000000; /* Pure black background */
+  --bg-gradient: linear-gradient(180deg, #000000 0%, #000000 100%);
+  --panel-bg: #090909; /* Very dark gray for panels */
   --panel-bg-solid: #112238;
   --glass-bg: rgba(17, 34, 56, 0.45);
   --glass-bg-hover: rgba(17, 34, 56, 0.65);

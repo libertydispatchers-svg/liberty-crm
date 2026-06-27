@@ -243,13 +243,13 @@ export default function LandingPage() {
   };
 
   if (isLoading) {
-    return <div style={{ minHeight: '100vh', backgroundColor: '#070f1e', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#fff' }}>Loading...</div>;
+    return <div style={{ minHeight: '100vh', backgroundColor: '#000000', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#fff' }}>Loading...</div>;
   }
 
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#070f1e',
+      backgroundColor: '#000000',
       color: '#ffffff',
       fontFamily: 'system-ui, -apple-system, sans-serif',
       display: 'flex',

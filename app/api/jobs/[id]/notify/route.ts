@@ -29,7 +29,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
         if (!driver.email) continue;
         
         const htmlBody = `
-        <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b131e; color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #0a84ff;">
+        <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #000000; color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #0a84ff;">
           <div style="text-align: center; margin-bottom: 24px;">
             <img src="https://libertydispatch.xyz/logo.jpg" alt="Liberty Dispatchers" style="max-width: 200px; height: auto;" />
           </div>
