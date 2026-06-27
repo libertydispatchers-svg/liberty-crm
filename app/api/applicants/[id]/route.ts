@@ -127,14 +127,13 @@ export async function PUT(
               const htmlBody = `
               <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b131e; color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #0a84ff;">
                 <div style="text-align: center; margin-bottom: 24px;">
-                  <!-- Use placeholder or public logo URL for emails -->
-                  <h1 style="color: #ffffff; margin: 0;">Liberty Dispatchers</h1>
+                  <img src="https://libertydispatch.xyz/logo.jpg" alt="Liberty Dispatchers" style="max-width: 200px; height: auto;" />
                 </div>
                 <h2 style="color: #0a84ff; text-align: center;">${tEmail('docRequestTitle', lang)}</h2>
                 <p>${tEmail('hi', lang)} ${existing.name || 'there'},</p>
                 <p>${tEmail('docRequestBody', lang)} <strong>${docName}</strong>.</p>
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="https://liberty-crm-736433125033.europe-west1.run.app/esign/${existing.id}" style="background: linear-gradient(135deg, #0a84ff 0%, #e30022 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">${tEmail('reviewSignBtn', lang)}</a>
+                  <a href="https://libertydispatch.xyz/esign/${existing.id}" style="background: linear-gradient(135deg, #0a84ff 0%, #e30022 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">${tEmail('reviewSignBtn', lang)}</a>
                 </div>
                 <p style="color: #94a3b8; font-size: 12px; text-align: center;">${tEmail('questionsFooter', lang)}</p>
               </div>
@@ -173,14 +172,14 @@ export async function PUT(
         const htmlBody = `
         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b131e; color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #0a84ff;">
           <div style="text-align: center; margin-bottom: 24px;">
-            <h1 style="color: #ffffff; margin: 0;">Liberty Dispatchers</h1>
+            <img src="https://libertydispatch.xyz/logo.jpg" alt="Liberty Dispatchers" style="max-width: 200px; height: auto;" />
           </div>
           <h2 style="color: #0a84ff; text-align: center;">Welcome to the Grid!</h2>
           <p>Hi ${existing.name || 'there'},</p>
           <p>Your driver application has been reviewed and <strong>approved</strong>!</p>
           <p>You have been successfully added to the active dispatch grid and can now begin receiving routes.</p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://liberty-crm-736433125033.europe-west1.run.app" style="background: linear-gradient(135deg, #0a84ff 0%, #e30022 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Login to Dashboard</a>
+            <a href="https://app.libertydispatch.xyz" style="background: linear-gradient(135deg, #0a84ff 0%, #e30022 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Login to Dashboard</a>
           </div>
           <p style="color: #94a3b8; font-size: 12px; text-align: center;">If you have any questions, please reply to this email.</p>
         </div>

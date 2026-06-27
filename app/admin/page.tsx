@@ -1565,7 +1565,7 @@ export default function CrmDashboard() {
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '10px 14px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>Google Workspace Viewer (Unified Inbox)</p>
-                      <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{gmailData.emailAddress || 'recruit@libertydispatchers.com'}</p>
+                      <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{gmailData.emailAddress || 'recruit@libertydispatch.xyz'}</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <button 
@@ -2110,7 +2110,7 @@ export default function CrmDashboard() {
                                       onClick={() => {
                                         const phone = selectedApplicant.phone || '';
                                         const cleanPhone = phone.replace(/\D/g, '');
-                                        const url = `https://libertydispatchers.com/onboarding/${selectedApplicant.id}`;
+                                        const url = `https://libertydispatch.xyz/onboarding/${selectedApplicant.id}`;
                                         const msg = encodeURIComponent(`Hi ${selectedApplicant.name}, please complete your ${doc.name} here: ${url}`);
                                         if (cleanPhone.length >= 10) {
                                           window.open(`https://wa.me/1${cleanPhone.slice(-10)}?text=${msg}`, '_blank');

@@ -30,7 +30,7 @@ export const MOCK_APPLICANTS = [
     createdAt: "2026-05-28T17:59:07.583Z",
     updatedAt: "2026-05-28T17:59:07.583Z",
     notes: [
-      { id: "cmppsrrjy000j11dnycao3866", content: "Applied via Libertydispatchers.com email query.", createdAt: "2026-05-28T17:59:07.583Z" },
+      { id: "cmppsrrjy000j11dnycao3866", content: "Applied via Libertydispatch.com email query.", createdAt: "2026-05-28T17:59:07.583Z" },
       { id: "cmppsrrjz000k11dnuvffgwib", content: "Sent onboarding documents.", createdAt: "2026-05-28T17:59:07.583Z" },
       { id: "cmppsrrjz000l11dn9a0nbn5x", content: "Completed W-9, signed contract, and confirmed full availability.", createdAt: "2026-05-28T17:59:07.583Z" },
       { id: "cmppsrrjz000m11dnneq1xfx7", content: "Completed background check. Onboarded and active. Ready for shifts!", createdAt: "2026-05-28T17:59:07.583Z" }

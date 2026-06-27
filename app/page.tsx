@@ -86,6 +86,23 @@ export default function LandingPage() {
   const [lang, setLang] = useState('en');
   const [showLangModal, setShowLangModal] = useState(true);
 
+  // Animated Language Title
+  const [langTitleIndex, setLangTitleIndex] = useState(0);
+  const langTitles = [
+    "Select Your Language", "Seleccione su idioma", "اختر لغتك",
+    "Choisissez votre langue", "选择你的语言", "আপনার ভাষা নির্বাচন করুন",
+    "בחר את השפה שלך", "ቋንቋዎን ይምረጡ", "Yan Ede Rẹ", "Выберите ваш язык"
+  ];
+  
+  useEffect(() => {
+    if (showLangModal) {
+      const interval = setInterval(() => {
+        setLangTitleIndex((prev) => (prev + 1) % langTitles.length);
+      }, 1500);
+      return () => clearInterval(interval);
+    }
+  }, [showLangModal]);
+
   const selectLang = (code: string) => {
     setLang(code);
     setShowLangModal(false);
@@ -226,13 +243,13 @@ export default function LandingPage() {
   };
 
   if (isLoading) {
-    return <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#fff' }}>Loading...</div>;
+    return <div style={{ minHeight: '100vh', backgroundColor: '#070f1e', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#fff' }}>Loading...</div>;
   }
 
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#0f172a',
+      backgroundColor: '#070f1e',
       color: '#ffffff',
       fontFamily: 'system-ui, -apple-system, sans-serif',
       display: 'flex',
@@ -250,8 +267,8 @@ export default function LandingPage() {
           display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
           zIndex: 9999, padding: '20px'
         }}>
-          <img src="/logo.jpg" alt="Logo" style={{ maxWidth: '200px', marginBottom: '30px', borderRadius: '12px' }} />
-          <h2 style={{ color: '#fff', marginBottom: '20px' }}>Select Your Language</h2>
+          <img src="/logo.jpg?v=2" alt="Logo" style={{ maxWidth: '200px', marginBottom: '30px', borderRadius: '12px' }} />
+          <h2 style={{ color: '#fff', marginBottom: '20px', transition: 'opacity 0.3s ease' }}>{langTitles[langTitleIndex]}</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', width: '100%', maxWidth: '600px' }}>
             {LANGUAGES.map(l => (
               <button
@@ -288,7 +305,7 @@ export default function LandingPage() {
       {/* Logo + tagline */}
       <div style={{ marginBottom: '2rem', textAlign: 'center', marginTop: view !== 'dashboard' ? '56px' : '0' }}>
         <img
-          src="/logo.jpg"
+          src="/logo.jpg?v=2"
           alt="Liberty Dispatchers Logo"
           style={{ maxWidth: '280px', height: 'auto', objectFit: 'contain', marginBottom: '1rem' }}
         />
@@ -402,7 +419,7 @@ export default function LandingPage() {
             {errorMsg && <div style={{ color: '#ef4444', fontSize: '0.9rem', padding: '10px', background: 'rgba(239,68,68,0.1)', borderRadius: '6px' }}>{errorMsg}</div>}
             {successMsg && <div style={{ color: '#10b981', fontSize: '0.9rem', padding: '10px', background: 'rgba(16,185,129,0.1)', borderRadius: '6px' }}>{successMsg}</div>}
 
-            <button type="submit" disabled={isSubmitting} style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', color: '#ffffff', padding: '12px', borderRadius: '8px', fontSize: '1rem', fontWeight: 600, border: 'none', cursor: isSubmitting ? 'wait' : 'pointer', opacity: isSubmitting ? 0.8 : 1, marginTop: '10px' }}>
+            <button type="submit" disabled={isSubmitting} style={{ background: 'linear-gradient(135deg, #0a84ff 0%, #e30022 100%)', color: '#ffffff', padding: '12px', borderRadius: '8px', fontSize: '1rem', fontWeight: 600, border: 'none', cursor: isSubmitting ? 'wait' : 'pointer', opacity: isSubmitting ? 0.8 : 1, marginTop: '10px' }}>
               {isSubmitting ? 'Saving...' : 'Save Profile Details'}
             </button>
           </form>
@@ -414,10 +431,10 @@ export default function LandingPage() {
 
           {/* Tab switcher */}
           <div style={{ display: 'flex', marginBottom: '24px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '4px' }}>
-            <button onClick={() => setView('register')} style={{ flex: 1, padding: '8px', border: 'none', background: view === 'register' ? '#2563eb' : 'transparent', color: view === 'register' ? '#fff' : '#94a3b8', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+            <button onClick={() => setView('register')} style={{ flex: 1, padding: '8px', border: 'none', background: view === 'register' ? '#0a84ff' : 'transparent', color: view === 'register' ? '#fff' : '#94a3b8', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
               {t('applyBtn', lang)}
             </button>
-            <button onClick={() => setView('login')} style={{ flex: 1, padding: '8px', border: 'none', background: view === 'login' ? '#2563eb' : 'transparent', color: view === 'login' ? '#fff' : '#94a3b8', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+            <button onClick={() => setView('login')} style={{ flex: 1, padding: '8px', border: 'none', background: view === 'login' ? '#0a84ff' : 'transparent', color: view === 'login' ? '#fff' : '#94a3b8', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
               {t('signIn', lang)}
             </button>
           </div>
@@ -466,7 +483,7 @@ export default function LandingPage() {
 
               {errorMsg && <div style={{ color: '#ef4444', fontSize: '0.9rem', marginTop: '-4px' }}>{errorMsg}</div>}
 
-              <button type="submit" disabled={isSubmitting} style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '13px', borderRadius: '8px', fontSize: '1.05rem', fontWeight: 700, border: 'none', cursor: isSubmitting ? 'wait' : 'pointer', opacity: isSubmitting ? 0.7 : 1, marginTop: '4px', letterSpacing: '0.01em' }}>
+              <button type="submit" disabled={isSubmitting} style={{ backgroundColor: '#0a84ff', color: '#ffffff', padding: '13px', borderRadius: '8px', fontSize: '1.05rem', fontWeight: 700, border: 'none', cursor: isSubmitting ? 'wait' : 'pointer', opacity: isSubmitting ? 0.7 : 1, marginTop: '4px', letterSpacing: '0.01em' }}>
                 {isSubmitting ? t('submitting', lang) : t('submit', lang)}
               </button>
             </form>

@@ -123,7 +123,7 @@ async function main() {
       }),
       notes: {
         create: [
-          { content: 'Applied via Libertydispatchers.com email query.' },
+          { content: 'Applied via Libertydispatch.com email query.' },
           { content: 'Sent onboarding documents.' },
           { content: 'Completed W-9, signed contract, and confirmed full availability.' },
           { content: 'Completed background check. Onboarded and active. Ready for shifts!' }

@@ -22,7 +22,7 @@ export default function StartVm() {
       .then(() => {
         // After VM is started, redirect to main app domain
         // You may change this URL to your custom domain if different
-        window.location.href = 'https://app.libertydispatchers.com';
+        window.location.href = 'https://app.libertydispatch.xyz';
       })
       .catch((e) => {
         console.error(e);
