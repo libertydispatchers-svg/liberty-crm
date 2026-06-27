@@ -263,26 +263,31 @@ export default function LandingPage() {
       {showLangModal && view !== 'dashboard' && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(11,19,30,0.9)', backdropFilter: 'blur(10px)',
+          background: '#000000', backdropFilter: 'blur(10px)',
           display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
           zIndex: 9999, padding: '20px'
         }}>
           <img src="/logo.jpg?v=2" alt="Logo" style={{ maxWidth: '200px', marginBottom: '30px', borderRadius: '12px' }} />
           <h2 style={{ color: '#fff', marginBottom: '20px', transition: 'opacity 0.3s ease' }}>{langTitles[langTitleIndex]}</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', width: '100%', maxWidth: '600px' }}>
-            {LANGUAGES.map(l => (
-              <button
-                key={l.code}
-                onClick={() => selectLang(l.code)}
-                style={{
-                  padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
-                  background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '1rem',
-                  cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '10px'
-                }}
-              >
-                <span style={{ fontSize: '1.4rem' }}>{l.flag}</span> {l.label}
-              </button>
-            ))}
+          <div className="marquee-container" style={{ width: '100%', maxWidth: '800px', padding: '10px 0' }}>
+            <div className="marquee-content" style={{ gap: '16px' }}>
+              {[...LANGUAGES, ...LANGUAGES].map((l, i) => (
+                <button
+                  key={`${l.code}-${i}`}
+                  onClick={() => selectLang(l.code)}
+                  style={{
+                    padding: '16px 24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '1.1rem',
+                    cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '10px',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                >
+                  <span style={{ fontSize: '1.4rem' }}>{l.flag}</span> {l.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -310,16 +315,30 @@ export default function LandingPage() {
           style={{ maxWidth: '280px', height: 'auto', objectFit: 'contain', marginBottom: '1rem' }}
         />
         {view !== 'dashboard' && (
-          <p
-            key={lang}
-            style={{
-              fontSize: '1.05rem', color: '#94a3b8', maxWidth: '500px', lineHeight: '1.6',
-              direction: currentLangDir as any,
-              animation: 'fadeIn 0.4s ease',
-            }}
-          >
-            {t('tagline', lang)}
-          </p>
+          <>
+            <p
+              key={lang}
+              style={{
+                fontSize: '1.05rem', color: '#94a3b8', maxWidth: '500px', lineHeight: '1.6', margin: '0 auto',
+                direction: currentLangDir as any,
+                animation: 'fadeIn 0.4s ease',
+              }}
+            >
+              {t('tagline', lang)}
+            </p>
+            <p
+              style={{
+                fontSize: '0.95rem', color: '#cbd5e1', maxWidth: '700px', lineHeight: '1.7', margin: '1.5rem auto 0',
+                animation: 'fadeIn 0.6s ease',
+              }}
+            >
+              We are building a database for the new free'er revolution of drivers changing up dispatching. 
+              Embrace the ebike, bike, and moped courier lifestyle with dedicated support, total freedom, and pre-determined amounts. 
+              Flexibility is how we operate—we encourage users who use multiple other delivery apps to check out our offers, 
+              and you take them if you want. We run delivery dispatch and placement for many tech companies, 
+              using technology to change the game for delivery workers.
+            </p>
+          </>
         )}
       </div>
 

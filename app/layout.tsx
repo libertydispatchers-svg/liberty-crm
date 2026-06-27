@@ -2,13 +2,14 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Liberty Dispatchers | Join the Courier Revolution',
-  description: 'Join the revolution of choosing your work scheduling, access to charging stations, storage help, and locked in rates per mile. E-bikes, bikes, and couriers wanted!',
+  title: 'Liberty Dispatchers | The Free\'er Revolution for Drivers',
+  description: 'Join the free\'er revolution of drivers changing up dispatching. Ebike, bike, and moped courier lifestyle with support, freedom, and pre-determined amounts. Flexibility is how we operate. We run delivery dispatch and placement for many tech companies to change the game for delivery workers.',
+  keywords: ['delivery drivers', 'dispatching', 'ebike courier', 'bike courier', 'moped courier', 'gig economy', 'flexible work', 'tech dispatch'],
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Liberty CRM',
+    title: 'Liberty Dispatch',
   },
 };
 

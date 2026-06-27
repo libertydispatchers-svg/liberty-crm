@@ -480,3 +480,22 @@ a {
     text-align: left !important;
   }
 }
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  max-width: 800px;
+  position: relative;
+}
+.marquee-content {
+  display: inline-flex;
+  animation: marquee 20s linear infinite;
+}
+.marquee-content:hover {
+  animation-play-state: paused;
+}
