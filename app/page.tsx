@@ -328,15 +328,14 @@ export default function LandingPage() {
             </p>
             <p
               style={{
-                fontSize: '0.95rem', color: '#cbd5e1', maxWidth: '700px', lineHeight: '1.7', margin: '1.5rem auto 0',
+                fontSize: '0.95rem', color: '#cbd5e1', maxWidth: '650px', lineHeight: '1.7', margin: '1.5rem auto 0',
                 animation: 'fadeIn 0.6s ease',
               }}
             >
-              We are building a database for the new free'er revolution of drivers changing up dispatching. 
-              Embrace the ebike, bike, and moped courier lifestyle with dedicated support, total freedom, and pre-determined amounts. 
-              Flexibility is how we operate—we encourage users who use multiple other delivery apps to check out our offers, 
-              and you take them if you want. We run delivery dispatch and placement for many tech companies, 
-              using technology to change the game for delivery workers.
+              Join the dispatch revolution! We empower drivers of all ages (18+) with smart routing, dedicated support, and total freedom. 
+              Whether you ride an e-bike, moped, or drive a car, you choose the runs you want with pre-determined payouts. 
+              We partner with multiple top tech companies to bring you endless opportunities. Flexibility is how we operate—mix our offers 
+              with your other delivery apps and work entirely on your own terms.
             </p>
           </>
         )}

@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Liberty Dispatchers | The Free\'er Revolution for Drivers',
-  description: 'Join the free\'er revolution of drivers changing up dispatching. Ebike, bike, and moped courier lifestyle with support, freedom, and pre-determined amounts. Flexibility is how we operate. We run delivery dispatch and placement for many tech companies to change the game for delivery workers.',
+  description: 'Join the dispatch revolution! We empower drivers (18+) with smart routing, dedicated support, and total freedom. Mix our offers with your other delivery apps and work entirely on your own terms. We partner with multiple top tech companies to bring you endless opportunities.',
   keywords: ['delivery drivers', 'dispatching', 'ebike courier', 'bike courier', 'moped courier', 'gig economy', 'flexible work', 'tech dispatch'],
   manifest: '/manifest.json',
   appleWebApp: {
